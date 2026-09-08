@@ -13,7 +13,7 @@ from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution import SimulatedBroker
 from tradingbot.indicators import FloatArray
 from tradingbot.persistence import InMemoryStore
-from tradingbot.risk import RiskManager
+from tradingbot.risk import KillSwitch, RiskManager
 from tradingbot.strategy import OhlcvArrays, Strategy, StrategyContext, StrategyParams
 
 H4 = Timeframe.H4.ms
@@ -161,6 +161,8 @@ def build_engine(
     risk: RiskConfig | None = None,
     execution: ExecutionConfig | None = None,
     markets: Mapping[Pair, MarketInfo] | None = None,
+    kill_switch: KillSwitch | None = None,
+    auto_resume: bool = True,
 ) -> tuple[Engine, InMemoryStore, SimulatedBroker]:
     risk_cfg = risk or RiskConfig()
     exec_cfg = execution or ExecutionConfig()
@@ -172,10 +174,11 @@ def build_engine(
         feed=ListFeed(bars),
         series=PrecomputedSeries(strategy, candles_by_pair),
         broker=broker,
-        risk=RiskManager(risk_cfg, exec_cfg, mkts, strategy.name),
+        risk=RiskManager(risk_cfg, exec_cfg, mkts, strategy.name, auto_resume=auto_resume),
         store=store,
         markets=mkts,
         execution=exec_cfg,
         initial_cash=d(cash),
+        kill_switch=kill_switch,
     )
     return engine, store, broker

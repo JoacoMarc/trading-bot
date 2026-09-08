@@ -117,3 +117,19 @@ Fracción del tiempo con capital invertido. Un 13 % de exposición con retorno p
 ## Position sizing (dimensionamiento)
 
 Cuánto comprar. Usamos riesgo fijo: arriesgar el 1 % del equity por operación, `qty = equity × 0.01 / (precio_entrada − stop)`. Así una operación que toca el stop pierde ~1 % del capital sin importar la volatilidad del par.
+
+## Circuit breaker (cortacircuito por drawdown)
+
+Protección que frena las entradas nuevas cuando el equity cae un porcentaje dado desde su máximo (pico) de la corrida. Las posiciones abiertas siguen su curso con stops y trailing, porque el riesgo nunca bloquea salidas. Reanuda cuando el drawdown vuelve por debajo de un nivel de reanudación (por defecto la mitad del umbral) o, si el bot quedó en cash y el DD no se mueve, tras un plazo en días que re-basa el pico; en paper/live solo reanuda una orden manual (ADR-0007).
+
+## Kill switch (interruptor de emergencia)
+
+Orden externa de "no abrir más posiciones": en este bot, el archivo `logs/STOP` o el comando `tradingbot stop`. Con `--flatten` además vende todo a mercado en la próxima vela. Permite intervenir sin matar el proceso ni perder los stops en reposo.
+
+## Pérdida diaria máxima (daily loss limit)
+
+Porcentaje del equity que se acepta perder en un día UTC, medido contra el equity al cierre del día anterior. Al alcanzarlo no hay entradas hasta el día siguiente: acota el daño de un día de whipsaws o de un gap simultáneo en varios pares.
+
+## Cooldown (enfriamiento)
+
+Velas que deben pasar tras una salida antes de volver a entrar. Hay dos: el de la estrategia (`cooldown_candles`, solo en `entry_mode=state`) y el del riesgo, por par tras una salida perdedora por stop o trailing (`cooldown_candles_after_stop`) o global tras N pérdidas seguidas (`pause_after_consecutive_losses`). Evita re-entrar en el mismo ruido que acaba de sacar al bot.

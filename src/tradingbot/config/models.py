@@ -141,15 +141,36 @@ class RiskConfig(_Strict):
     max_exposure_pct: Decimal = Field(default=Decimal("1.0"), gt=0, le=1)
     daily_loss_limit_pct: Decimal | None = Field(default=Decimal("0.03"), gt=0, le=1)
     max_drawdown_pct: Decimal | None = Field(default=Decimal("0.20"), gt=0, le=1)
+    drawdown_resume_pct: Decimal | None = Field(default=None, gt=0, le=1)  # default: mitad del DD
+    drawdown_pause_days: int | None = Field(default=30, ge=1)  # respaldo: reanuda y re-basa
     cooldown_candles_after_stop: int = Field(default=0, ge=0)
     pause_after_consecutive_losses: int | None = Field(default=None, ge=1)
+    pause_candles_after_losses: int = Field(default=12, ge=1)  # velas del timeframe
+    # `logs/` es bind mount en compose: el host escribe el STOP y el contenedor lo ve.
+    kill_switch_file: Path = Path("logs") / "STOP"
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:
         if self.max_position_pct > self.max_exposure_pct:
             msg = "max_position_pct no puede superar max_exposure_pct"
             raise ValueError(msg)
+        if self.drawdown_resume_pct is not None:
+            if self.max_drawdown_pct is None:
+                msg = "drawdown_resume_pct requiere max_drawdown_pct"
+                raise ValueError(msg)
+            if self.drawdown_resume_pct >= self.max_drawdown_pct:
+                msg = "drawdown_resume_pct debe ser menor que max_drawdown_pct"
+                raise ValueError(msg)
         return self
+
+    @property
+    def effective_drawdown_resume_pct(self) -> Decimal | None:
+        """DD bajo el cual el circuit breaker vuelve a permitir entradas (ADR-0007)."""
+        if self.max_drawdown_pct is None:
+            return None
+        if self.drawdown_resume_pct is not None:
+            return self.drawdown_resume_pct
+        return self.max_drawdown_pct / 2
 
 
 class ExecutionConfig(_Strict):

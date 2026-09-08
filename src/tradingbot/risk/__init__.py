@@ -1,4 +1,4 @@
-"""Riesgo: sizing y `RiskManager`. Nunca bloquea salidas (regla dura 7)."""
+"""Riesgo: sizing, `RiskManager` y protecciones (ADR-0007). Nunca bloquea salidas (regla 7)."""
 
 from tradingbot.risk.manager import (
     ExitDecision,
@@ -7,11 +7,25 @@ from tradingbot.risk.manager import (
     RiskDecision,
     RiskManager,
 )
+from tradingbot.risk.protections import (
+    Block,
+    FileKillSwitch,
+    KillSwitch,
+    KillSwitchState,
+    ProtectionEvent,
+    Protections,
+)
 from tradingbot.risk.sizing import ReasonCode, SizingResult, sellable_qty, size_by_risk
 
 __all__ = [
+    "Block",
     "ExitDecision",
+    "FileKillSwitch",
+    "KillSwitch",
+    "KillSwitchState",
     "PortfolioView",
+    "ProtectionEvent",
+    "Protections",
     "ReasonCode",
     "Rejection",
     "RiskDecision",

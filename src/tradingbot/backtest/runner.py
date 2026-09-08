@@ -26,6 +26,7 @@ from tradingbot.backtest.report import (
     render_report,
     trades_csv,
 )
+from tradingbot.config.models import RiskConfig
 from tradingbot.config.settings import BotConfig
 from tradingbot.data.feeds import HistoricalFeed
 from tradingbot.data.store import ParquetStore
@@ -215,7 +216,13 @@ def run_backtest(
         feed=feed,
         series=series,
         broker=SimulatedBroker(config.execution, market_infos),
-        risk=RiskManager(config.risk, config.execution, market_infos, strategy.name),
+        risk=RiskManager(
+            config.risk,
+            config.execution,
+            market_infos,
+            strategy.name,
+            auto_resume=True,  # un backtest siempre reanuda solo (ADR-0007), sea cual sea `mode`
+        ),
         store=trade_store,
         markets=market_infos,
         execution=config.execution,
@@ -289,12 +296,45 @@ def _costs_line(config: BotConfig) -> str:
 
 def _risk_line(config: BotConfig) -> str:
     r = config.risk
-    return (
+    base = (
         f"riesgo/trade {r.risk_per_trade * 100:.2f} %, "
         f"tope {r.max_position_pct * 100:.0f} % del cash por posición, "
         f"máx. {r.max_positions} posiciones, "
         f"exposición máx. {r.max_exposure_pct * 100:.0f} %"
     )
+    return f"{base} · protecciones: {', '.join(_protections_summary(r))}"
+
+
+def _protections_summary(r: RiskConfig) -> list[str]:
+    """Una frase por protección (ADR-0007), `off` cuando está desactivada."""
+    daily = (
+        "pérdida diaria off"
+        if r.daily_loss_limit_pct is None
+        else f"pérdida diaria {r.daily_loss_limit_pct * 100:.1f} % (día UTC)"
+    )
+    resume = r.effective_drawdown_resume_pct
+    if r.max_drawdown_pct is None or resume is None:
+        drawdown = "circuit breaker off"
+    else:
+        pause = "" if r.drawdown_pause_days is None else f" o tras {r.drawdown_pause_days} d"
+        drawdown = (
+            f"circuit breaker DD {r.max_drawdown_pct * 100:.0f} % "
+            f"(reanuda bajo {resume * 100:.0f} %{pause})"
+        )
+    losses = (
+        "pausa por pérdidas off"
+        if r.pause_after_consecutive_losses is None
+        else (
+            f"pausa {r.pause_candles_after_losses} velas tras "
+            f"{r.pause_after_consecutive_losses} pérdidas seguidas"
+        )
+    )
+    cooldown = (
+        "cooldown tras stop off"
+        if r.cooldown_candles_after_stop == 0
+        else f"cooldown tras stop {r.cooldown_candles_after_stop} velas"
+    )
+    return [daily, drawdown, losses, cooldown]
 
 
 def _data_line(config: BotConfig, start_ms: int, end_ms: int, warmup: int, data_hash: str) -> str:

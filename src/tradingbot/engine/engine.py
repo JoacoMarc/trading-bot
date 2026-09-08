@@ -5,8 +5,9 @@ Por cada `Bar` cerrado, en este orden:
 2. Stops en reposo con el rango de la vela (`Broker.on_bar`).
 3. Mark-to-market al close y snapshot de equity.
 4. `Strategy.on_candle` por par (orden alfabético).
-5. Salidas: reintento de las `STUCK`, señales `EXIT_LONG` (nunca bloqueadas) → intents `PENDING`.
-6. Entradas vía `RiskManager` (ranking, sizing, límites) → intents `PENDING`.
+5. Salidas: kill switch con `flatten` (todas las posiciones), reintento de las `STUCK`, señales
+   `EXIT_LONG` (nunca bloqueadas) → intents `PENDING`.
+6. Entradas vía `RiskManager` (protecciones ADR-0007, ranking, sizing, límites) → `PENDING`.
 7. Trailing: `Strategy.trailing_stop` → `PositionManager` (solo sube) → `Broker.set_stop`; si el
    nivel queda en o sobre el close, se vende a mercado al open siguiente (un stop por encima del
    último precio no existe en el exchange).
@@ -15,7 +16,7 @@ Por cada `Bar` cerrado, en este orden:
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -34,6 +35,7 @@ from tradingbot.execution.broker import Broker, BrokerEvent
 from tradingbot.execution.simulated import INSUFFICIENT_FUNDS, SimulatedBroker
 from tradingbot.persistence.store import EventRecord, TradeStore
 from tradingbot.risk.manager import PortfolioView, RiskManager
+from tradingbot.risk.protections import KillSwitch
 from tradingbot.strategy.base import Strategy, StrategyContext
 
 
@@ -44,6 +46,7 @@ class EngineStats:
     rejections: Counter[str] = field(default_factory=Counter)
     fills: int = 0
     stuck_pairs: set[Pair] = field(default_factory=set)
+    protections: Counter[str] = field(default_factory=Counter)
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,6 +71,7 @@ class Engine:
         markets: Mapping[Pair, MarketInfo],
         execution: ExecutionConfig,
         initial_cash: Decimal,
+        kill_switch: KillSwitch | None = None,
     ) -> None:
         if initial_cash <= ZERO:
             msg = f"initial_cash debe ser positivo, recibido {initial_cash}"
@@ -77,6 +81,7 @@ class Engine:
         self._series = series
         self._broker = broker
         self._risk = risk
+        self._kill_switch = kill_switch
         self._store = store
         self._execution = execution
         self._positions = PositionManager(broker, store, markets)
@@ -88,6 +93,7 @@ class Engine:
         self._pending_exits: dict[Pair, OrderIntent] = {}
         self._stuck_exits: dict[Pair, ExitReason] = {}
         self._last_exit_bar: dict[Pair, int] = {}
+        self._blocked: dict[Pair, str] = {}  # último motivo de rechazo por par (dedupe)
         self._bar_index = -1
         self._last_snapshot: PortfolioSnapshot | None = None
         if isinstance(broker, SimulatedBroker):
@@ -110,6 +116,10 @@ class Engine:
     def positions(self) -> PositionManager:
         return self._positions
 
+    @property
+    def risk(self) -> RiskManager:
+        return self._risk
+
     def equity(self) -> Decimal:
         value = sum(
             (
@@ -121,12 +131,32 @@ class Engine:
         )
         return self.cash + value
 
+    def flatten(self, open_time: int, ts: int, pairs: Collection[Pair] | None = None) -> None:
+        """Vende a mercado al open siguiente todas las posiciones (o solo `pairs`, las del bar)."""
+        for pair in sorted(self._positions.positions):
+            if pairs is None or pair in pairs:
+                self._submit_exit(pair, ExitReason.FLATTEN, open_time, ts)
+
+    def _drain_protection_events(self) -> None:
+        for event in self._risk.protections.pop_events():
+            self.stats.protections[f"{event.kind}:{event.reason.value}"] += 1
+            self._store.record_event(
+                EventRecord(
+                    ts=event.ts,
+                    kind=event.kind,
+                    pair=event.pair,
+                    reason=event.reason.value,
+                    payload={"detail": event.detail},
+                )
+            )
+
     # ------------------------------------------------------------- loop por bar
 
     def process_bar(self, bar: Bar) -> None:
         self._bar_index += 1
         self.stats.bars += 1
         ts = bar.close_time
+        self._risk.protections.on_bar(self._bar_index, ts)
 
         for event in self._broker.on_bar_open(bar):  # 1
             self._apply_event(event)
@@ -137,6 +167,10 @@ class Engine:
             self._marks[candle.pair] = candle.close
             self._positions.mark(candle.pair, candle.close)
         self._snapshot(ts)
+        self._risk.protections.on_equity(ts, self.equity())
+        if self._kill_switch is not None:
+            self._risk.protections.set_kill_switch(self._kill_switch.poll())
+        self._drain_protection_events()
 
         signals: dict[Pair, Signal] = {}  # 4
         contexts: dict[Pair, StrategyContext] = {}
@@ -159,6 +193,8 @@ class Engine:
             signals[pair] = signal
             contexts[pair] = ctx
 
+        if self._risk.protections.flatten_requested:  # 5: kill switch con flatten
+            self.flatten(bar.open_time, ts, bar.pairs)
         for pair, reason in list(self._stuck_exits.items()):  # 5a: reintentar salidas trabadas
             if pair in bar.pairs:
                 self._submit_exit(pair, reason, bar.open_time, ts)
@@ -229,7 +265,9 @@ class Engine:
         if leftover > ZERO:
             self.dust[fill.pair.base] = self.dust.get(fill.pair.base, ZERO) + leftover
         self.cash += fill.net_quote_amount
-        self._positions.close_from_fill(fill, intent.exit_reason or ExitReason.SIGNAL)
+        trade = self._positions.close_from_fill(fill, intent.exit_reason or ExitReason.SIGNAL)
+        self._risk.protections.on_trade_closed(trade)
+        self._drain_protection_events()
         self._pending_exits.pop(fill.pair, None)
         self._stuck_exits.pop(fill.pair, None)
         self._last_exit_bar[fill.pair] = self._bar_index
@@ -289,17 +327,23 @@ class Engine:
             ),
         )
         decision = self._risk.evaluate_entries(entries, view, ts)
+        blocked: dict[Pair, str] = {}
         for rejection in decision.rejections:
             self.stats.rejections[rejection.reason.value] += 1
+            pair = rejection.signal.pair
+            blocked[pair] = rejection.reason.value
+            if self._blocked.get(pair) == rejection.reason.value:
+                continue  # mismo motivo que la vela anterior: se cuenta, no se repite el evento
             self._store.record_event(
                 EventRecord(
                     ts=ts,
                     kind="entry_rejected",
-                    pair=rejection.signal.pair,
+                    pair=pair,
                     reason=rejection.reason.value,
                     payload={"detail": rejection.detail},
                 )
             )
+        self._blocked = blocked
         for intent in decision.intents:
             order = self._broker.submit(intent, ts)
             self._store.save_order(order)

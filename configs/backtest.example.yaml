@@ -26,6 +26,12 @@ risk:
   max_exposure_pct: 1.0
   daily_loss_limit_pct: 0.03
   max_drawdown_pct: 0.20
+  drawdown_resume_pct: 0.10   # reanuda entradas cuando el DD baja de acá (default: mitad del umbral)
+  drawdown_pause_days: 30     # respaldo: reanuda igual tras N días y re-basa el pico
+  cooldown_candles_after_stop: 0
+  pause_after_consecutive_losses: null   # p. ej. 3 -> pausa global de pause_candles_after_losses velas
+  pause_candles_after_losses: 12         # velas del timeframe (12 x 4h = 2 días)
+  kill_switch_file: logs/STOP # tradingbot stop|resume; solo se consulta en paper/live
 
 execution:
   fee_rate: 0.001             # 0.10 % taker VIP0

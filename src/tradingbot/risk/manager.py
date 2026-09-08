@@ -1,8 +1,9 @@
-"""`RiskManager` mínimo (Fase 4): slots, exposición, sizing, `minNotional` y ranking.
+"""`RiskManager`: slots, exposición, sizing, `minNotional`, ranking y protecciones.
 
 Regla dura 7: nunca bloquea una salida. `exit_intent` solo puede devolver `None` cuando la
 cantidad vendible no cumple los filtros del exchange (posición `STUCK`, que el `Engine` reporta).
-Las protecciones dinámicas (pérdida diaria, drawdown, cooldowns, kill switch) llegan en la Fase 5.
+Las protecciones dinámicas (pérdida diaria, drawdown, cooldowns, kill switch) viven en
+`protections.py` (ADR-0007) y solo afectan entradas.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from tradingbot.domain.orders import OrderIntent, Signal, make_client_order_id
 from tradingbot.domain.pair import Pair
 from tradingbot.domain.positions import Position
 from tradingbot.exchange.binance import MarketInfo
+from tradingbot.risk.protections import Protections
 from tradingbot.risk.sizing import ReasonCode, sellable_qty, size_by_risk
 
 
@@ -60,9 +62,12 @@ class RiskManager:
     execution: ExecutionConfig
     markets: Mapping[Pair, MarketInfo]
     strategy_name: str
+    auto_resume: bool = True  # backtest: el circuit breaker reanuda solo; paper/live exige resume()
     _cost_factor: Decimal = field(init=False)
+    protections: Protections = field(init=False)
 
     def __post_init__(self) -> None:
+        self.protections = Protections(self.risk, auto_resume=self.auto_resume)
         factor = ONE + self.execution.slippage_bps / BPS_DENOMINATOR
         if self.execution.pay_with_bnb:
             factor *= ONE + self.execution.bnb_fee_rate
@@ -97,6 +102,7 @@ class RiskManager:
             ZERO,
         )
         cash_running = view.cash_available
+        halt = self.protections.global_block()
         intents: list[OrderIntent] = []
         rejections: list[Rejection] = []
 
@@ -107,6 +113,10 @@ class RiskManager:
                 continue
             if pair in view.pending_pairs or any(i.pair == pair for i in intents):
                 rejections.append(Rejection(signal, ReasonCode.PENDING_ORDER))
+                continue
+            block = halt or self.protections.pair_block(pair)
+            if block is not None:
+                rejections.append(Rejection(signal, block.reason, block.detail))
                 continue
             if slots <= 0:
                 rejections.append(

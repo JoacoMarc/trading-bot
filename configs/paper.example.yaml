@@ -25,7 +25,12 @@ risk:
   max_positions: 3
   daily_loss_limit_pct: 0.03
   max_drawdown_pct: 0.20
+  drawdown_resume_pct: 0.10
+  drawdown_pause_days: 30
   cooldown_candles_after_stop: 2
+  pause_after_consecutive_losses: 3
+  pause_candles_after_losses: 12   # velas del timeframe
+  kill_switch_file: logs/STOP       # bind mount: el host escribe, el contenedor lo ve
 
 execution:
   fee_rate: 0.001

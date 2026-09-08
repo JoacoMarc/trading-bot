@@ -19,6 +19,7 @@ uv run tradingbot data-info && uv run tradingbot data-check   # datasets y hueco
 uv run tradingbot backtest [--set k=v ...]    # configs/backtest.yaml; registra EXP-NNNN en experiments/runs
 uv run tradingbot benchmark --kind bh_btc|equal_weight        # buy & hold registrado como EXP
 uv run tradingbot experiments list|show|compare|sync          # REGISTRY.md se regenera con sync
+uv run tradingbot stop [--flatten] && uv run tradingbot resume  # kill switch por archivo logs/STOP (paper/live)
 docker compose build
 docker compose run --rm bot doctor
 ```

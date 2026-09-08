@@ -26,6 +26,12 @@ class ReasonCode(StrEnum):
     NO_CASH = "no_cash"
     MIN_QTY = "min_qty"
     MIN_NOTIONAL = "min_notional"
+    # Protecciones dinámicas (ADR-0007); solo aplican a entradas.
+    KILL_SWITCH = "kill_switch"
+    DRAWDOWN_HALT = "drawdown_halt"
+    DAILY_LOSS_LIMIT = "daily_loss_limit"
+    CONSECUTIVE_LOSSES = "consecutive_losses"
+    PAIR_COOLDOWN = "pair_cooldown"
 
 
 @dataclass(frozen=True, slots=True)

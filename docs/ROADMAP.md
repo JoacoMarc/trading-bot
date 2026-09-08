@@ -63,8 +63,8 @@ Deuda registrada (menores del revisor de la Fase 4): rendimiento para optuna (Fa
 
 ## Fase 5 — Riesgo y protecciones (M) · `en curso`
 
-- [ ] `risk/manager.py`: pérdida diaria, circuit breaker por DD, cooldowns, kill switch (+ `--flatten`), reason codes
-- [ ] Backtests con/sin protecciones registrados; agente `risk-auditor`
+- [x] `risk/protections.py` + `RiskManager` (ADR-0007): pérdida diaria (día UTC, base = cierre del día anterior), circuit breaker por DD con reanudación configurable (`drawdown_resume_pct` o `drawdown_pause_days` con pico re-basado, automática en backtest; manual en paper/live), pausa tras N pérdidas seguidas, cooldown por par tras salida perdedora (stop o trailing), kill switch por archivo `logs/STOP` (`tradingbot stop [--flatten]` / `resume`) con `flatten` en el Engine; `ReasonCode` nuevos, eventos `protection_triggered/cleared`, `--set k=null` para apagar protecciones; agente `risk-auditor`; glosario (circuit breaker, kill switch, pérdida diaria, cooldown)
+- [ ] Backtests con/sin protecciones registrados con veredicto: EXP-0004 sin protecciones (reproduce EXP-0003), EXP-0005 defaults, EXP-0006 agresivas
 
 ## Fase 6 — Validación, optimización y gate (L, iterativa) · `pendiente`
 

@@ -11,6 +11,7 @@ import typer
 from tradingbot import __version__
 from tradingbot.cli.backtest_commands import bt_app, experiments_app
 from tradingbot.cli.data_commands import data_app
+from tradingbot.cli.risk_commands import risk_app
 from tradingbot.doctor import CheckResult, run_all
 
 app = typer.Typer(
@@ -20,7 +21,11 @@ app = typer.Typer(
     add_completion=False,
 )
 # Los comandos de datos se registran al mismo nivel (`tradingbot download-data`, no un subgrupo).
-for command in (*data_app.registered_commands, *bt_app.registered_commands):
+for command in (
+    *data_app.registered_commands,
+    *bt_app.registered_commands,
+    *risk_app.registered_commands,
+):
     app.registered_commands.append(command)
 app.add_typer(experiments_app, name="experiments")
 
