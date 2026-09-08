@@ -1,0 +1,47 @@
+# Backtest base de ema_trend v1: BTC + ETH en 4h desde 2019-08-01 (deja 200 días de warmup
+# sobre datos desde 2019-01-01) hasta el inicio del holdout (2025-09-01, excluido por defecto).
+# Sin secretos acá. Overrides puntuales: `tradingbot backtest --set risk.max_positions=2`.
+
+mode: backtest
+
+strategy:
+  name: ema_trend
+  timeframe: 4h
+  pairs: [BTC/USDT, ETH/USDT]
+  params:
+    ema_fast: 20
+    ema_slow: 50
+    ema_regime: 200
+    adx_period: 14
+    adx_threshold: 20
+    atr_period: 14
+    stop_atr_mult: 2.0
+    trailing_atr_mult: 3.0
+    entry_mode: cross
+    cooldown_candles: 2
+    warmup_multiplier: 6
+
+risk:
+  risk_per_trade: 0.01
+  max_position_pct: 0.25
+  max_positions: 3
+  max_exposure_pct: 1.0
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.20
+
+execution:
+  fee_rate: 0.001
+  pay_with_bnb: false
+  slippage_bps: 5
+
+backtest:
+  start: 2019-08-01
+  end: null
+  include_holdout: false
+  initial_cash: 10000
+
+data:
+  data_dir: data
+
+persistence:
+  experiments_dir: experiments

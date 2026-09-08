@@ -98,6 +98,22 @@ Mide la **fuerza** de la tendencia (no su dirección) en 0–100 a partir de los
 
 Media exponencial con `α = 1/n` (más lenta que la EMA estándar del mismo período), introducida por Welles Wilder para RSI, ATR y ADX. TA-Lib y la mayoría de las plataformas la usan; la reproducimos igual.
 
+## Buy & hold (benchmark)
+
+Comprar al inicio del período y no hacer nada más. Es la vara contra la que se mide cualquier estrategia: si un bot con costos, stops y esfuerzo no mejora al menos el drawdown de comprar y mantener, no aporta. En cada reporte aparecen dos: buy & hold de BTC y una cartera equiponderada de los pares operados, ambos con los mismos costos de entrada que el bot.
+
+## CAGR, Calmar y Sortino
+
+**CAGR**: retorno anual compuesto equivalente, `(final/inicial)^(365.25/días) − 1`; permite comparar períodos de distinta duración. **Calmar**: CAGR dividido por el max drawdown; cuánto retorno anual se obtiene por unidad de dolor. **Sortino**: como el Sharpe pero solo penaliza la volatilidad de los días negativos (la buena volatilidad no cuenta en contra).
+
+## Profit factor, win rate y expectancy
+
+**Profit factor**: suma de las ganancias de los trades ganadores dividida por la suma de las pérdidas de los perdedores; por encima de 1.3 el sistema paga sus costos con margen. **Win rate**: fracción de trades ganadores; solo tiene sentido junto con el tamaño relativo de ganancias y pérdidas (un seguidor de tendencia gana con 35–45 % de aciertos). **Expectancy**: PnL medio por trade; lo que cabe esperar de la siguiente operación.
+
+## Exposición
+
+Fracción del tiempo con capital invertido. Un 13 % de exposición con retorno positivo significa que el capital estuvo en efectivo el 87 % del tiempo: menos retorno absoluto que buy & hold, pero mucho menos drawdown y capital disponible.
+
 ## Position sizing (dimensionamiento)
 
 Cuánto comprar. Usamos riesgo fijo: arriesgar el 1 % del equity por operación, `qty = equity × 0.01 / (precio_entrada − stop)`. Así una operación que toca el stop pierde ~1 % del capital sin importar la volatilidad del par.

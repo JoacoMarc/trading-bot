@@ -16,6 +16,9 @@ uv run tradingbot --help
 uv run tradingbot doctor                  # Python, env, conexión y reloj vs Binance
 uv run tradingbot download-data           # velas cerradas, incremental (8 pares 1h+4h desde 2019)
 uv run tradingbot data-info && uv run tradingbot data-check   # datasets y huecos (configs/binance_gaps.json)
+uv run tradingbot backtest [--set k=v ...]    # configs/backtest.yaml; registra EXP-NNNN en experiments/runs
+uv run tradingbot benchmark --kind bh_btc|equal_weight        # buy & hold registrado como EXP
+uv run tradingbot experiments list|show|compare|sync          # REGISTRY.md se regenera con sync
 docker compose build
 docker compose run --rm bot doctor
 ```
