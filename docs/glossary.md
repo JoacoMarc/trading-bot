@@ -54,6 +54,18 @@ Correr el bot con datos y precios en vivo pero con órdenes simuladas y saldo fi
 
 Promedio del rango real de las últimas N velas (incluye gaps). Mide volatilidad en unidades de precio; sirve para poner stops y dimensionar posiciones de forma proporcional a cuánto se mueve el activo.
 
+## clientOrderId e idempotencia
+
+Identificador que el bot asigna a cada orden antes de enviarla (`tb-{estrategia}-{PAR}-{open_time}-{B|S}`). Como es determinístico, reintentar la misma decisión produce el mismo id y Binance rechaza el duplicado en vez de abrir dos posiciones. También permite cruzar trade a trade el paper con el backtest del mismo período (`parity`).
+
+## Dust (polvo)
+
+Restos de un activo por debajo del `stepSize` mínimo que el exchange permite operar (por ejemplo 0.000004 BTC). Aparecen porque la fee se descuenta del activo comprado y porque las ventas se redondean hacia abajo. No se pueden vender, así que se contabilizan aparte y no forman parte del equity operativo.
+
+## Implementation shortfall
+
+Diferencia entre el precio de referencia del modelo (el open de la vela siguiente a la señal) y el precio real del fill, en bps y con signo: positivo cuando el fill fue peor. Es la medida honesta del slippage real y se reporta en paper y live.
+
 ## Position sizing (dimensionamiento)
 
 Cuánto comprar. Usamos riesgo fijo: arriesgar el 1 % del equity por operación, `qty = equity × 0.01 / (precio_entrada − stop)`. Así una operación que toca el stop pierde ~1 % del capital sin importar la volatilidad del par.

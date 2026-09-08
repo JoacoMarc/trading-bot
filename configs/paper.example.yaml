@@ -1,0 +1,50 @@
+# Paper trading de ema_trend con precios en vivo de Binance y órdenes simuladas.
+# Copiar a configs/paper.yaml. Se lanza con `docker compose --profile paper up -d` (Fase 7).
+# Sin secretos acá: el token de Telegram va en .env.
+
+mode: paper
+
+strategy:
+  name: ema_trend
+  timeframe: 4h
+  pairs: [BTC/USDT, ETH/USDT]
+  params:
+    ema_fast: 20
+    ema_slow: 50
+    ema_regime: 200
+    adx_period: 14
+    adx_threshold: 20
+    atr_period: 14
+    stop_atr_mult: 2.0
+    trailing_atr_mult: 3.0
+    entry_mode: cross
+
+risk:
+  risk_per_trade: 0.01
+  max_position_pct: 0.25
+  max_positions: 3
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.20
+  cooldown_candles_after_stop: 2
+
+execution:
+  fee_rate: 0.001
+  pay_with_bnb: false
+  slippage_bps: 5
+  stop_watch_interval_s: 60   # el StopWatcher revisa el último precio cada 60 s
+
+exchange:
+  recv_window_ms: 10000
+  request_timeout_ms: 10000
+
+backtest:
+  initial_cash: 10000         # saldo simulado inicial del paper
+
+notify:
+  timezone: America/Argentina/Buenos_Aires
+  telegram_enabled: false     # true requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en .env
+  daily_summary_hour: 9
+
+persistence:
+  db_dir: db                  # paper.db (volumen nombrado en Docker)
+  logs_dir: logs

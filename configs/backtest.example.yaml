@@ -1,0 +1,45 @@
+# Backtest de ema_trend sobre BTC y ETH en 4h. Copiar a configs/backtest.yaml y ajustar.
+# Sin secretos acá: van en .env. Overrides puntuales: `--set risk.max_positions=2`.
+
+mode: backtest
+
+strategy:
+  name: ema_trend
+  timeframe: 4h
+  pairs: [BTC/USDT, ETH/USDT]
+  # Parámetros de la estrategia (los valida la estrategia en la Fase 3). Ver docs/strategy/.
+  params:
+    ema_fast: 20
+    ema_slow: 50
+    ema_regime: 200
+    adx_period: 14
+    adx_threshold: 20
+    atr_period: 14
+    stop_atr_mult: 2.0
+    trailing_atr_mult: 3.0
+    entry_mode: cross
+
+risk:
+  risk_per_trade: 0.01        # 1 % del equity por operación
+  max_position_pct: 0.25      # tope por posición sobre el cash libre
+  max_positions: 3
+  max_exposure_pct: 1.0
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.20
+
+execution:
+  fee_rate: 0.001             # 0.10 % taker VIP0
+  pay_with_bnb: false
+  slippage_bps: 5             # 0.05 %
+
+backtest:
+  start: 2019-01-01
+  end: null                   # null = hasta el inicio del holdout
+  include_holdout: false      # solo true en la corrida final de una familia de estrategia
+  initial_cash: 10000
+
+data:
+  data_dir: data
+
+persistence:
+  experiments_dir: experiments

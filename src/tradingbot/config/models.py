@@ -1,0 +1,181 @@
+"""Sub-configuraciones tipadas. Ningún secreto vive acá: van por variables de entorno."""
+
+from __future__ import annotations
+
+import re
+from datetime import date
+from decimal import Decimal
+from enum import StrEnum
+from pathlib import Path
+from typing import Annotated, Any, Literal, Self
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
+
+from tradingbot.domain.pair import Pair
+from tradingbot.domain.timeframe import Timeframe
+
+HOLDOUT_START = date(2025, 9, 1)
+# Máximo 12 caracteres: el client_order_id recorta el nombre y dos estrategias con el mismo
+# prefijo largo colisionarían en la DB y en el test de paridad.
+_STRATEGY_NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,11}$")
+
+
+class Mode(StrEnum):
+    BACKTEST = "backtest"
+    PAPER = "paper"
+    TESTNET = "testnet"
+    LIVE = "live"
+
+    @property
+    def requires_keys(self) -> bool:
+        return self in {Mode.TESTNET, Mode.LIVE}
+
+    @property
+    def is_simulated(self) -> bool:
+        """True si las órdenes no llegan a ningún exchange (ni siquiera testnet)."""
+        return self in {Mode.BACKTEST, Mode.PAPER}
+
+
+class _Strict(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
+
+
+class ExchangeConfig(_Strict):
+    name: Literal["binance"] = "binance"
+    recv_window_ms: int = Field(default=10_000, ge=1_000, le=60_000)
+    request_timeout_ms: int = Field(default=10_000, ge=1_000, le=120_000)
+
+
+class DataConfig(_Strict):
+    data_dir: Path = Path("data")
+
+
+def _parse_pairs(value: Any) -> Any:
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, list | tuple):
+        return value
+    pairs: list[Pair] = []
+    for item in value:
+        if isinstance(item, str):
+            pair = Pair.parse(item)
+        elif isinstance(item, Pair):
+            pair = item
+        else:
+            pair = Pair.model_validate(item)  # dict serializado por `public_dump`
+        if pair in pairs:
+            msg = f"par repetido: {pair}"
+            raise ValueError(msg)
+        pairs.append(pair)
+    return tuple(sorted(pairs, key=lambda p: p.symbol))
+
+
+PairList = Annotated[tuple[Pair, ...], BeforeValidator(_parse_pairs)]
+
+
+class StrategyConfig(_Strict):
+    name: str
+    timeframe: Timeframe = Timeframe.H4
+    pairs: PairList = Field(min_length=1)
+    params: dict[str, Any] = Field(default_factory=dict)
+    warmup_candles: int | None = Field(default=None, ge=1)
+
+    @field_validator("name")
+    @classmethod
+    def _slug(cls, value: str) -> str:
+        if not _STRATEGY_NAME_RE.match(value):
+            msg = f"nombre de estrategia inválido {value!r} (minúsculas, dígitos y _, máx. 12)"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("timeframe", mode="before")
+    @classmethod
+    def _parse_timeframe(cls, value: Any) -> Any:
+        return Timeframe.parse(value) if isinstance(value, str) else value
+
+
+class RiskConfig(_Strict):
+    risk_per_trade: Decimal = Field(default=Decimal("0.01"), gt=0, le=Decimal("0.05"))
+    max_position_pct: Decimal = Field(default=Decimal("0.25"), gt=0, le=1)
+    max_positions: int = Field(default=3, ge=1, le=20)
+    max_exposure_pct: Decimal = Field(default=Decimal("1.0"), gt=0, le=1)
+    daily_loss_limit_pct: Decimal | None = Field(default=Decimal("0.03"), gt=0, le=1)
+    max_drawdown_pct: Decimal | None = Field(default=Decimal("0.20"), gt=0, le=1)
+    cooldown_candles_after_stop: int = Field(default=0, ge=0)
+    pause_after_consecutive_losses: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.max_position_pct > self.max_exposure_pct:
+            msg = "max_position_pct no puede superar max_exposure_pct"
+            raise ValueError(msg)
+        return self
+
+
+class ExecutionConfig(_Strict):
+    fee_rate: Decimal = Field(default=Decimal("0.001"), ge=0, le=Decimal("0.01"))
+    pay_with_bnb: bool = False
+    bnb_fee_rate: Decimal = Field(default=Decimal("0.00075"), ge=0, le=Decimal("0.01"))
+    slippage_bps: Decimal = Field(default=Decimal("5"), ge=0, le=500)
+    stop_limit_offset_pct: Decimal = Field(default=Decimal("0.005"), ge=0, le=Decimal("0.05"))
+    stop_watch_interval_s: int = Field(default=60, ge=5, le=3_600)
+
+    @property
+    def effective_fee_rate(self) -> Decimal:
+        return self.bnb_fee_rate if self.pay_with_bnb else self.fee_rate
+
+
+class BacktestConfig(_Strict):
+    """Rango del backtest. `start` inclusive, `end` **exclusivo** (primer día que no entra)."""
+
+    start: date | None = None
+    end: date | None = None
+    include_holdout: bool = False
+    holdout_start: date = HOLDOUT_START
+    initial_cash: Decimal = Field(default=Decimal("10000"), gt=0)
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.start and self.end and self.start >= self.end:
+            msg = f"start {self.start} debe ser anterior a end {self.end}"
+            raise ValueError(msg)
+        effective = self.effective_end
+        if self.start and effective and self.start >= effective:
+            msg = (
+                f"start {self.start} cae dentro del holdout (desde {self.holdout_start}); "
+                "usar include_holdout solo en la corrida final"
+            )
+            raise ValueError(msg)
+        return self
+
+    @property
+    def effective_end(self) -> date | None:
+        """Fin real del backtest: nunca entra en el holdout salvo `include_holdout`."""
+        if self.include_holdout:
+            return self.end
+        if self.end is None or self.end > self.holdout_start:
+            return self.holdout_start
+        return self.end
+
+
+class NotifyConfig(_Strict):
+    timezone: str = "America/Argentina/Buenos_Aires"
+    telegram_enabled: bool = False
+    daily_summary_hour: int = Field(default=9, ge=0, le=23)
+
+    @field_validator("timezone")
+    @classmethod
+    def _valid_zone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError) as exc:
+            msg = f"zona horaria inválida {value!r}"
+            raise ValueError(msg) from exc
+        return value
+
+
+class PersistenceConfig(_Strict):
+    db_dir: Path = Path("db")
+    logs_dir: Path = Path("logs")
+    experiments_dir: Path = Path("experiments")
