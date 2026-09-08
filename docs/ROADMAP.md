@@ -2,7 +2,7 @@
 
 Copia viva del plan (detalle completo en [PLAN.md](PLAN.md)). Estados: `pendiente` · `en curso` · `cerrada (fecha)`. Cada fase se trabaja en sesiones propias con `/phase-start` y se cierra con `/phase-close`. Tamaño en sesiones: S = 1, M = 1–2, L = 2–4.
 
-## Fase 0 — Fundación del repo y workspace de Claude (S) · `en curso`
+## Fase 0 — Fundación del repo y workspace de Claude (S) · `cerrada (2026-09-07)`
 
 - [x] git, uv + Python 3.12, `pyproject.toml`, `uv.lock`, ruff/mypy/pytest configurados
 - [x] `.gitignore`, `.gitattributes` (LF), `.editorconfig`, `.dockerignore`, `.env.example`
@@ -12,11 +12,11 @@ Copia viva del plan (detalle completo en [PLAN.md](PLAN.md)). Estados: `pendient
 - [x] `docs/`: ROADMAP, PLAN, glossary, GATES (puntero), strategy/README, runbooks/README, ADR-0001..0004
 - [x] `experiments/REGISTRY.md` + `TEMPLATE_REPORT.md`
 - [x] Memoria de Claude con decisiones y perfil
-- [x] DoD parcial: pytest verde (30 tests), ruff y mypy limpios, `tradingbot doctor` OK contra Binance real
-- [ ] DoD pendiente: `docker compose build` y `docker compose run --rm bot doctor` (Docker Desktop no arrancó: WSL sin recursos, error 0x800705aa; ver Aprendizajes)
+- [x] DoD: pytest verde (30 tests), ruff y mypy limpios, `tradingbot doctor` OK contra Binance real
+- [x] DoD: `docker compose build` (imagen `tradingbot:local`, ~1 GB) y `docker compose run --rm bot doctor` OK (offset -435 ms)
 - [x] Primer commit
 
-## Fase 1 — Dominio y configuración (S/M) · `pendiente`
+## Fase 1 — Dominio y configuración (S/M) · `en curso`
 
 - [ ] `domain/`: Timeframe, Candle, Bar, Pair (quote USDT), Signal, OrderIntent (`client_order_id` determinístico), Order, Fill (fee_asset, ref_price), Position (qty neta, stop, highest_close), Trade, PortfolioSnapshot, Money
 - [ ] `config/`: Mode backtest|paper|testnet|live, sub-configs, YAML + env, precedencia CLI > env > YAML > defaults
@@ -85,5 +85,5 @@ Copia viva del plan (detalle completo en [PLAN.md](PLAN.md)). Estados: `pendient
 ## Aprendizajes
 
 - Fase 0: `uv` instalado vía `pip install uv`; `Python311\Scripts` agregado al PATH de usuario para que `uv` resuelva en shells nuevas (en esta sesión se usó `python -m uv`). Los hooks de `.claude/settings.json` se activan de inmediato y funcionan en Windows con `python "${CLAUDE_PROJECT_DIR}/..."`; el hook `guard_live` inspecciona el comando completo, así que sus casos de prueba viven en `tests/test_hooks.py` y no en la línea de comandos.
-- Fase 0: Docker Desktop falló al arrancar con `Wsl/Service/CreateInstance/CreateVm/HCS/0x800705aa` ("recursos insuficientes") con 16 GB de RAM y ~5 GB libres. Remedio a probar antes de la Fase 7: cerrar apps pesadas, `wsl --shutdown` desde PowerShell, crear `%USERPROFILE%\.wslconfig` con `[wsl2]` `memory=4GB` `processors=2`, reiniciar Docker Desktop. La verificación `docker compose build` + `run --rm bot doctor` queda pendiente hasta entonces.
+- Fase 0: Docker Desktop falló una vez al arrancar con `Wsl/Service/CreateInstance/CreateVm/HCS/0x800705aa` ("recursos insuficientes") con 16 GB de RAM y ~5 GB libres; el usuario lo levantó después y la build pasó. Si se repite antes del paper (Fase 7): cerrar apps pesadas, `wsl --shutdown`, crear `%USERPROFILE%\.wslconfig` con `[wsl2]` `memory=4GB` `processors=2`, reiniciar Docker Desktop. La imagen pesa ~1 GB (pandas, pyarrow, matplotlib, optuna); adelgazarla queda en backlog.
 - Fase 0: `pre-commit run --all-files` no revisa nada si los archivos no están trackeados; hacer `git add` antes.
