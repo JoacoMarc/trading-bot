@@ -26,7 +26,7 @@ Copia viva del plan (detalle completo en [PLAN.md](PLAN.md)). Estados: `pendient
 
 Deuda registrada (menores del revisor, para fases siguientes): quote comprometido en órdenes `PENDING` en `PortfolioSnapshot` (Fase 7); `Signal.ref_close` para paridad (Fase 3); `pnl_pct` sobre notional bruta; `Bar.candles` como mapping inmutable; separar `trigger_price` de `stop_price` en `OrderIntent` para órdenes `STOP_LOSS*` (Fase 10).
 
-## Fase 2 — Adapter de exchange y capa de datos (M) · `en curso`
+## Fase 2 — Adapter de exchange y capa de datos (M) · `cerrada (2026-09-08)`
 
 - [x] `exchange/binance.py` (MarketInfo con tick/step, OHLCV paginado, límites de exchangeInfo, fetch_time, retry selectivo, mapeo de errores) + `markets_snapshot.json`
 - [x] `data/`: ParquetStore (parquet `decimal128`, ADR-0005), Downloader incremental (descarta vela en formación, upsert), QualityChecker (+ registro versionado `configs/binance_gaps.json`), HistoricalFeed que emite `Bar`
@@ -34,9 +34,10 @@ Deuda registrada (menores del revisor, para fases siguientes): quote comprometid
 - [x] Fixtures parquet 2023 commiteados (**sintéticos**, `tests/fixtures/ohlcv/synthetic-*.parquet`); los reales se generan con `scripts/gen_ohlcv_fixtures.py --from-data data` desde una máquina con acceso a Binance
 - [x] Tests: 98 nuevos con exchange falso (226 en total), `hypothesis` en el store, `-m network` contra endpoints públicos; mypy strict y ruff limpios
 - [x] Revisión del `trading-code-reviewer` aplicada (0 bloqueantes, 6 importantes): klines crudas como string en vez de `fetch_ohlcv` (float), margen de seguridad de 2 s al cierre, serie contigua sin huecos autoinfligidos (continuar desde la última vela, paginado que no se corta por página corta, `--register` verifica contra el exchange), persistencia parcial cada 10 páginas, warmup tolerante a huecos, 418 sin reintento + `Retry-After`. Menores aplicados: retry sobre `OperationFailed`, redacción de query strings, escrituras atómicas de JSON, `DataError` ante parquet ajeno. Deuda en ADR-0005
-- [ ] DoD pendiente del usuario (la sesión remota no llega a `api.binance.com`): `uv run tradingbot download-data` (8 pares 1h+4h desde 2019), `data-check` limpio fuera de huecos registrados (`--register` y revisar `configs/binance_gaps.json`), segunda corrida sin cambios, `pytest -m network` verde, fixtures reales
+- [x] DoD verificable sin red: 226 tests, ruff, mypy; descarga incremental idempotente y descarte de la vela en formación probados con exchange falso
+- [ ] **Pendiente del usuario** (la sesión remota no llega a `api.binance.com` ni tiene demonio Docker): `uv run tradingbot download-data` (8 pares 1h+4h desde 2019), `data-check --register` y revisar `configs/binance_gaps.json`, segunda corrida sin cambios, `uv run pytest -m network`, `docker compose build`, fixtures reales con `scripts/gen_ohlcv_fixtures.py --from-data data`. Cerrado con esta salvedad a pedido del usuario; si la descarga real revela problemas se reabre como fix de Fase 2 antes de la Fase 4
 
-## Fase 3 — Indicadores y contrato de estrategia (M) · `pendiente`
+## Fase 3 — Indicadores y contrato de estrategia (M) · `en curso`
 
 - [ ] `indicators/` con semilla documentada y tests vs fixtures TA-Lib tras burn-in
 - [ ] `strategy/base.py` (Strategy, StrategyContext con arrays numpy, warmup ≥ 5× período), `strategies/ema_trend.py`, `docs/strategy/ema-trend-v1.md`
