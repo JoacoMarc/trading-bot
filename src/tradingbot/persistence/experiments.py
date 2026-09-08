@@ -30,6 +30,7 @@ from tradingbot.domain.errors import DataError
 from tradingbot.persistence.files import atomic_write_text
 
 RUNS_DIRNAME = "runs"
+RUNS_PARENT_DIRNAME = "experiments"
 REGISTRY_FILENAME = "REGISTRY.md"
 KINDS = ("EXP", "WF", "OPT", "PAR")
 _ID_RE = re.compile(r"^(?P<kind>[A-Z]+)-(?P<num>\d{4})(?:-(?P<slug>.+))?$")
@@ -122,8 +123,19 @@ def git_info(root: Path) -> tuple[str, bool]:
             text=True,
             timeout=10,
         ).stdout.strip()
+        # Sucio = cambios sin commitear en código o config trackeados. Los artefactos de otras
+        # corridas (`experiments/`, incluido el REGISTRY regenerado) no cambian el código que
+        # produjo esta, así que no cuentan.
         status = subprocess.run(
-            ["git", "status", "--porcelain"],
+            [
+                "git",
+                "status",
+                "--porcelain",
+                "--untracked-files=no",
+                "--",
+                ".",
+                f":(exclude){RUNS_PARENT_DIRNAME}",
+            ],
             cwd=root,
             check=True,
             capture_output=True,
