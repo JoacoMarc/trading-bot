@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "exchange": "binance",
+  "fetched_at": "2026-09-08T00:00:00+00:00",
+  "source": "manual (filtros públicos de Binance Spot conocidos; sin red en la sesión). Regenerar con `tradingbot data-markets --refresh --update-snapshot`.",
+  "rate_limits": {
+    "request_weight_per_minute": 6000,
+    "orders_per_10s": 100,
+    "orders_per_day": 200000,
+    "raw_requests_per_5m": 61000
+  },
+  "markets": [
+    {
+      "pair": {"base": "ADA", "quote": "USDT"},
+      "tick_size": "0.0001",
+      "step_size": "0.1",
+      "min_qty": "0.1",
+      "max_qty": "900000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "BNB", "quote": "USDT"},
+      "tick_size": "0.1",
+      "step_size": "0.001",
+      "min_qty": "0.001",
+      "max_qty": "9000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "BTC", "quote": "USDT"},
+      "tick_size": "0.01",
+      "step_size": "0.00001",
+      "min_qty": "0.00001",
+      "max_qty": "9000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "ETH", "quote": "USDT"},
+      "tick_size": "0.01",
+      "step_size": "0.0001",
+      "min_qty": "0.0001",
+      "max_qty": "9000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "LINK", "quote": "USDT"},
+      "tick_size": "0.001",
+      "step_size": "0.01",
+      "min_qty": "0.01",
+      "max_qty": "90000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "LTC", "quote": "USDT"},
+      "tick_size": "0.01",
+      "step_size": "0.001",
+      "min_qty": "0.001",
+      "max_qty": "90000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "SOL", "quote": "USDT"},
+      "tick_size": "0.01",
+      "step_size": "0.001",
+      "min_qty": "0.001",
+      "max_qty": "90000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    },
+    {
+      "pair": {"base": "XRP", "quote": "USDT"},
+      "tick_size": "0.0001",
+      "step_size": "1",
+      "min_qty": "1",
+      "max_qty": "9000000",
+      "min_notional": "5",
+      "active": true,
+      "order_types": ["LIMIT", "LIMIT_MAKER", "MARKET", "STOP_LOSS", "STOP_LOSS_LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"]
+    }
+  ]
+}

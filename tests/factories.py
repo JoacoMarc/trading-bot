@@ -48,6 +48,35 @@ def make_candle(
     )
 
 
+def make_series(
+    pair: Pair = BTC,
+    start: int = T0,
+    n: int = 10,
+    timeframe: Timeframe = Timeframe.H4,
+    base_price: int = 100,
+    skip: frozenset[int] = frozenset(),
+) -> list[Candle]:
+    """`n` velas consecutivas determinísticas; `skip` = índices que faltan (huecos)."""
+    candles: list[Candle] = []
+    for i in range(n):
+        if i in skip:
+            continue
+        price = base_price + i
+        candles.append(
+            make_candle(
+                pair=pair,
+                open_time=start + i * timeframe.ms,
+                timeframe=timeframe,
+                open=str(price),
+                high=str(price + 5),
+                low=str(price - 5),
+                close=str(price + 1),
+                volume=str(1000 + i),
+            )
+        )
+    return candles
+
+
 def make_intent(
     pair: Pair = BTC,
     side: Side = Side.BUY,

@@ -1,6 +1,8 @@
 """Configuración tipada del bot."""
 
 from tradingbot.config.models import (
+    DEFAULT_DATA_SINCE,
+    DEFAULT_UNIVERSE,
     HOLDOUT_START,
     BacktestConfig,
     DataConfig,
@@ -16,6 +18,8 @@ from tradingbot.config.overrides import deep_merge, parse_set
 from tradingbot.config.settings import SECRET_FIELDS, BotConfig
 
 __all__ = [
+    "DEFAULT_DATA_SINCE",
+    "DEFAULT_UNIVERSE",
     "HOLDOUT_START",
     "SECRET_FIELDS",
     "BacktestConfig",

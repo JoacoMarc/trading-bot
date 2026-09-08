@@ -5,9 +5,9 @@
 CLAUDE.local.md
 
 # datos y estado local (nunca al repo)
-data/
-db/
-logs/
+/data/
+/db/
+/logs/
 *.db
 *.db-wal
 *.db-shm

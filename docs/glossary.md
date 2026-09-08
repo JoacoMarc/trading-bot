@@ -66,6 +66,22 @@ Restos de un activo por debajo del `stepSize` mínimo que el exchange permite op
 
 Diferencia entre el precio de referencia del modelo (el open de la vela siguiente a la señal) y el precio real del fill, en bps y con signo: positivo cuando el fill fue peor. Es la medida honesta del slippage real y se reporta en paper y live.
 
+## Vela en formación
+
+La vela cuyo intervalo todavía no terminó: su `close`, `high`, `low` y `volume` cambian con cada trade. Binance la devuelve como última fila de `klines`. Guardarla contaminaría el backtest con datos que en vivo no se conocían al cierre, así que el downloader solo persiste velas con `open_time + timeframe ≤ hora_del_exchange`.
+
+## Hueco (gap) de datos
+
+Uno o más `open_time` faltantes entre la primera y la última vela de una serie. Puede ser real (mantenimiento de Binance, par suspendido) o un problema de descarga. Los reales se registran en `configs/binance_gaps.json`; `data-check` alerta solo por los no registrados.
+
+## tickSize, stepSize y minNotional
+
+Filtros por símbolo de Binance: **tickSize** es el incremento mínimo de precio (BTC/USDT: 0.01), **stepSize** el incremento mínimo de cantidad (0.00001 BTC) y **minNotional** el valor mínimo de una orden en quote (5 USDT). Una orden que no los respeta se rechaza. ccxt los expone como `precision` y `limits`, pero en Binance `precision` son tamaños de paso, no cantidad de decimales.
+
+## Rate limit
+
+Cuota de requests que impone el exchange: Binance Spot pesa cada endpoint (`REQUEST_WEIGHT`, 6000 por minuto por IP) y limita órdenes (100 cada 10 s). Excederla devuelve 429 y, si se insiste, 418 con baneo temporal de la IP. El adapter respeta el rate limiter de ccxt y reintenta con backoff solo estos errores transitorios.
+
 ## Position sizing (dimensionamiento)
 
 Cuánto comprar. Usamos riesgo fijo: arriesgar el 1 % del equity por operación, `qty = equity × 0.01 / (precio_entrada − stop)`. Así una operación que toca el stop pierde ~1 % del capital sin importar la volatilidad del par.

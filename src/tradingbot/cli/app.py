@@ -1,4 +1,4 @@
-"""CLI principal. Fase 0: `--version` y `doctor`. Los demás comandos llegan con cada fase."""
+"""CLI principal. Fase 0: `--version` y `doctor`; Fase 2: datos. El resto llega por fase."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from typing import Annotated
 import typer
 
 from tradingbot import __version__
+from tradingbot.cli.data_commands import data_app
 from tradingbot.doctor import CheckResult, run_all
 
 app = typer.Typer(
@@ -15,6 +16,9 @@ app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
 )
+# Los comandos de datos se registran al mismo nivel (`tradingbot download-data`, no un subgrupo).
+for command in data_app.registered_commands:
+    app.registered_commands.append(command)
 
 
 def _version_callback(value: bool) -> None:

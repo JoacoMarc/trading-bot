@@ -47,10 +47,6 @@ class ExchangeConfig(_Strict):
     request_timeout_ms: int = Field(default=10_000, ge=1_000, le=120_000)
 
 
-class DataConfig(_Strict):
-    data_dir: Path = Path("data")
-
-
 def _parse_pairs(value: Any) -> Any:
     if isinstance(value, str):
         value = [value]
@@ -72,6 +68,49 @@ def _parse_pairs(value: Any) -> Any:
 
 
 PairList = Annotated[tuple[Pair, ...], BeforeValidator(_parse_pairs)]
+
+
+def _parse_timeframes(value: Any) -> Any:
+    if isinstance(value, str):
+        value = value.split()
+    if not isinstance(value, list | tuple):
+        return value
+    seen: list[Timeframe] = []
+    for item in value:
+        tf = Timeframe.parse(item) if isinstance(item, str) else item
+        if tf in seen:
+            msg = f"timeframe repetido: {tf}"
+            raise ValueError(msg)
+        seen.append(tf)
+    return tuple(sorted(seen, key=lambda tf: tf.ms))
+
+
+TimeframeList = Annotated[tuple[Timeframe, ...], BeforeValidator(_parse_timeframes)]
+
+# Universo v1 (PLAN §2.2): 8 pares USDT líquidos con historia desde 2019–2020.
+DEFAULT_UNIVERSE: tuple[Pair, ...] = _parse_pairs(
+    [
+        "BTC/USDT",
+        "ETH/USDT",
+        "BNB/USDT",
+        "XRP/USDT",
+        "ADA/USDT",
+        "LTC/USDT",
+        "LINK/USDT",
+        "SOL/USDT",
+    ]
+)
+DEFAULT_DATA_SINCE = date(2019, 1, 1)
+
+
+class DataConfig(_Strict):
+    """Dónde viven las velas y qué se descarga por defecto con `download-data`."""
+
+    data_dir: Path = Path("data")
+    universe: PairList = Field(default=DEFAULT_UNIVERSE, min_length=1)
+    timeframes: TimeframeList = Field(default=(Timeframe.H1, Timeframe.H4), min_length=1)
+    since: date = DEFAULT_DATA_SINCE
+    gaps_file: Path = Path("configs") / "binance_gaps.json"
 
 
 class StrategyConfig(_Strict):

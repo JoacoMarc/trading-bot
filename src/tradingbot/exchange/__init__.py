@@ -1,0 +1,43 @@
+"""Adapter de exchange (ccxt → dominio). Único módulo que importa ccxt."""
+
+from tradingbot.exchange.binance import (
+    EXCHANGE_ID,
+    OHLCV_PAGE_LIMIT,
+    BinanceExchange,
+    CcxtClient,
+    MarketInfo,
+    MarketsSnapshot,
+    RateLimits,
+    build_markets_snapshot,
+    default_snapshot_path,
+    is_ip_ban,
+    is_retryable,
+    load_markets_snapshot,
+    map_ccxt_error,
+    parse_kline_row,
+    parse_market,
+    parse_rate_limits,
+    redact,
+    save_markets_snapshot,
+)
+
+__all__ = [
+    "EXCHANGE_ID",
+    "OHLCV_PAGE_LIMIT",
+    "BinanceExchange",
+    "CcxtClient",
+    "MarketInfo",
+    "MarketsSnapshot",
+    "RateLimits",
+    "build_markets_snapshot",
+    "default_snapshot_path",
+    "is_ip_ban",
+    "is_retryable",
+    "load_markets_snapshot",
+    "map_ccxt_error",
+    "parse_kline_row",
+    "parse_market",
+    "parse_rate_limits",
+    "redact",
+    "save_markets_snapshot",
+]

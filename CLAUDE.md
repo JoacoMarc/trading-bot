@@ -14,6 +14,8 @@ uv run ruff check . && uv run ruff format --check .
 uv run mypy
 uv run tradingbot --help
 uv run tradingbot doctor                  # Python, env, conexión y reloj vs Binance
+uv run tradingbot download-data           # velas cerradas, incremental (8 pares 1h+4h desde 2019)
+uv run tradingbot data-info && uv run tradingbot data-check   # datasets y huecos (configs/binance_gaps.json)
 docker compose build
 docker compose run --rm bot doctor
 ```
