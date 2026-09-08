@@ -5,7 +5,7 @@ Velas 4h del año 2023 con el esquema del `ParquetStore` (`open_time` int64 ms U
 | Archivo | Origen | Uso |
 |---|---|---|
 | `synthetic-BTCUSDT-4h-2023.parquet`, `synthetic-ETHUSDT-4h-2023.parquet` | Paseo geométrico con semilla fija (`scripts/gen_ohlcv_fixtures.py`) | Suite unitaria: store, feeds, CLI |
-| `BTCUSDT-4h-2023.parquet`, `ETHUSDT-4h-2023.parquet` | Binance real, copiadas desde `data/` con `--from-data` | Fase 3: indicadores vs TA-Lib. **Pendiente**: se generan desde una máquina con acceso a Binance |
+| `BTCUSDT-4h-2023.parquet`, `ETHUSDT-4h-2023.parquet` | Binance real (2190 velas c/u), copiadas desde `data/` con `--from-data` el 2026-09-08 | Fase 3: indicadores vs TA-Lib |
 
 Regenerar:
 

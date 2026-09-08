@@ -8,7 +8,8 @@ from typing import Self
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 ALLOWED_QUOTES: frozenset[str] = frozenset({"USDT"})
-_ASSET_RE = re.compile(r"^[A-Z0-9]{2,12}$")
+# Binance lista activos de una sola letra (p. ej. `T`) y de hasta ~10 (`1MBABYDOGE`).
+_ASSET_RE = re.compile(r"^[A-Z0-9]{1,12}$")
 
 
 class Pair(BaseModel):

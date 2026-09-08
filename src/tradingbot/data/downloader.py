@@ -97,7 +97,7 @@ class Downloader:
         progress: Callable[[str], None] | None = None,
     ) -> None:
         if flush_pages < 1:
-            msg = f"flush_pages debe ser ≥ 1, recibido {flush_pages}"
+            msg = f"flush_pages debe ser >= 1, recibido {flush_pages}"
             raise ValueError(msg)
         self._exchange = exchange
         self._store = store

@@ -205,6 +205,12 @@ def parse_market(market: Mapping[str, Any]) -> MarketInfo | None:
     base = str(market.get("base") or "")
     if quote not in ALLOWED_QUOTES or not base:
         return None
+    try:
+        pair = Pair(base=base, quote=quote)
+    except ValueError:
+        # Símbolo que el dominio no representa (caracteres fuera de [A-Z0-9]); un mercado raro
+        # no debe impedir cargar el resto del universo.
+        return None
     info: Mapping[str, Any] = market.get("info") or {}
     filters = _filters_by_type(info)
     precision: Mapping[str, Any] = market.get("precision") or {}
@@ -231,7 +237,7 @@ def parse_market(market: Mapping[str, Any]) -> MarketInfo | None:
     active = bool(market.get("active", True)) and str(info.get("status", "TRADING")) == "TRADING"
     order_types = tuple(str(t) for t in (info.get("orderTypes") or ()))
     return MarketInfo(
-        pair=Pair(base=base, quote=quote),
+        pair=pair,
         tick_size=tick,
         step_size=step,
         min_qty=min_qty or Decimal(0),

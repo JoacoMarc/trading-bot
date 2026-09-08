@@ -45,7 +45,7 @@ class Gap:
         return self.start_ms <= other.start_ms and other.end_ms <= self.end_ms
 
     def describe(self, timeframe: Timeframe) -> str:
-        return f"{_iso(self.start_ms)} → {_iso(self.end_ms)} ({self.missing(timeframe)} velas)"
+        return f"{_iso(self.start_ms)} -> {_iso(self.end_ms)} ({self.missing(timeframe)} velas)"
 
 
 @dataclass(frozen=True, slots=True)

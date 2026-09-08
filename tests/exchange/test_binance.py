@@ -80,6 +80,15 @@ def test_parse_market_skips_non_spot_and_non_usdt() -> None:
     assert parse_market(binance_market("BTC", spot=False)) is None
 
 
+def test_parse_market_accepts_single_letter_base_and_skips_unrepresentable() -> None:
+    # Binance lista `T/USDT` (Threshold); un símbolo con caracteres raros no debe tumbar
+    # la carga de todo el universo.
+    single = parse_market(binance_market("T"))
+    assert single is not None
+    assert single.pair.base == "T"
+    assert parse_market(binance_market("AB_C")) is None
+
+
 def test_parse_market_inactive_when_status_not_trading() -> None:
     market = parse_market(binance_market("XYZ", status="BREAK"))
     assert market is not None

@@ -1,5 +1,1786 @@
 {
   "version": 1,
   "exchange": "binance",
-  "gaps": []
+  "gaps": [
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ADA/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BNB/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "BTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "ETH/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LINK/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "LTC/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "SOL/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1552356000000,
+      "end_ms": 1552374000000,
+      "start": "2019-03-12T02:00:00+00:00",
+      "end": "2019-03-12T07:00:00+00:00",
+      "missing": 6,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1557889200000,
+      "end_ms": 1557921600000,
+      "start": "2019-05-15T03:00:00+00:00",
+      "end": "2019-05-15T12:00:00+00:00",
+      "missing": 10,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1565834400000,
+      "end_ms": 1565859600000,
+      "start": "2019-08-15T02:00:00+00:00",
+      "end": "2019-08-15T09:00:00+00:00",
+      "missing": 8,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1573610400000,
+      "end_ms": 1573614000000,
+      "start": "2019-11-13T02:00:00+00:00",
+      "end": "2019-11-13T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1574647200000,
+      "end_ms": 1574650800000,
+      "start": "2019-11-25T02:00:00+00:00",
+      "end": "2019-11-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1581213600000,
+      "end_ms": 1581213600000,
+      "start": "2020-02-09T02:00:00+00:00",
+      "end": "2020-02-09T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582128000000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T16:00:00+00:00",
+      "missing": 5,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1583316000000,
+      "end_ms": 1583316000000,
+      "start": "2020-03-04T10:00:00+00:00",
+      "end": "2020-03-04T10:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1587780000000,
+      "end_ms": 1587783600000,
+      "start": "2020-04-25T02:00:00+00:00",
+      "end": "2020-04-25T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1593309600000,
+      "end_ms": 1593316800000,
+      "start": "2020-06-28T02:00:00+00:00",
+      "end": "2020-06-28T04:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1606716000000,
+      "end_ms": 1606716000000,
+      "start": "2020-11-30T06:00:00+00:00",
+      "end": "2020-11-30T06:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608559200000,
+      "end_ms": 1608570000000,
+      "start": "2020-12-21T14:00:00+00:00",
+      "end": "2020-12-21T17:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1608861600000,
+      "end_ms": 1608861600000,
+      "start": "2020-12-25T02:00:00+00:00",
+      "end": "2020-12-25T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1613016000000,
+      "end_ms": 1613016000000,
+      "start": "2021-02-11T04:00:00+00:00",
+      "end": "2021-02-11T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1614996000000,
+      "end_ms": 1614996000000,
+      "start": "2021-03-06T02:00:00+00:00",
+      "end": "2021-03-06T02:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1618884000000,
+      "end_ms": 1618887600000,
+      "start": "2021-04-20T02:00:00+00:00",
+      "end": "2021-04-20T03:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1619326800000,
+      "end_ms": 1619334000000,
+      "start": "2021-04-25T05:00:00+00:00",
+      "end": "2021-04-25T07:00:00+00:00",
+      "missing": 3,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1628820000000,
+      "end_ms": 1628830800000,
+      "start": "2021-08-13T02:00:00+00:00",
+      "end": "2021-08-13T05:00:00+00:00",
+      "missing": 4,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1632898800000,
+      "end_ms": 1632902400000,
+      "start": "2021-09-29T07:00:00+00:00",
+      "end": "2021-09-29T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "1h",
+      "start_ms": 1679662800000,
+      "end_ms": 1679662800000,
+      "start": "2023-03-24T13:00:00+00:00",
+      "end": "2023-03-24T13:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "4h",
+      "start_ms": 1552363200000,
+      "end_ms": 1552363200000,
+      "start": "2019-03-12T04:00:00+00:00",
+      "end": "2019-03-12T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "4h",
+      "start_ms": 1557892800000,
+      "end_ms": 1557907200000,
+      "start": "2019-05-15T04:00:00+00:00",
+      "end": "2019-05-15T08:00:00+00:00",
+      "missing": 2,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "4h",
+      "start_ms": 1565841600000,
+      "end_ms": 1565841600000,
+      "start": "2019-08-15T04:00:00+00:00",
+      "end": "2019-08-15T04:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    },
+    {
+      "pair": "XRP/USDT",
+      "timeframe": "4h",
+      "start_ms": 1582113600000,
+      "end_ms": 1582113600000,
+      "start": "2020-02-19T12:00:00+00:00",
+      "end": "2020-02-19T12:00:00+00:00",
+      "missing": 1,
+      "note": "confirmado vacío en Binance por data-check --register 2026-09-08"
+    }
+  ]
 }

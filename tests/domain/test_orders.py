@@ -65,7 +65,7 @@ def test_client_order_id_rejects_negative_time() -> None:
 
 @given(
     strategy=st.text(min_size=0, max_size=40),
-    base=st.from_regex(r"\A[A-Z0-9]{2,12}\Z"),
+    base=st.from_regex(r"\A[A-Z0-9]{1,12}\Z"),
     open_time=st.integers(min_value=0, max_value=4_102_444_800_000),
     side=st.sampled_from(list(Side)),
     reason=st.sampled_from(list(ExitReason)),

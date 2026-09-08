@@ -144,7 +144,7 @@ def download_data(
     for r in results:
         typer.echo(
             f"{r.pair.symbol:<10} {r.timeframe.value:<4} {r.added:>7} {r.updated:>7} "
-            f"{r.total_rows:>7}  {_ms_to_iso(r.first_open_time)} → {_ms_to_iso(r.last_open_time)}"
+            f"{r.total_rows:>7}  {_ms_to_iso(r.first_open_time)} -> {_ms_to_iso(r.last_open_time)}"
         )
     typer.echo(f"datos en {store.exchange_dir}")
 
@@ -167,7 +167,7 @@ def data_info(data_dir: DataDirOption = None) -> None:
         typer.echo(
             f"{pair.symbol:<10} {timeframe.value:<4} {info.rows:>7} {info.missing_rows:>7} "
             f"{info.size_bytes / 1_048_576:>6.2f}  "
-            f"{_ms_to_iso(info.first_open_time)} → {_ms_to_iso(info.last_open_time)}"
+            f"{_ms_to_iso(info.first_open_time)} -> {_ms_to_iso(info.last_open_time)}"
         )
 
 

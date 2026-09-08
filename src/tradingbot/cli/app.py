@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import sys
 from typing import Annotated
 
 import typer
@@ -59,6 +61,20 @@ def doctor() -> None:
         raise typer.Exit(code=1)
 
 
+def _tolerate_console_encoding() -> None:
+    """Las consolas de Windows en cp1252 no codifican todo Unicode: reemplazar, no crashear.
+
+    La salida de la CLI usa ASCII para símbolos (`->`, `>=`), pero un nombre de activo o un
+    mensaje de error del exchange puede traer cualquier carácter.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            with contextlib.suppress(Exception):
+                reconfigure(errors="replace")
+
+
 def main() -> None:
     """Punto de entrada del script `tradingbot`."""
+    _tolerate_console_encoding()
     app()
