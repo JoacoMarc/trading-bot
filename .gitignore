@@ -1,0 +1,34 @@
+# secretos
+.env
+.env.*
+!.env.example
+CLAUDE.local.md
+
+# datos y estado local (nunca al repo)
+data/
+db/
+logs/
+*.db
+*.db-wal
+*.db-shm
+STOP
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+htmlcov/
+.coverage
+dist/
+build/
+*.egg-info/
+
+# ide / os
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

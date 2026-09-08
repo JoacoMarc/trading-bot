@@ -1,0 +1,63 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync*)",
+      "Bash(uv lock*)",
+      "Bash(uv run pytest*)",
+      "Bash(uv run ruff*)",
+      "Bash(uv run mypy*)",
+      "Bash(uv run pre-commit*)",
+      "Bash(uv run tradingbot --help*)",
+      "Bash(uv run tradingbot --version*)",
+      "Bash(uv run tradingbot doctor*)",
+      "Bash(uv run tradingbot download-data*)",
+      "Bash(uv run tradingbot data-*)",
+      "Bash(uv run tradingbot backtest*)",
+      "Bash(uv run tradingbot experiments*)",
+      "Bash(uv run tradingbot walkforward*)",
+      "Bash(uv run tradingbot parity*)",
+      "Bash(uv run tradingbot analyze*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(docker compose build*)",
+      "Bash(docker compose run --rm bot doctor*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.live)",
+      "Read(./.env.testnet)",
+      "Read(./.env.paper)",
+      "Bash(tradingbot live*)",
+      "Bash(uv run tradingbot live*)",
+      "Bash(python -m tradingbot.cli.app live*)",
+      "Bash(docker compose --profile live*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/scripts/hooks/guard_live.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/scripts/hooks/format_py.py\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

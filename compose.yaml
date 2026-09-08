@@ -1,0 +1,45 @@
+name: tradingbot
+
+services:
+  # Servicio base: `docker compose run --rm bot doctor`, `docker compose run --rm bot backtest ...`
+  bot:
+    build: .
+    image: tradingbot:local
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      TZ: UTC
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./experiments:/app/experiments
+      - ./configs:/app/configs:ro
+      # La DB va en volumen nombrado: SQLite sobre bind mount de Windows tiene problemas de locking.
+      - tradingbot-db:/app/db
+
+  # --- Perfiles de larga duración (se habilitan en sus fases) -------------------------
+  # Fase 7:
+  # paper:
+  #   extends: bot
+  #   profiles: ["paper"]
+  #   command: ["paper", "--config", "configs/paper.yaml"]
+  #   restart: unless-stopped
+  #
+  # Fase 10:
+  # testnet:
+  #   extends: bot
+  #   profiles: ["testnet"]
+  #   env_file: [.env.testnet]
+  #   command: ["live", "--config", "configs/testnet.yaml"]
+  #   restart: unless-stopped
+  #
+  # live:
+  #   extends: bot
+  #   profiles: ["live"]
+  #   env_file: [.env.live]          # único lugar donde viven las claves con permiso de trading
+  #   command: ["live", "--config", "configs/live.yaml", "--confirm-live"]
+  #   restart: unless-stopped
+
+volumes:
+  tradingbot-db:

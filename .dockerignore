@@ -1,0 +1,16 @@
+data/
+db/
+logs/
+experiments/runs/
+.venv/
+.git/
+tests/
+.claude/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+__pycache__/
+.env
+.env.*
+CLAUDE.local.md

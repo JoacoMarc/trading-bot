@@ -1,0 +1,60 @@
+"""CLI principal. Fase 0: `--version` y `doctor`. Los demás comandos llegan con cada fase."""
+
+from __future__ import annotations
+
+from typing import Annotated
+
+import typer
+
+from tradingbot import __version__
+from tradingbot.doctor import CheckResult, run_all
+
+app = typer.Typer(
+    name="tradingbot",
+    help="Bot de trading propio para Binance Spot: backtest, paper y live con un solo motor.",
+    no_args_is_help=True,
+    add_completion=False,
+)
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"tradingbot {__version__}")
+        raise typer.Exit()
+
+
+VersionOption = Annotated[
+    bool,
+    typer.Option(
+        "--version",
+        "-V",
+        help="Muestra la versión y sale.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
+]
+
+
+@app.callback()
+def root(version: VersionOption = False) -> None:
+    """Bot de trading propio para Binance Spot."""
+
+
+def _format(result: CheckResult) -> str:
+    mark = "OK  " if result.ok else "FAIL"
+    return f"[{mark}] {result.name:<8} {result.detail}"
+
+
+@app.command()
+def doctor() -> None:
+    """Verifica el entorno: Python, variables de entorno, conexión y reloj vs Binance."""
+    results = run_all()
+    for result in results:
+        typer.echo(_format(result))
+    if not all(result.ok for result in results):
+        raise typer.Exit(code=1)
+
+
+def main() -> None:
+    """Punto de entrada del script `tradingbot`."""
+    app()
