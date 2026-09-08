@@ -82,6 +82,22 @@ Filtros por símbolo de Binance: **tickSize** es el incremento mínimo de precio
 
 Cuota de requests que impone el exchange: Binance Spot pesa cada endpoint (`REQUEST_WEIGHT`, 6000 por minuto por IP) y limita órdenes (100 cada 10 s). Excederla devuelve 429 y, si se insiste, 418 con baneo temporal de la IP. El adapter respeta el rate limiter de ccxt y reintenta con backoff solo estos errores transitorios.
 
+## EMA y SMA
+
+**SMA**: promedio simple de las últimas `n` velas; todas pesan igual. **EMA**: promedio exponencial, `EMA_t = α·precio_t + (1−α)·EMA_{t−1}` con `α = 2/(n+1)`; las velas recientes pesan más y reacciona antes. El cruce de una EMA rápida sobre una lenta es la señal clásica de cambio de tendencia. Una EMA de 200 velas se usa como filtro de régimen: precio por encima = tendencia de fondo alcista.
+
+## Semilla y warmup de un indicador
+
+Los indicadores recursivos (EMA, RSI, ATR, ADX) necesitan un valor inicial o **semilla**; nosotros usamos la de TA-Lib (la SMA de las primeras `n` velas) para poder comparar exactamente. La influencia de la semilla decae con el tiempo: por eso la estrategia exige un **warmup** de varias veces el período más largo antes de decidir. Con warmup corto, el bot en vivo (que recomputa sobre una ventana) y el backtest (que usa toda la serie) verían valores distintos; el test de equivalencia lo detecta.
+
+## ADX (Average Directional Index)
+
+Mide la **fuerza** de la tendencia (no su dirección) en 0–100 a partir de los movimientos direccionales suavizados de Wilder. Por debajo de ~20 el mercado está en rango; por encima hay tendencia. Lo usamos como filtro de entrada y como `strength` para rankear señales cuando hay más entradas que slots.
+
+## Suavizado de Wilder
+
+Media exponencial con `α = 1/n` (más lenta que la EMA estándar del mismo período), introducida por Welles Wilder para RSI, ATR y ADX. TA-Lib y la mayoría de las plataformas la usan; la reproducimos igual.
+
 ## Position sizing (dimensionamiento)
 
 Cuánto comprar. Usamos riesgo fijo: arriesgar el 1 % del equity por operación, `qty = equity × 0.01 / (precio_entrada − stop)`. Así una operación que toca el stop pierde ~1 % del capital sin importar la volatilidad del par.

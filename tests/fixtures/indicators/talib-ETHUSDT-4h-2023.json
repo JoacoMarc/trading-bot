@@ -1,0 +1,68 @@
+{
+  "talib_version": "0.7.1",
+  "source": "tests/fixtures/ohlcv/ETHUSDT-4h-2023.parquet",
+  "rows": 2190,
+  "compatibility": "TA-Lib default (EMA sembrada con SMA, Wilder en RSI/ATR/ADX)",
+  "params": {
+    "sma_20": {
+      "timeperiod": 20
+    },
+    "ema_20": {
+      "timeperiod": 20
+    },
+    "ema_50": {
+      "timeperiod": 50
+    },
+    "ema_200": {
+      "timeperiod": 200
+    },
+    "rsi_14": {
+      "timeperiod": 14
+    },
+    "macd_12_26_9": {
+      "fastperiod": 12,
+      "slowperiod": 26,
+      "signalperiod": 9
+    },
+    "atr_14": {
+      "timeperiod": 14
+    },
+    "adx_14": {
+      "timeperiod": 14
+    },
+    "bbands_20_2": {
+      "timeperiod": 20,
+      "nbdevup": 2.0,
+      "nbdevdn": 2.0
+    },
+    "max_20": {
+      "timeperiod": 20
+    },
+    "min_20": {
+      "timeperiod": 20
+    }
+  },
+  "columns": [
+    "open_time",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "sma_20",
+    "ema_20",
+    "ema_50",
+    "ema_200",
+    "rsi_14",
+    "macd_12_26_9",
+    "macd_signal_12_26_9",
+    "macd_hist_12_26_9",
+    "atr_14",
+    "adx_14",
+    "bb_upper_20_2",
+    "bb_middle_20_2",
+    "bb_lower_20_2",
+    "max_20",
+    "min_20"
+  ]
+}

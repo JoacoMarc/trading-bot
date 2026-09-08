@@ -18,7 +18,7 @@ from tradingbot.domain.timeframe import Timeframe
 HOLDOUT_START = date(2025, 9, 1)
 # Máximo 12 caracteres: el client_order_id recorta el nombre y dos estrategias con el mismo
 # prefijo largo colisionarían en la DB y en el test de paridad.
-_STRATEGY_NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,11}$")
+STRATEGY_NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,11}$")
 
 
 class Mode(StrEnum):
@@ -123,7 +123,7 @@ class StrategyConfig(_Strict):
     @field_validator("name")
     @classmethod
     def _slug(cls, value: str) -> str:
-        if not _STRATEGY_NAME_RE.match(value):
+        if not STRATEGY_NAME_RE.match(value):
             msg = f"nombre de estrategia inválido {value!r} (minúsculas, dígitos y _, máx. 12)"
             raise ValueError(msg)
         return value

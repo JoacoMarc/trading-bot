@@ -41,4 +41,4 @@ Se completa después de los experimentos: qué pasó, qué se aprendió, qué si
 
 | Estrategia | Versión | Estado | Spec |
 |---|---|---|---|
-| ema_trend | v1 | borrador (Fase 3) | `ema-trend-v1.md` (pendiente) |
+| ema_trend | v1 | en evaluación (implementada en Fase 3; backtest en Fase 4) | [`ema-trend-v1.md`](ema-trend-v1.md) |
