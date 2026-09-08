@@ -24,7 +24,7 @@ def test_summary_with_everything_off_or_custom() -> None:
         RiskConfig(
             daily_loss_limit_pct=d("0.01"),
             max_drawdown_pct=d("0.05"),
-            drawdown_resume_pct=d("0.02"),
+            drawdown_resume_pct=d("0.025"),
             drawdown_pause_days=None,
             pause_after_consecutive_losses=3,
             pause_candles_after_losses=12,
@@ -33,7 +33,7 @@ def test_summary_with_everything_off_or_custom() -> None:
     )
     assert custom == [
         "pérdida diaria 1.0 % (día UTC)",
-        "circuit breaker DD 5 % (reanuda bajo 2 %)",
+        "circuit breaker DD 5 % (reanuda bajo 2.5 %)",
         "pausa 12 velas tras 3 pérdidas seguidas",
         "cooldown tras stop 6 velas",
     ]

@@ -278,3 +278,22 @@ def test_invariants_with_aggressive_protections(
     assert engine.stats.stuck_pairs == set()
     exits_after_flatten = [tr for tr in store.trades() if tr.exit_reason is ExitReason.FLATTEN]
     assert all(tr.exit_client_order_id.endswith("-F") for tr in exits_after_flatten)
+
+
+def test_rejection_events_dedupe_only_consecutive_signals() -> None:
+    prices = [("100", "101", "99", "100")] * 5
+    candles = candles_from_prices(prices)
+    t = [T0 + k * H4 for k in range(len(prices))]
+    # Señales en 0, 1 y 3 (la 2 no tiene): dos episodios distintos del mismo motivo.
+    strategy = ScriptedStrategy(
+        {t[0]: ("enter", "90"), t[1]: ("enter", "90"), t[3]: ("enter", "90")}
+    )
+    switch = FakeSwitch()
+    switch.state = KillSwitchState(active=True)
+    engine, store, _ = build_engine(
+        strategy, bars_from(candles), {BTC: candles}, risk=RiskConfig(**OFF), kill_switch=switch
+    )
+    for bar in bars_from(candles):
+        engine.process_bar(bar)
+    assert engine.stats.rejections[ReasonCode.KILL_SWITCH.value] == 3
+    assert rejections(store, ReasonCode.KILL_SWITCH) == 2  # 0 y 1 colapsan; 3 es un evento nuevo

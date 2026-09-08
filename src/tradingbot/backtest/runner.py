@@ -305,6 +305,12 @@ def _risk_line(config: BotConfig) -> str:
     return f"{base} · protecciones: {', '.join(_protections_summary(r))}"
 
 
+def _pct_short(value: Decimal) -> str:
+    """`20 %`, `2.5 %`: un decimal solo cuando hace falta."""
+    text = f"{value * 100:.1f}"
+    return f"{text[:-2] if text.endswith('.0') else text} %"
+
+
 def _protections_summary(r: RiskConfig) -> list[str]:
     """Una frase por protección (ADR-0007), `off` cuando está desactivada."""
     daily = (
@@ -318,8 +324,8 @@ def _protections_summary(r: RiskConfig) -> list[str]:
     else:
         pause = "" if r.drawdown_pause_days is None else f" o tras {r.drawdown_pause_days} d"
         drawdown = (
-            f"circuit breaker DD {r.max_drawdown_pct * 100:.0f} % "
-            f"(reanuda bajo {resume * 100:.0f} %{pause})"
+            f"circuit breaker DD {_pct_short(r.max_drawdown_pct)} "
+            f"(reanuda bajo {_pct_short(resume)}{pause})"
         )
     losses = (
         "pausa por pérdidas off"

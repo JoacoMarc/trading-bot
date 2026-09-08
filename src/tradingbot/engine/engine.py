@@ -307,6 +307,7 @@ class Engine:
     def _submit_entries(self, signals: list[Signal], ts: int) -> None:
         entries = [s for s in signals if s.action is SignalAction.ENTER_LONG]
         if not entries:
+            self._blocked = {}  # sin señales: el próximo rechazo es una decisión nueva
             return
         reserved = sum(
             (
