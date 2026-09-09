@@ -96,3 +96,46 @@ def test_warmup_survives_gaps_inside_the_window(tmp_path: Path) -> None:
     assert len(feed.warmup_bars()) == 5
     with pytest.raises(InsufficientWarmup):
         HistoricalFeed(store, [BTC], Timeframe.H4, start, T0 + 15 * H4_MS, warmup=10)
+
+
+def test_late_pair_activates_after_its_own_warmup(store: ParquetStore) -> None:
+    start, end = T0 + 7 * H4_MS, T0 + 15 * H4_MS
+    feed = HistoricalFeed(
+        store, [BTC, ETH], Timeframe.H4, start, end, warmup=3, late_pairs="activate"
+    )
+    # ETH tiene 2 velas antes de start: su warmup son sus 3 primeras (5, 6, 7) y entra en la 8.
+    assert feed.activation_times == {ETH: T0 + 8 * H4_MS}
+    assert feed.inactive_pairs == ()
+    assert [c.open_time for c in feed.warmup_candles(ETH)] == [T0 + i * H4_MS for i in (5, 6, 7)]
+    bars = list(feed.iter_bars())
+    assert [b.open_time for b in bars] == [T0 + i * H4_MS for i in range(7, 15)]
+    assert bars[0].pairs == (BTC,)
+    assert bars[1].pairs == (BTC, ETH)
+
+
+def test_pair_never_reaching_warmup_stays_inactive(store: ParquetStore) -> None:
+    feed = HistoricalFeed(
+        store,
+        [BTC, ETH],
+        Timeframe.H4,
+        T0 + 7 * H4_MS,
+        T0 + 9 * H4_MS,
+        warmup=5,
+        late_pairs="activate",
+    )
+    assert feed.inactive_pairs == (ETH,)
+    assert feed.activation_times == {}
+    assert all(b.pairs == (BTC,) for b in feed.iter_bars())
+
+
+def test_feed_from_preloaded_candles_matches_store(store: ParquetStore) -> None:
+    end = T0 + 15 * H4_MS
+    candles = {p: store.read_candles(p, Timeframe.H4, None, end) for p in (BTC, ETH)}
+    via_store = HistoricalFeed(store, [BTC, ETH], Timeframe.H4, T0 + 10 * H4_MS, end, warmup=3)
+    via_candles = HistoricalFeed(
+        None, [BTC, ETH], Timeframe.H4, T0 + 10 * H4_MS, end, warmup=3, candles=candles
+    )
+    assert list(via_candles.iter_bars()) == list(via_store.iter_bars())
+    assert via_candles.warmup_candles(ETH) == via_store.warmup_candles(ETH)
+    with pytest.raises(ValueError, match="store o las velas"):
+        HistoricalFeed(None, [BTC], Timeframe.H4, T0, T0 + H4_MS)

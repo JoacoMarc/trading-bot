@@ -80,6 +80,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN", "PT011"]
 "scripts/**" = ["T20"]
+"src/tradingbot/validation/report.py" = ["E501"]  # plantillas markdown de WF-/OPT-
 
 [tool.ruff.lint.isort]
 known-first-party = ["tradingbot"]

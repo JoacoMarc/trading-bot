@@ -219,6 +219,24 @@ class BacktestConfig(_Strict):
         return self.end
 
 
+class ValidationConfig(_Strict):
+    """Defaults de `tradingbot walkforward` / `optimize` (ADR-0008); los flags de la CLI los pisan.
+
+    Va al `config.yaml` congelado de cada `WF-` para que recargarlo reproduzca la corrida.
+    """
+
+    is_months: int = Field(default=24, ge=1)
+    oos_months: int = Field(default=6, ge=1)
+    anchored: bool = False
+    optimize: bool = False
+    trials: int = Field(default=50, ge=1)
+    seed: int = 42
+    objective: Literal["sharpe", "calmar", "profit_factor"] = "sharpe"
+    min_trades: int = Field(default=40, ge=0)
+    plateau: bool = False
+    montecarlo_runs: int = Field(default=5_000, ge=100)
+
+
 class NotifyConfig(_Strict):
     timezone: str = "America/Argentina/Buenos_Aires"
     telegram_enabled: bool = False

@@ -10,8 +10,8 @@ from __future__ import annotations
 import asyncio
 import time
 from collections import Counter
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -26,7 +26,7 @@ from tradingbot.backtest.report import (
     render_report,
     trades_csv,
 )
-from tradingbot.config.models import RiskConfig
+from tradingbot.config.models import BacktestConfig, RiskConfig, StrategyConfig
 from tradingbot.config.settings import BotConfig
 from tradingbot.data.feeds import HistoricalFeed
 from tradingbot.data.store import ParquetStore
@@ -100,6 +100,8 @@ class BacktestRun:
     duration_s: float
     data_files: list[Path]
     markets: dict[Pair, MarketInfo]
+    activation: dict[Pair, int] = field(default_factory=dict)  # pares activados tarde
+    inactive: tuple[Pair, ...] = ()  # pares sin velas suficientes en el rango
 
     @property
     def trades(self) -> tuple[Trade, ...]:
@@ -132,7 +134,11 @@ def load_markets_for(
 
 
 def resolve_range(config: BotConfig, store: ParquetStore, warmup: int) -> tuple[int, int]:
-    """`[start_ms, end_ms)` del backtest: config o, si falta, lo que permitan datos y warmup."""
+    """`[start_ms, end_ms)` del backtest: config o, si falta, lo que permitan datos y warmup.
+
+    Sin `start` en la config arranca con el primer par que completa su warmup; los demás se
+    activan cuando completan el suyo (ADR-0008).
+    """
     pairs = config.strategy.pairs
     timeframe = config.strategy.timeframe
     starts: list[int] = []
@@ -147,7 +153,7 @@ def resolve_range(config: BotConfig, store: ParquetStore, warmup: int) -> tuple[
             raise DataError(msg)
         starts.append(info.first_open_time + warmup * timeframe.ms)
         ends.append(info.last_open_time + timeframe.ms)
-    start_ms = date_to_ms(config.backtest.start) if config.backtest.start else max(starts)
+    start_ms = date_to_ms(config.backtest.start) if config.backtest.start else min(starts)
     effective_end = config.backtest.effective_end
     end_ms = date_to_ms(effective_end) if effective_end else min(ends)
     end_ms = min(end_ms, min(ends))
@@ -191,12 +197,54 @@ def _compute_benchmarks(
     return results
 
 
+def load_candles(config: BotConfig, end_ms: int | None = None) -> dict[Pair, list[Candle]]:
+    """Velas completas por par hasta `end_ms` (o fin del holdout excluido): caché para WF/optuna."""
+    store = ParquetStore(config.data.data_dir)
+    if end_ms is None:
+        strategy = build_strategy(config.strategy)
+        _, end_ms = resolve_range(config, store, effective_warmup(config.strategy, strategy))
+    return {
+        pair: store.read_candles(pair, config.strategy.timeframe, None, end_ms)
+        for pair in config.strategy.pairs
+    }
+
+
+def derive_config(
+    config: BotConfig,
+    *,
+    params: Mapping[str, Any] | None = None,
+    start: date | None = None,
+    end: date | None = None,
+) -> BotConfig:
+    """Copia de la config con otros parámetros de estrategia y/o rango (walk-forward, optuna)."""
+    strategy = config.strategy
+    if params is not None:
+        # model_validate y no model_copy: que un start >= end o un parámetro inválido sea una
+        # ValidationError (trial fallido) y no un ValueError a mitad del walk-forward.
+        strategy = StrategyConfig.model_validate(
+            {**strategy.model_dump(mode="json"), "params": {**strategy.params, **params}}
+        )
+    backtest = config.backtest
+    changes: dict[str, Any] = {}
+    if start is not None:
+        changes["start"] = start
+    if end is not None:
+        changes["end"] = end
+    if changes:
+        backtest = BacktestConfig.model_validate(
+            {**backtest.model_dump(mode="json"), **{k: v.isoformat() for k, v in changes.items()}}
+        )
+    return config.model_copy(update={"strategy": strategy, "backtest": backtest})
+
+
 def run_backtest(
     config: BotConfig,
     *,
     markets: Mapping[Pair, MarketInfo] | None = None,
     with_benchmarks: bool = True,
+    candles: Mapping[Pair, Sequence[Candle]] | None = None,
 ) -> BacktestRun:
+    """Un backtest con el Engine único. `candles` evita releer parquet (walk-forward, optuna)."""
     started = time.perf_counter()
     strategy = build_strategy(config.strategy)
     warmup = effective_warmup(config.strategy, strategy)
@@ -205,7 +253,16 @@ def run_backtest(
     market_infos = load_markets_for(pairs, markets)
     store = ParquetStore(config.data.data_dir)
     start_ms, end_ms = resolve_range(config, store, warmup)
-    feed = HistoricalFeed(store, pairs, timeframe, start_ms, end_ms, warmup=warmup)
+    feed = HistoricalFeed(
+        None if candles is not None else store,
+        pairs,
+        timeframe,
+        start_ms,
+        end_ms,
+        warmup=warmup,
+        candles=candles,
+        late_pairs="activate",
+    )
 
     range_candles = {pair: _range_candles(feed, pair) for pair in pairs}
     series_candles = {pair: [*feed.warmup_candles(pair), *range_candles[pair]] for pair in pairs}
@@ -248,6 +305,8 @@ def run_backtest(
         duration_s=time.perf_counter() - started,
         data_files=[store.path(p, timeframe) for p in pairs],
         markets=market_infos,
+        activation=feed.activation_times,
+        inactive=feed.inactive_pairs,
     )
 
 
@@ -288,13 +347,13 @@ def run_benchmark(
 # ------------------------------------------------------------------ registro
 
 
-def _costs_line(config: BotConfig) -> str:
+def costs_line(config: BotConfig) -> str:
     fee = config.execution.effective_fee_rate * 100
     where = "en quote (BNB)" if config.execution.pay_with_bnb else "en el activo recibido"
     return f"fee {fee:.3f} % {where}, slippage {config.execution.slippage_bps} bps"
 
 
-def _risk_line(config: BotConfig) -> str:
+def risk_line(config: BotConfig) -> str:
     r = config.risk
     base = (
         f"riesgo/trade {r.risk_per_trade * 100:.2f} %, "
@@ -343,16 +402,33 @@ def _protections_summary(r: RiskConfig) -> list[str]:
     return [daily, drawdown, losses, cooldown]
 
 
-def _data_line(config: BotConfig, start_ms: int, end_ms: int, warmup: int, data_hash: str) -> str:
+def data_line(
+    config: BotConfig,
+    start_ms: int,
+    end_ms: int,
+    warmup: int,
+    data_hash: str,
+    activation: Mapping[Pair, int] | None = None,
+    inactive: Sequence[Pair] = (),
+) -> str:
     holdout = "incluye holdout" if config.backtest.include_holdout else "sin holdout"
     pairs = ", ".join(p.symbol for p in config.strategy.pairs)
-    return (
+    line = (
         f"binance {config.strategy.timeframe.value} {ms_to_date(start_ms)} → {ms_to_date(end_ms)} "
         f"({holdout}), warmup {warmup} velas, pares {pairs}, hash {data_hash}"
     )
+    if activation:
+        late = ", ".join(
+            f"{p.symbol} desde {ms_to_date(t)}"
+            for p, t in sorted(activation.items(), key=lambda kv: kv[1])
+        )
+        line = f"{line}; activación tardía: {late}"
+    if inactive:
+        line = f"{line}; sin velas suficientes: {', '.join(p.symbol for p in inactive)}"
+    return line
 
 
-def _frozen_config(config: BotConfig, start_ms: int, end_ms: int) -> dict[str, Any]:
+def frozen_config(config: BotConfig, start_ms: int, end_ms: int) -> dict[str, Any]:
     """Config pública con el rango **efectivo** fijado: recargarla reproduce la corrida aunque
     después se descarguen más velas (ADR-0006)."""
     dump = config.public_dump()
@@ -361,7 +437,7 @@ def _frozen_config(config: BotConfig, start_ms: int, end_ms: int) -> dict[str, A
     return dump
 
 
-def _spec_path(strategy_name: str, root: Path) -> str | None:
+def spec_path(strategy_name: str, root: Path) -> str | None:
     """Última spec `docs/strategy/<nombre>-vN.md` disponible, relativa a la raíz."""
     slug = strategy_name.replace("_", "-")
     candidates = sorted((root / "docs" / "strategy").glob(f"{slug}-v*.md"))
@@ -387,9 +463,9 @@ def payload_from_backtest(run: BacktestRun, root: Path, label: str | None = None
         label=label or f"{run.strategy.name}-{config.strategy.timeframe.value}",
         title=f"{run.strategy.name} {config.strategy.timeframe.value}",
         strategy_name=run.strategy.name,
-        spec_path=_spec_path(run.strategy.name, root),
+        spec_path=spec_path(run.strategy.name, root),
         params=run.strategy.params.model_dump(mode="json"),
-        config_dump=_frozen_config(config, run.start_ms, run.end_ms),
+        config_dump=frozen_config(config, run.start_ms, run.end_ms),
         metrics=run.metrics,
         benchmarks={k: v.metrics for k, v in run.benchmarks.items()},
         equity=run.equity,
@@ -397,9 +473,17 @@ def payload_from_backtest(run: BacktestRun, root: Path, label: str | None = None
         trades=run.trades,
         fills=run.fills,
         events=run.events,
-        data_line=_data_line(config, run.start_ms, run.end_ms, run.warmup, meta.data_hash),
-        costs_line=_costs_line(config),
-        risk_line=_risk_line(config),
+        data_line=data_line(
+            config,
+            run.start_ms,
+            run.end_ms,
+            run.warmup,
+            meta.data_hash,
+            run.activation,
+            run.inactive,
+        ),
+        costs_line=costs_line(config),
+        risk_line=risk_line(config),
         meta=meta,
     )
 
@@ -434,7 +518,7 @@ def payload_from_benchmark(
         strategy_name=f"buy_hold_{kind}",
         spec_path=None,
         params={"kind": kind, "weights": weights},
-        config_dump=_frozen_config(config, start_ms, end_ms),
+        config_dump=frozen_config(config, start_ms, end_ms),
         metrics=result.metrics,
         benchmarks={},
         equity=result.equity,
@@ -442,24 +526,32 @@ def payload_from_benchmark(
         trades=(),
         fills=result.fills,
         events=(),
-        data_line=_data_line(config, start_ms, end_ms, 0, meta.data_hash),
-        costs_line=_costs_line(config),
+        data_line=data_line(config, start_ms, end_ms, 0, meta.data_hash),
+        costs_line=costs_line(config),
         risk_line="benchmark: sin gestión de riesgo (compra única al inicio del rango)",
         meta=meta,
     )
 
 
-def register_payload(payload: RunPayload, experiments_dir: Path, kind: str = "EXP") -> Path:
-    """Registra la corrida; si otro proceso tomó el id entre medio, reintenta con el siguiente."""
+def register_artifacts(
+    build: Callable[[str], RunArtifacts], experiments_dir: Path, kind: str = "EXP"
+) -> Path:
+    """Toma el siguiente id del tipo y escribe; si otro proceso lo ocupó entre medio, reintenta."""
     last_error: DataError | None = None
     for _attempt in range(5):
         run_id = next_run_id(experiments_dir / "runs", kind)
         try:
-            return write_run(experiments_dir, _build_artifacts(payload, run_id, kind))
+            return write_run(experiments_dir, build(run_id))
         except DataError as exc:
             last_error = exc
     msg = f"no se pudo registrar la corrida tras 5 intentos: {last_error}"
     raise DataError(msg)
+
+
+def register_payload(payload: RunPayload, experiments_dir: Path, kind: str = "EXP") -> Path:
+    return register_artifacts(
+        lambda run_id: _build_artifacts(payload, run_id, kind), experiments_dir, kind
+    )
 
 
 def _build_artifacts(payload: RunPayload, run_id: str, kind: str) -> RunArtifacts:

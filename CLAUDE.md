@@ -20,6 +20,8 @@ uv run tradingbot backtest [--set k=v ...]    # configs/backtest.yaml; registra 
 uv run tradingbot benchmark --kind bh_btc|equal_weight        # buy & hold registrado como EXP
 uv run tradingbot experiments list|show|compare|sync          # REGISTRY.md se regenera con sync
 uv run tradingbot stop [--flatten] && uv run tradingbot resume  # kill switch por archivo logs/STOP (paper/live)
+uv run tradingbot walkforward [--optimize --trials N] [--plateau]  # IS 24m/OOS 6m + gate 1; registra WF-NNNN (lento: background o terminal del usuario)
+uv run tradingbot optimize --to YYYY-MM-DD --trials N          # optuna solo in-sample; registra OPT-NNNN
 docker compose build
 docker compose run --rm bot doctor
 ```

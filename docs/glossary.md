@@ -133,3 +133,19 @@ Porcentaje del equity que se acepta perder en un día UTC, medido contra el equi
 ## Cooldown (enfriamiento)
 
 Velas que deben pasar tras una salida antes de volver a entrar. Hay dos: el de la estrategia (`cooldown_candles`, solo en `entry_mode=state`) y el del riesgo, por par tras una salida perdedora por stop o trailing (`cooldown_candles_after_stop`) o global tras N pérdidas seguidas (`pause_after_consecutive_losses`). Evita re-entrar en el mismo ruido que acaba de sacar al bot.
+
+## In-sample (IS) y out-of-sample (OOS)
+
+IS es el tramo de datos con el que se eligen o ajustan los parámetros; OOS es el tramo posterior, que la estrategia no "vio", donde se mide si esa elección sirve. En el walk-forward cada ventana tiene 24 meses de IS y 6 de OOS; solo el OOS cuenta como evidencia (ADR-0008).
+
+## Curva OOS concatenada
+
+Los tramos OOS de todas las ventanas pegados uno tras otro, re-escalando cada uno para que arranque donde terminó el anterior. Es la equity que habría tenido un operador que re-optimiza cada 6 meses y nunca opera con parámetros elegidos mirando el futuro. Sharpe, drawdown y profit factor del gate se calculan sobre ella.
+
+## Monte Carlo (bootstrap de trades)
+
+Re-muestrear con reemplazo los PnL de los trades muchas veces (5,000) y medir el drawdown de cada secuencia simulada. Si la estrategia depende de pocos trades grandes, muchas secuencias los omiten y el drawdown del percentil 95 sube: es la forma de ver cuánto peor pudo haber sido con la misma distribución de resultados.
+
+## Meseta de parámetros
+
+Zona del espacio de parámetros donde los vecinos del punto elegido también son rentables. Se prueba moviendo cada parámetro ±20 % (uno a la vez y todos a la vez) y contando cuántas variantes siguen con PF > 1.1 y retorno positivo. Un óptimo aislado en un pico es sobreajuste; una meseta es robustez.

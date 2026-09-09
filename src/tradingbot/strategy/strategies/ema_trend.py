@@ -12,6 +12,7 @@ Spec: `docs/strategy/ema-trend-v1.md`. Reglas evaluadas al cierre de la vela `t`
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from decimal import Decimal
 from typing import Literal, Self
 
@@ -20,7 +21,15 @@ from pydantic import Field, field_validator, model_validator
 from tradingbot.domain.enums import ExitReason, SignalAction
 from tradingbot.domain.orders import Signal
 from tradingbot.indicators.core import FloatArray, adx, atr, ema
-from tradingbot.strategy.base import OhlcvArrays, Strategy, StrategyContext, StrategyParams
+from tradingbot.strategy.base import (
+    FloatRange,
+    IntRange,
+    OhlcvArrays,
+    ParamRange,
+    Strategy,
+    StrategyContext,
+    StrategyParams,
+)
 from tradingbot.strategy.registry import register
 
 EntryMode = Literal["cross", "state"]
@@ -71,6 +80,17 @@ class EmaTrend(Strategy):
         # Wilder(n) pesa como una EMA(2n−1): ADX y ATR cuentan doble para el warmup.
         p = self.params
         return max(p.ema_regime, p.ema_slow, 2 * p.adx_period, 2 * p.atr_period)
+
+    @classmethod
+    def search_space(cls) -> Mapping[str, ParamRange]:
+        """Rangos de la spec v1 (`ema-trend-v1.md`); `entry_mode` se itera, no se optimiza."""
+        return {
+            "ema_fast": IntRange(10, 30, 1),
+            "ema_slow": IntRange(40, 100, 5),
+            "adx_threshold": FloatRange(15.0, 30.0, 1.0),
+            "stop_atr_mult": FloatRange(1.5, 4.0, 0.5),
+            "trailing_atr_mult": FloatRange(2.0, 5.0, 0.5),
+        }
 
     def compute_indicators(self, ohlcv: OhlcvArrays) -> dict[str, FloatArray]:
         p = self.params

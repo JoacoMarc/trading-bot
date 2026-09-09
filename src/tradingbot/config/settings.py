@@ -34,6 +34,7 @@ from tradingbot.config.models import (
     PersistenceConfig,
     RiskConfig,
     StrategyConfig,
+    ValidationConfig,
 )
 from tradingbot.domain.errors import ConfigError
 
@@ -87,6 +88,7 @@ class BotConfig(BaseSettings):
     risk: RiskConfig = RiskConfig()
     execution: ExecutionConfig = ExecutionConfig()
     backtest: BacktestConfig = BacktestConfig()
+    validation: ValidationConfig = ValidationConfig()
     notify: NotifyConfig = NotifyConfig()
     persistence: PersistenceConfig = PersistenceConfig()
 

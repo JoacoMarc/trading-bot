@@ -63,7 +63,10 @@ def buy_and_hold(
             raise DataError(msg)
 
     slippage = execution.slippage_bps / BPS_DENOMINATOR
-    cash = initial_cash
+    # Cada par se compra en su primera vela del rango; hasta entonces su presupuesto es cash
+    # (pares que listan tarde, ADR-0008).
+    costs: dict[Pair, Decimal] = {}
+    first_time: dict[Pair, int] = {}
     holdings: dict[Pair, Decimal] = {}
     fills: list[Fill] = []
     last_close: dict[Pair, Decimal] = {}
@@ -72,6 +75,7 @@ def buy_and_hold(
         candles = candles_by_pair[pair]
         market = markets[pair]
         first = candles[0]
+        first_time[pair] = first.open_time
         price = quantize_price(first.open * (ONE + slippage), market.tick_size, ROUND_UP)
         budget = initial_cash * weight
         if execution.pay_with_bnb:
@@ -84,12 +88,12 @@ def buy_and_hold(
             fee_asset = pair.quote
             fee_amount = (notional * execution.bnb_fee_rate).quantize(FEE_QUANTUM, ROUND_HALF_UP)
             net_qty = qty
-            cash -= notional + fee_amount
+            costs[pair] = notional + fee_amount
         else:
             fee_asset = pair.base
             fee_amount = (qty * execution.fee_rate).quantize(FEE_QUANTUM, ROUND_HALF_UP)
             net_qty = qty - fee_amount
-            cash -= notional
+            costs[pair] = notional
         holdings[pair] = net_qty
         fills.append(
             Fill(
@@ -116,7 +120,7 @@ def buy_and_hold(
     ordered = sorted(times)
     equity: list[EquityPoint] = [(ordered[0], initial_cash)]  # antes de comprar
     for open_time in ordered:
-        value = cash
+        value = initial_cash - sum((costs[p] for p in costs if first_time[p] <= open_time), ZERO)
         close_time = open_time
         for pair in weights:
             candle = by_time[pair].get(open_time)
@@ -136,5 +140,5 @@ def buy_and_hold(
         equity=equity,
         fills=fills,
         metrics=metrics,
-        leftover_cash=cash,
+        leftover_cash=initial_cash - sum(costs.values(), ZERO),
     )

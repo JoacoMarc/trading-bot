@@ -4,8 +4,8 @@ from decimal import Decimal
 
 import pytest
 
-from tests.engine.fakes import MARKETS, candles_from_prices
-from tests.factories import BTC, ETH, d
+from tests.engine.fakes import H4, MARKETS, candles_from_prices
+from tests.factories import BTC, ETH, T0, d
 from tradingbot.backtest import buy_and_hold, equal_weights
 from tradingbot.config.models import ExecutionConfig
 from tradingbot.domain import DataError
@@ -91,3 +91,23 @@ def test_buy_and_hold_validation() -> None:
         buy_and_hold("x", {BTC: btc}, {BTC: Decimal("1.5")}, d("1000"), ExecutionConfig(), MARKETS)
     with pytest.raises(DataError, match="sin velas"):
         buy_and_hold("x", {BTC: []}, {BTC: Decimal(1)}, d("1000"), ExecutionConfig(), MARKETS)
+
+
+def test_late_pair_budget_stays_in_cash_until_it_lists() -> None:
+    btc = candles_from_prices([("100", "101", "99", "100")] * 4, pair=BTC)
+    eth = candles_from_prices([("10", "11", "9", "10")] * 2, pair=ETH, start=T0 + 2 * H4)
+    result = buy_and_hold(
+        "eq",
+        {BTC: btc, ETH: eth},
+        equal_weights([BTC, ETH]),
+        d("10000"),
+        ExecutionConfig(),
+        MARKETS,
+    )
+    # Antes de que ETH liste, su mitad del presupuesto sigue siendo cash: la equity no cae a ~5000.
+    early = [value for ts, value in result.equity if ts < eth[0].open_time]
+    assert len(early) == 3
+    assert all(value > d("9900") for value in early)
+    assert result.fills[1].pair == ETH
+    assert result.fills[1].fill_ts == eth[0].open_time
+    assert result.leftover_cash < d("20")

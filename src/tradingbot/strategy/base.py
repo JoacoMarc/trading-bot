@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, ClassVar, Self
 
@@ -36,6 +37,34 @@ class StrategyParams(BaseModel):
     """Base de los parámetros de una estrategia: inmutables y sin claves desconocidas."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+@dataclass(frozen=True, slots=True)
+class IntRange:
+    """Rango entero a optimizar (ADR-0008), inclusive, con paso."""
+
+    low: int
+    high: int
+    step: int = 1
+
+
+@dataclass(frozen=True, slots=True)
+class FloatRange:
+    """Rango real a optimizar, inclusive, cuantizado al paso (≤ 3 decimales)."""
+
+    low: float
+    high: float
+    step: float
+
+
+@dataclass(frozen=True, slots=True)
+class Choice:
+    """Parámetro categórico a optimizar."""
+
+    options: tuple[Any, ...]
+
+
+ParamRange = IntRange | FloatRange | Choice
 
 
 class OhlcvArrays:
@@ -291,6 +320,11 @@ class Strategy(ABC):
     def trailing_stop(self, ctx: StrategyContext) -> Decimal | None:
         """Nivel de stop deseado para la posición abierta; el `PositionManager` solo lo sube."""
         return None
+
+    @classmethod
+    def search_space(cls) -> Mapping[str, ParamRange]:
+        """Parámetros a optimizar y sus rangos (ADR-0008); vacío = no se optimiza."""
+        return {}
 
     @staticmethod
     def to_price(value: float) -> Decimal:

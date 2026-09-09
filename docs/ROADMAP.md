@@ -71,8 +71,8 @@ Deuda registrada (revisor de la Fase 5, menores no aplicados): una compra `PENDI
 
 ## Fase 6 — Validación, optimización y gate (L, iterativa) · `en curso`
 
-- [ ] `validation/`: walkforward (IS 24m / OOS 6m, OOS concatenado), optimizer (optuna, solo IS), plateau, montecarlo, regimes
-- [ ] `docs/GATES.md` final; skill `/walkforward`
+- [x] `validation/` (ADR-0008): `walkforward.py` (ventanas IS 24 m / OOS 6 m rodantes o ancladas, paso = OOS, curva OOS concatenada por re-escalado, B&H BTC encadenado por tramo, modos fijo y optimizado), `optimizer.py` (optuna TPE con semilla, `Strategy.search_space()` con `IntRange`/`FloatRange`/`Choice`, score penalizado por pocos trades, trials fallidos = −100), `plateau.py` (±20 % uno a la vez + vértices, cuantizados al paso), `montecarlo.py` (bootstrap de PnL, percentiles de DD), `regimes.py` (retorno y DD intra-año), `gates.py` (tabla criterio/umbral/valor/OK-FALLA-n/a y veredicto), `report.py` (artefactos `WF-`/`OPT-`). Pares que listan tarde se activan al completar su warmup (`HistoricalFeed(late_pairs="activate")`); el benchmark mantiene su presupuesto en cash hasta que listan
+- [x] `docs/GATES.md` final (cómo se calcula cada criterio, DD anual intra-año, veredicto del gate); CLI `walkforward` / `optimize`; skill `/walkforward`; glosario (IS/OOS, curva OOS concatenada, Monte Carlo, meseta)
 - [ ] Iteraciones de estrategia (≥ 4 pares, cross vs state, 1h vs 4h) con specs y veredictos; holdout una sola vez
 - [ ] DoD: decisión go / no-go / iterar en REGISTRY
 
