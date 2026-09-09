@@ -228,7 +228,11 @@ def experiments_show(
         **summary.benchmarks,
     }
     _print_comparison(columns)
-    typer.echo("meta: " + json.dumps(summary.meta, ensure_ascii=False, default=str))
+    meta = {k: v for k, v in summary.meta.items() if k != "extra"}
+    typer.echo("meta: " + json.dumps(meta, ensure_ascii=False, default=str))
+    extra = summary.meta.get("extra") or {}
+    if extra:
+        typer.echo("extra: " + ", ".join(sorted(extra)) + " (detalle en metrics.json)")
 
 
 @experiments_app.command("compare")
