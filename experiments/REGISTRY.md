@@ -14,8 +14,13 @@ Holdout reservado: desde 2025-09-01 (ver `docs/GATES.md`). Ninguna corrida lo in
 | EXP-0006 | 2026-09-08 | ema_trend | b978b0fa53 | 2019-08-01 → 2025-09-01 | BTC, ETH | 4h | +65.4 % | 1.14 | +7.7 % | 76 | no-go (niveles agresivos en BTC+ETH; la mecánica del ADR-0007 queda validada) |
 | EXP-0007 | 2026-09-09 | ema_trend | b978b0fa53 | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +76.9 % | 0.75 | +15.5 % | 248 | no-go (defaults v1 `cross` en 8 pares: top 10 > 100 % del PnL) |
 | EXP-0008 | 2026-09-14 | ema_trend | 3067ccea6a | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +225.4 % | 1.01 | +31.5 % | 681 | go (control: diagnóstico de v3 en muestra completa) |
+| EXP-0009 | 2026-09-14 | regime_bh | 937532e2f5 | 2019-08-01 → 2025-09-01 | BTC | 4h | +401.6 % | 1.19 | +25.2 % | 57 | go (control) |
 | WF-0001 | 2026-09-09 | ema_trend | b978b0fa53 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +23.4 % | 0.48 | +14.3 % | 163 | no-go (Gate 1 no aprobado: Sharpe OOS 0.48) |
 | WF-0002 | 2026-09-09 | ema_trend | b978b0fa53 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +77.5 % | 1.03 | +15.5 % | 140 | no-go (afinar parámetros refutada: 2 trades = 102 % del PnL) |
 | WF-0003 | 2026-09-14 | ema_trend | 3067ccea6a | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +55.7 % | 0.64 | +30.4 % | 644 | no-go (`state` en 4h refutado: PF OOS 1.19 < 1.2, DD 30 %) |
 | WF-0004 | 2026-09-14 | ema_trend | 3067ccea6a | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -43.5 % | -0.39 | +62.7 % | 2549 | no-go (1h refutada por costos; familia `ema_trend` cerrada) |
 | WF-0005 | 2026-09-14 | ema_trend | 3067ccea6a | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +81.8 % | 0.90 | +20.3 % | 435 | no-go (v3 refutada: Sharpe OOS 0.90 ≤ 0.98 del B&H filtrado) |
+| WF-0006 | 2026-09-14 | regime_bh | 937532e2f5 | 2021-08-01 → 2025-08-01 | BTC | 4h | +112.9 % | 1.04 | +17.8 % | 34 | go |
+| WF-0007 | 2026-09-14 | regime_bh | 937532e2f5 | 2021-08-01 → 2025-08-01 | ETH | 4h | +84.7 % | 0.77 | +19.9 % | 33 | go (control) |
+| WF-0008 | 2026-09-14 | regime_bh | 937532e2f5 | 2021-08-01 → 2025-08-01 | BTC | 4h | +90.6 % | 1.04 | +15.3 % | 34 | go (control) |
+| WF-0009 | 2026-09-14 | regime_bh | 937532e2f5 | 2021-08-01 → 2025-08-01 | BTC | 4h | +148.6 % | 1.05 | +21.5 % | 34 | no-go |

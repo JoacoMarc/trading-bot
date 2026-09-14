@@ -1,8 +1,8 @@
 # regime_bh v1
 
-- Estado: en evaluación
+- Estado: confirmada en walk-forward (Gate 1 `aprobado (falta el holdout)`, WF-0006); holdout en curso con λ 0.5 (EXP-0010/0011)
 - Fecha: 2026-09-13
-- Experimentos: EXP-0009 (muestra completa BTC), WF-0006 (BTC, fijo, meseta), WF-0007 (ETH como control), WF-0008 / WF-0009 (λ 0.5 / 0.75)
+- Experimentos: EXP-0009 (muestra completa BTC), WF-0006 (BTC, fijo, meseta), WF-0007 (ETH como control), WF-0008 / WF-0009 (λ 0.5 / 0.75), EXP-0010 (holdout 2025-09 → 2026-09, λ 0.5), EXP-0011 (curva continua 2019-08 → 2026-09 con la config final)
 - Código: `src/tradingbot/strategy/strategies/regime_bh.py`; sizing por fracción en `risk/sizing.py` (ADR-0010); config `configs/regime-bh.yaml`
 - Origen: el filtro de mercado de ADR-0009 (`ema_trend` v3, WF-0005) rindió más que la estrategia que lo usaba; se lo evalúa solo.
 
@@ -36,7 +36,7 @@ Evaluadas al cierre de cada vela de 4h con **días completos**; la orden se ejec
 | `momentum_days` | 30 | 20–45 paso 5 | retorno a N días |
 | `stop_pct` | 0.20 | 0.10–0.30 paso 0.05 | stop de seguridad |
 | `bars_per_day` | 6 | fijo (4h) | validado contra el timeframe |
-| `risk.position_fraction` (λ) | 0.60 | corridas aparte con 0.50 y 0.75 (WF-0008/0009) | no es parámetro de estrategia: no entra en la meseta |
+| `risk.position_fraction` (λ) | 0.60 en la evaluación; **0.50 final** | corridas aparte con 0.50 y 0.75 (WF-0008/0009) | no es parámetro de estrategia: no entra en la meseta. Fijada en 0.5 por presupuesto de DD antes del holdout (ver Resultado) |
 
 No se optimiza nada: los valores son redondos y anteriores a mirar el OOS de esta familia (200/30 son los de ADR-0009).
 
@@ -66,4 +66,26 @@ Umbrales de trades del gate para esta spec: ≥ 30 en la muestra completa y ≥ 
 
 ## Resultado y veredicto
 
-Pendiente (se completa con EXP-0009 y WF-0006..0009).
+### Walk-forward (2026-09-13, git `f1dd153`, árbol limpio)
+
+| Corrida | Config | Curva | Retorno | Sharpe | Max DD | PF | Trades | Gate 1 | Veredicto |
+|---|---|---|---|---|---|---|---|---|---|
+| EXP-0009 | BTC λ 0.6 | muestra completa 2019-08 → 2025-09 | +401.6 % | 1.19 | 25.2 % | 2.77 | 57 | — | go (control) |
+| WF-0006 | BTC λ 0.6, `--plateau` | OOS 2021-08 → 2025-08 | +112.9 % | 1.04 | 17.8 % | 2.64 | 34 | aprobado (falta el holdout) | **go** |
+| WF-0007 | ETH λ 0.6 (control) | OOS | +84.7 % | 0.77 | 19.9 % | 1.77 | 33 | no aprobado (DD intra-2021 38.7 %) | go (control) |
+| WF-0008 | BTC λ 0.5 | OOS | +90.6 % | 1.04 | 15.3 % | 2.68 | 34 | incompleto (meseta n/a) | go (control) |
+| WF-0009 | BTC λ 0.75 | OOS | +148.6 % | 1.05 | 21.5 % | 2.58 | 34 | no aprobado (DD intra-año 25.2 %, MC p95 37.7 %) | no-go |
+
+Benchmarks OOS: B&H BTC +175.8 %, Sharpe 0.76, DD 77.1 %; B&H BTC filtrado (mismo régimen, λ = 1, sin protecciones) +193.2 %, Sharpe 1.01, DD 27.8 %.
+
+**Criterios prefijados: confirma.** Sharpe OOS 1.04 ≥ 0.8 y > 0.76 del B&H; DD OOS 17.8 %; 2022 = 0.00 % (en cash); DD intra-año máx. 22.7 % (2021), 2020 13.0 %; PF 2.64; meseta 14/14 (PF > 1.1 y retorno > 0) y 14/14 con Sharpe ≥ 0.5 × base; Sharpe de la muestra completa sin 2022 = 1.3 (umbral de refutación 0.69 = 0.5 × 1.38 del B&H). Ningún criterio de refutación se dispara.
+
+Lo que la confirmación **no** dice (WF-0006, Notas y veredicto): la ventaja sobre el B&H BTC es probable pero no significativa (bootstrap por bloques de la diferencia de Sharpe: P(Δ > 0) 0.79; la muestra tiene un solo bear completo); sin 2022 el B&H BTC tiene mejor Sharpe (1.38 vs 1.3): el edge es evitar el bear, que es la hipótesis; λ y las protecciones no aportan Sharpe, compran DD (Δ +0.03 vs el filtrado); el PnL está en 15 trades largos y el stop no se ejecutó nunca; la meseta es una pendiente en `momentum_days` (no se toca: sería ajuste sobre el OOS). Alarmas de la spec: 2019-H2 PF 0.03 y −19.2 % (peor caso anticipado, B&H −30.7 %); 2024 con 15 entradas (> 12). ETH confirma la dirección de la regla pero con λ 0.6 revienta el presupuesto de DD (regla del mercado, no del activo; un multi-activo exige λ por par).
+
+**λ final = 0.5**, decidida antes del holdout con el presupuesto de la spec: el Sharpe es invariante (1.04 / 1.04 / 1.05) y el DD escala casi lineal (histórico 21.4 / 25.2 / 28.6 %); 0.6 ya tocó el 25 % desde el pico histórico y 0.75 falla el gate. Cuesta 3.3 pp de CAGR OOS. `configs/regime-bh.yaml` queda con 0.5.
+
+### Holdout (pre-registrado antes de correr, 2026-09-13)
+
+- Una sola vez, con la config final (λ 0.5, mismos parámetros): EXP-0010 = holdout solo (`--from 2025-09-01 --include-holdout`, 2025-09-01 → 2026-09-08, ~12 meses), sobre el que se mide el criterio del gate **PF > 1.1 y DD ≤ 25 %**; EXP-0011 = curva continua 2019-08-01 → 2026-09-08 con la misma config (informativa: la equity que hubiera visto una cuenta desde el inicio, sin el corte artificial del 2025-09-01).
+- Expectativa: 8–15 trades; PF > 1.1 es casi una moneda con tan pocos, así que el criterio que discrimina es el DD. Un pase es evidencia débil (12 meses más de la misma familia de mercado); un fallo refuta. La evidencia fuerte para esta hipótesis llega con el próximo bear.
+- Si pasa: `go` a paper (Fase 7) con esta config; en el runbook: el breaker re-basa el pico en backtest pero en paper/live solo reanuda con `resume()`, y la pérdida diaria es inerte en esta estrategia. Si falla: la familia queda en `no-go` y el holdout gastado; nada de ajustar `momentum_days` para pasar.

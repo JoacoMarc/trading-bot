@@ -1,0 +1,97 @@
+backtest:
+  end: '2025-09-01'
+  holdout_start: '2025-09-01'
+  include_holdout: false
+  initial_cash: '10000'
+  start: '2019-08-01'
+data:
+  data_dir: data
+  gaps_file: configs\binance_gaps.json
+  since: '2019-01-01'
+  timeframes:
+  - 1h
+  - 4h
+  universe:
+  - base: ADA
+    quote: USDT
+  - base: BNB
+    quote: USDT
+  - base: BTC
+    quote: USDT
+  - base: ETH
+    quote: USDT
+  - base: LINK
+    quote: USDT
+  - base: LTC
+    quote: USDT
+  - base: SOL
+    quote: USDT
+  - base: XRP
+    quote: USDT
+exchange:
+  name: binance
+  recv_window_ms: 10000
+  request_timeout_ms: 10000
+execution:
+  bnb_fee_rate: '0.00075'
+  fee_rate: '0.001'
+  pay_with_bnb: false
+  slippage_bps: '5'
+  stop_limit_offset_pct: '0.005'
+  stop_watch_interval_s: 60
+mode: backtest
+notify:
+  daily_summary_hour: 9
+  telegram_enabled: false
+  timezone: America/Argentina/Buenos_Aires
+persistence:
+  db_dir: db
+  experiments_dir: experiments
+  logs_dir: logs
+risk:
+  cooldown_candles_after_stop: 0
+  daily_loss_limit_pct: '0.03'
+  drawdown_pause_days: 30
+  drawdown_resume_pct: null
+  kill_switch_file: logs\STOP
+  market_filter:
+    average: sma
+    benchmark_only: true
+    ema_days: 200
+    enabled: true
+    momentum_days: 30
+    pair: ETH/USDT
+  max_drawdown_pct: '0.2'
+  max_exposure_pct: '1.0'
+  max_position_pct: '1.0'
+  max_positions: 1
+  pause_after_consecutive_losses: null
+  pause_candles_after_losses: 12
+  position_fraction: '0.6'
+  risk_per_trade: '0.01'
+  sizing_mode: fraction
+strategy:
+  name: regime_bh
+  pairs:
+  - base: ETH
+    quote: USDT
+  params:
+    bars_per_day: 6
+    momentum_days: 30
+    sma_days: 200
+    stop_pct: 0.2
+  timeframe: 4h
+  warmup_candles: null
+validation:
+  anchored: false
+  is_months: 24
+  min_trades: 40
+  montecarlo_runs: 5000
+  objective: sharpe
+  oos_months: 6
+  optimize: false
+  plateau: false
+  seed: 42
+  trades_full_min: 30
+  trades_oos_min: 15
+  trials: 50
