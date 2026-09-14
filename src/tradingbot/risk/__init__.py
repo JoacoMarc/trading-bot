@@ -7,6 +7,7 @@ from tradingbot.risk.manager import (
     RiskDecision,
     RiskManager,
 )
+from tradingbot.risk.market_filter import MarketFilter, MarketState
 from tradingbot.risk.protections import (
     Block,
     FileKillSwitch,
@@ -23,6 +24,8 @@ __all__ = [
     "FileKillSwitch",
     "KillSwitch",
     "KillSwitchState",
+    "MarketFilter",
+    "MarketState",
     "PortfolioView",
     "ProtectionEvent",
     "Protections",

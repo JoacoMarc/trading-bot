@@ -218,3 +218,26 @@ def test_walkforward_and_optimize_refuse_the_holdout(workspace: dict[str, Path])
     )
     assert code == 1
     assert "holdout" in out
+
+
+def test_walkforward_with_market_filter_reports_gated_benchmark(workspace: dict[str, Path]) -> None:
+    code, out = _invoke(
+        "walkforward",
+        "--config",
+        str(workspace["config"]),
+        "--is-months",
+        "4",
+        "--oos-months",
+        "2",
+        "--montecarlo-runs",
+        "100",
+        "--set",
+        "risk.market_filter.enabled=true",
+        "--set",
+        "risk.market_filter.ema_days=20",
+        "--set",
+        "risk.market_filter.momentum_days=5",
+        "--no-register",
+    )
+    assert code == 0, out
+    assert "B&H BTC filtrado (OOS)" in out

@@ -17,7 +17,12 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Literal
 
-from tradingbot.backtest.benchmark import BenchmarkResult, buy_and_hold, equal_weights
+from tradingbot.backtest.benchmark import (
+    BenchmarkResult,
+    buy_and_hold,
+    equal_weights,
+    gated_hold,
+)
 from tradingbot.backtest.metrics import EquityPoint, Metrics, compute_metrics
 from tradingbot.backtest.report import (
     ReportContext,
@@ -48,6 +53,7 @@ from tradingbot.persistence.experiments import (
 )
 from tradingbot.persistence.store import EventRecord, InMemoryStore
 from tradingbot.risk.manager import RiskManager
+from tradingbot.risk.market_filter import MarketFilter
 from tradingbot.strategy.base import Strategy
 from tradingbot.strategy.registry import build_strategy, effective_warmup
 
@@ -167,10 +173,30 @@ def _range_candles(feed: HistoricalFeed, pair: Pair) -> list[Candle]:
     return [c for c in (bar.get(pair) for bar in feed.iter_bars()) if c is not None]
 
 
+GATED_BENCHMARK = "B&H BTC filtrado"
+
+
+def market_filter_states(
+    config: BotConfig,
+    warmup: Sequence[Candle],
+    candles: Sequence[Candle],
+) -> list[bool]:
+    """Estado del filtro de mercado al cierre de cada vela del rango (sembrado con el warmup)."""
+    market_filter = MarketFilter(config.risk.market_filter)
+    for candle in warmup:
+        market_filter.on_candle(candle)
+    states: list[bool] = []
+    for candle in candles:
+        market_filter.on_candle(candle)
+        states.append(market_filter.enabled)
+    return states
+
+
 def _compute_benchmarks(
     config: BotConfig,
     candles_by_pair: Mapping[Pair, Sequence[Candle]],
     markets: Mapping[Pair, MarketInfo],
+    warmup_by_pair: Mapping[Pair, Sequence[Candle]] | None = None,
 ) -> dict[str, BenchmarkResult]:
     results: dict[str, BenchmarkResult] = {}
     pairs = [p for p in config.strategy.pairs if candles_by_pair.get(p)]
@@ -193,6 +219,18 @@ def _compute_benchmarks(
             config.backtest.initial_cash,
             config.execution,
             markets,
+        )
+    filter_cfg = config.risk.market_filter
+    if filter_cfg.enabled and candles_by_pair.get(filter_cfg.reference_pair):
+        reference = filter_cfg.reference_pair
+        warmup = (warmup_by_pair or {}).get(reference, ())
+        results[GATED_BENCHMARK] = gated_hold(
+            "bhf",
+            candles_by_pair[reference],
+            market_filter_states(config, warmup, candles_by_pair[reference]),
+            config.backtest.initial_cash,
+            config.execution,
+            markets[reference],
         )
     return results
 
@@ -291,7 +329,16 @@ def run_backtest(
     equity = [(s.ts, s.equity) for s in snapshots]
     invested = [len(s.positions) > 0 for s in snapshots]
     metrics = compute_metrics(equity, invested, trade_store.trades(), trade_store.fills())
-    benchmarks = _compute_benchmarks(config, range_candles, market_infos) if with_benchmarks else {}
+    benchmarks = (
+        _compute_benchmarks(
+            config,
+            range_candles,
+            market_infos,
+            {pair: feed.warmup_candles(pair) for pair in pairs},
+        )
+        if with_benchmarks
+        else {}
+    )
     return BacktestRun(
         config=config,
         strategy=strategy,
@@ -399,7 +446,16 @@ def _protections_summary(r: RiskConfig) -> list[str]:
         if r.cooldown_candles_after_stop == 0
         else f"cooldown tras stop {r.cooldown_candles_after_stop} velas"
     )
-    return [daily, drawdown, losses, cooldown]
+    mf = r.market_filter
+    market = (
+        "filtro de mercado off"
+        if not mf.enabled
+        else (
+            f"filtro de mercado {mf.pair} (cierre diario > EMA{mf.ema_days} y retorno "
+            f"{mf.momentum_days} d > 0)"
+        )
+    )
+    return [daily, drawdown, losses, cooldown, market]
 
 
 def data_line(

@@ -16,7 +16,7 @@ from tests.engine.fakes import (
     candles_from_prices,
 )
 from tests.factories import BTC, ETH, T0, d
-from tradingbot.config.models import RiskConfig
+from tradingbot.config.models import MarketFilterConfig, RiskConfig
 from tradingbot.domain import ExitReason, Side
 from tradingbot.persistence import InMemoryStore
 from tradingbot.risk import KillSwitchState, ReasonCode
@@ -297,3 +297,30 @@ def test_rejection_events_dedupe_only_consecutive_signals() -> None:
         engine.process_bar(bar)
     assert engine.stats.rejections[ReasonCode.KILL_SWITCH.value] == 3
     assert rejections(store, ReasonCode.KILL_SWITCH) == 2  # 0 y 1 colapsan; 3 es un evento nuevo
+
+
+def test_market_filter_blocks_entries_but_exits_execute() -> None:
+    from tests.risk.test_market_filter import day_candles
+
+    # Días 0-3 suben (filtro definido y habilitado al cerrar el día 3); el día 4 se desploma y al
+    # empezar el día 5 el filtro se apaga: la salida del día 5 se ejecuta y la re-entrada no.
+    closes = ["100", "101", "102", "103", "80", "78"]
+    candles = [c for day, close in enumerate(closes) for c in day_candles(day, close)]
+    t = [c.open_time for c in candles]
+    strategy = ScriptedStrategy(
+        {t[23]: ("enter", "70"), t[30]: ("exit", None), t[32]: ("enter", "60")}
+    )
+    risk = RiskConfig(
+        **OFF, market_filter=MarketFilterConfig(enabled=True, ema_days=3, momentum_days=2)
+    )
+    engine, store, _ = build_engine(strategy, bars_from(candles), {BTC: candles}, risk=risk)
+    for bar in bars_from(candles):
+        engine.process_bar(bar)
+
+    buys = [f for f in store.fills() if f.side is Side.BUY]
+    sells = [f for f in store.fills() if f.side is Side.SELL]
+    assert [f.fill_ts for f in buys] == [t[24]]  # la entrada del día 3 se ejecuta al open del día 4
+    assert [f.fill_ts for f in sells] == [t[31]]  # la salida por señal del día 5 se ejecuta
+    assert rejections(store, ReasonCode.MARKET_FILTER) == 1  # la re-entrada del día 5 no pasa
+    assert protection_events(store, ReasonCode.MARKET_FILTER) == [PROTECTION_TRIGGERED]
+    assert engine.risk.protections.status()["market_filter"] == "deshabilitado"

@@ -134,6 +134,32 @@ class StrategyConfig(_Strict):
         return Timeframe.parse(value) if isinstance(value, str) else value
 
 
+class MarketFilterConfig(_Strict):
+    """Filtro de mercado a nivel cartera (ADR-0009).
+
+    Habilita entradas solo si el cierre diario del par de referencia supera su EMA diaria y su
+    retorno a N días es positivo. Apagado por defecto. Los mínimos bajos existen para tests.
+    """
+
+    enabled: bool = False
+    pair: str = "BTC/USDT"
+    ema_days: int = Field(default=200, ge=2, le=400)
+    momentum_days: int = Field(default=30, ge=1, le=200)
+
+    @field_validator("pair")
+    @classmethod
+    def _pair_format(cls, value: str) -> str:
+        if value.count("/") != 1:
+            msg = f"par de referencia inválido {value!r}; usar BASE/QUOTE"
+            raise ValueError(msg)
+        return value.upper()
+
+    @property
+    def reference_pair(self) -> Pair:
+        base, quote = self.pair.split("/")
+        return Pair(base=base, quote=quote)
+
+
 class RiskConfig(_Strict):
     risk_per_trade: Decimal = Field(default=Decimal("0.01"), gt=0, le=Decimal("0.05"))
     max_position_pct: Decimal = Field(default=Decimal("0.25"), gt=0, le=1)
@@ -148,6 +174,7 @@ class RiskConfig(_Strict):
     pause_candles_after_losses: int = Field(default=12, ge=1)  # velas del timeframe
     # `logs/` es bind mount en compose: el host escribe el STOP y el contenedor lo ve.
     kill_switch_file: Path = Path("logs") / "STOP"
+    market_filter: MarketFilterConfig = MarketFilterConfig()
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:

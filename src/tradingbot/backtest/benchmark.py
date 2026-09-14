@@ -12,12 +12,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from decimal import ROUND_HALF_UP, ROUND_UP, Decimal
+from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from tradingbot.backtest.metrics import EquityPoint, Metrics, compute_metrics
 from tradingbot.config.models import ExecutionConfig
 from tradingbot.domain.candle import Candle
-from tradingbot.domain.enums import Side
+from tradingbot.domain.enums import ExitReason, Side
 from tradingbot.domain.errors import DataError
 from tradingbot.domain.money import BPS_DENOMINATOR, ONE, ZERO, quantize_price, quantize_qty
 from tradingbot.domain.orders import Fill, make_client_order_id
@@ -141,4 +141,111 @@ def buy_and_hold(
         fills=fills,
         metrics=metrics,
         leftover_cash=initial_cash - sum(costs.values(), ZERO),
+    )
+
+
+def gated_hold(
+    name: str,
+    candles: Sequence[Candle],
+    enabled: Sequence[bool],
+    initial_cash: Decimal,
+    execution: ExecutionConfig,
+    market: MarketInfo,
+) -> BenchmarkResult:
+    """Buy & hold con interruptor (ADR-0009): comprado mientras `enabled[t]`, en cash si no.
+
+    `enabled[t]` es el estado al cierre de la vela `t`; la compra o venta se ejecuta al open de
+    `t+1` con la misma fee y slippage que la estrategia. Sirve para saber si el edge es el filtro.
+    """
+    if len(candles) != len(enabled):
+        msg = f"gated_hold: {len(candles)} velas y {len(enabled)} estados"
+        raise ValueError(msg)
+    if not candles:
+        msg = f"sin velas para el benchmark {name}"
+        raise DataError(msg)
+    pair = candles[0].pair
+    slippage = execution.slippage_bps / BPS_DENOMINATOR
+    cash = initial_cash
+    qty = ZERO
+    fills: list[Fill] = []
+    equity: list[EquityPoint] = [(candles[0].open_time, initial_cash)]
+    invested: list[bool] = [False]
+    pending: Side | None = None
+    for candle, on in zip(candles, enabled, strict=True):
+        if pending is Side.BUY:
+            price = quantize_price(candle.open * (ONE + slippage), market.tick_size, ROUND_UP)
+            budget = cash / (ONE + execution.bnb_fee_rate) if execution.pay_with_bnb else cash
+            bought = quantize_qty(budget / price, market.step_size)
+            if bought > ZERO:
+                notional = price * bought
+                if execution.pay_with_bnb:
+                    fee_asset = pair.quote
+                    fee_amount = (notional * execution.bnb_fee_rate).quantize(
+                        FEE_QUANTUM, ROUND_HALF_UP
+                    )
+                    qty += bought
+                    cash -= notional + fee_amount
+                else:
+                    fee_asset = pair.base
+                    fee_amount = (bought * execution.fee_rate).quantize(FEE_QUANTUM, ROUND_HALF_UP)
+                    qty += bought - fee_amount
+                    cash -= notional
+                fills.append(
+                    Fill(
+                        client_order_id=make_client_order_id(
+                            name, pair, candle.open_time, Side.BUY
+                        ),
+                        pair=pair,
+                        side=Side.BUY,
+                        price=price,
+                        qty=bought,
+                        fee_amount=fee_amount,
+                        fee_asset=fee_asset,
+                        ref_price=candle.open,
+                        signal_ts=candle.open_time,
+                        decision_ts=candle.open_time,
+                        fill_ts=candle.open_time,
+                    )
+                )
+        elif pending is Side.SELL and qty > ZERO:
+            sold = quantize_qty(qty, market.step_size)
+            if sold > ZERO:
+                price = quantize_price(candle.open * (ONE - slippage), market.tick_size, ROUND_DOWN)
+                proceeds = price * sold
+                rate = execution.bnb_fee_rate if execution.pay_with_bnb else execution.fee_rate
+                fee_amount = (proceeds * rate).quantize(FEE_QUANTUM, ROUND_HALF_UP)
+                cash += proceeds - fee_amount
+                qty = ZERO  # el resto bajo el step es dust: fuera del equity, como en el Engine
+                fills.append(
+                    Fill(
+                        client_order_id=make_client_order_id(
+                            name, pair, candle.open_time, Side.SELL, ExitReason.SIGNAL
+                        ),
+                        pair=pair,
+                        side=Side.SELL,
+                        price=price,
+                        qty=sold,
+                        fee_amount=fee_amount,
+                        fee_asset=pair.quote,
+                        ref_price=candle.open,
+                        signal_ts=candle.open_time,
+                        decision_ts=candle.open_time,
+                        fill_ts=candle.open_time,
+                    )
+                )
+        pending = None
+        equity.append((candle.close_time, cash + qty * candle.close))
+        invested.append(qty > ZERO)
+        if on and qty == ZERO:
+            pending = Side.BUY
+        elif not on and qty > ZERO:
+            pending = Side.SELL
+    metrics = compute_metrics(equity, invested, [], fills)
+    return BenchmarkResult(
+        name=name,
+        weights={pair: ONE},
+        equity=equity,
+        fills=fills,
+        metrics=metrics,
+        leftover_cash=cash,
     )

@@ -7,8 +7,9 @@ import pytest
 from tests.engine.fakes import H4, MARKETS, candles_from_prices
 from tests.factories import BTC, ETH, T0, d
 from tradingbot.backtest import buy_and_hold, equal_weights
+from tradingbot.backtest.benchmark import gated_hold
 from tradingbot.config.models import ExecutionConfig
-from tradingbot.domain import DataError
+from tradingbot.domain import DataError, Side
 
 
 def test_equal_weights() -> None:
@@ -111,3 +112,17 @@ def test_late_pair_budget_stays_in_cash_until_it_lists() -> None:
     assert result.fills[1].pair == ETH
     assert result.fills[1].fill_ts == eth[0].open_time
     assert result.leftover_cash < d("20")
+
+
+def test_gated_hold_buys_when_enabled_and_sells_when_disabled() -> None:
+    candles = candles_from_prices([("100", "101", "99", "100")] * 6, pair=BTC)
+    enabled = [True, True, True, False, False, False]
+    result = gated_hold("bhf", candles, enabled, d("10000"), ExecutionConfig(), MARKETS[BTC])
+    assert [f.side for f in result.fills] == [Side.BUY, Side.SELL]
+    assert result.fills[0].fill_ts == candles[1].open_time  # compra al open siguiente a habilitar
+    assert result.fills[1].fill_ts == candles[4].open_time  # venta al open siguiente a deshabilitar
+    assert d("9960") < result.leftover_cash < d("10000")  # fee y slippage ida y vuelta
+    assert len(result.equity) == 7
+    assert result.metrics.exposure == pytest.approx(3 / 7)
+    with pytest.raises(ValueError, match="velas"):
+        gated_hold("bhf", candles, [True], d("10000"), ExecutionConfig(), MARKETS[BTC])

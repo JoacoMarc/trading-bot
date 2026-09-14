@@ -138,6 +138,7 @@ def render_walkforward_report(
         else {p: t for w in result.windows for p, t in w.run.activation.items()}
     )
     benchmarks = {BENCH_OOS: result.benchmark_metrics} if result.benchmark_metrics else {}
+    benchmarks.update({f"{n} (OOS)": m for n, (_e, m) in result.extra_benchmarks.items()})
     oos = result.oos_metrics
     mc = result.montecarlo
     plateau_section = ""
@@ -279,7 +280,9 @@ def walkforward_artifacts(
 ) -> RunArtifacts:
     meta = walkforward_meta(result, root)
     benchmarks = {BENCH_OOS: result.benchmark_metrics} if result.benchmark_metrics else {}
+    benchmarks.update({f"{n} (OOS)": m for n, (_e, m) in result.extra_benchmarks.items()})
     bench_equities = {BENCH_OOS: result.benchmark_equity} if result.benchmark_equity else {}
+    bench_equities.update({f"{n} (OOS)": e for n, (e, _m) in result.extra_benchmarks.items()})
     cfg = result.config
     return RunArtifacts(
         run_id=run_id,

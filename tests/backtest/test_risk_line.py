@@ -14,6 +14,7 @@ def test_summary_with_defaults() -> None:
         "circuit breaker DD 20 % (reanuda bajo 10 % o tras 30 d)",
         "pausa por pérdidas off",
         "cooldown tras stop off",
+        "filtro de mercado off",
     ]
 
 
@@ -36,4 +37,5 @@ def test_summary_with_everything_off_or_custom() -> None:
         "circuit breaker DD 5 % (reanuda bajo 2.5 %)",
         "pausa 12 velas tras 3 pérdidas seguidas",
         "cooldown tras stop 6 velas",
+        "filtro de mercado off",
     ]

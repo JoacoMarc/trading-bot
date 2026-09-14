@@ -224,6 +224,7 @@ class WalkForwardResult:
     oos_metrics: Metrics
     benchmark_equity: list[EquityPoint]
     benchmark_metrics: Metrics | None
+    extra_benchmarks: dict[str, tuple[list[EquityPoint], Metrics]]  # otros B&H encadenados
     full_sample: BacktestRun | None
     regimes: list[YearRegime]
     regimes_source: str
@@ -380,6 +381,12 @@ def run_walkforward(
         if benchmark_equity
         else None
     )
+    # Otros benchmarks presentes en todas las ventanas (equiponderado, B&H BTC filtrado).
+    common = set.intersection(*(set(r.run.benchmarks) for r in results)) - {BENCHMARK_NAME}
+    extra_benchmarks: dict[str, tuple[list[EquityPoint], Metrics]] = {}
+    for name in sorted(common):
+        chained = chain_equity([r.run.benchmarks[name].equity for r in results], initial)
+        extra_benchmarks[name] = (chained, compute_metrics(chained, [True] * len(chained), [], []))
 
     full_sample: BacktestRun | None = None
     plateau: PlateauResult | None = None
@@ -439,6 +446,7 @@ def run_walkforward(
         oos_metrics=oos_metrics,
         benchmark_equity=benchmark_equity,
         benchmark_metrics=benchmark_metrics,
+        extra_benchmarks=extra_benchmarks,
         full_sample=full_sample,
         regimes=regimes,
         regimes_source=regimes_source,

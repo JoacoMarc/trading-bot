@@ -32,6 +32,7 @@ class ReasonCode(StrEnum):
     DAILY_LOSS_LIMIT = "daily_loss_limit"
     CONSECUTIVE_LOSSES = "consecutive_losses"
     PAIR_COOLDOWN = "pair_cooldown"
+    MARKET_FILTER = "market_filter"
 
 
 @dataclass(frozen=True, slots=True)

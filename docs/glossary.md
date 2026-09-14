@@ -149,3 +149,7 @@ Re-muestrear con reemplazo los PnL de los trades muchas veces (5,000) y medir el
 ## Meseta de parámetros
 
 Zona del espacio de parámetros donde los vecinos del punto elegido también son rentables. Se prueba moviendo cada parámetro ±20 % (uno a la vez y todos a la vez) y contando cuántas variantes siguen con PF > 1.1 y retorno positivo. Un óptimo aislado en un pico es sobreajuste; una meseta es robustez.
+
+## Filtro de mercado (regime gate)
+
+Interruptor a nivel cartera que habilita o deshabilita todas las entradas según el estado de un activo de referencia (acá BTC: cierre diario sobre su EMA de 200 días y retorno de 30 días positivo). A diferencia del filtro de régimen por par, apaga el bot entero en mercados bajistas. Es una protección del RiskManager: no cierra posiciones ni bloquea salidas. Su benchmark natural es el buy & hold filtrado: comprar el activo cuando el filtro dice sí y quedarse en cash cuando dice no (ADR-0009).

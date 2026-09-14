@@ -98,6 +98,15 @@ class Engine:
         self._last_snapshot: PortfolioSnapshot | None = None
         if isinstance(broker, SimulatedBroker):
             broker.bind_cash(lambda: self.cash)
+        # Filtro de mercado (ADR-0009): se siembra con el warmup del feed para llegar definido al
+        # primer bar (1200 velas de 4h = los 200 cierres diarios de la EMA).
+        market_filter = risk.protections.market_filter
+        self._reference: Pair | None = None if market_filter is None else market_filter.pair
+        if self._reference is not None:
+            for warm in feed.warmup_bars():
+                candle = warm.get(self._reference)
+                if candle is not None:
+                    risk.protections.on_reference_candle(candle)
 
     # ------------------------------------------------------------- API
 
@@ -166,6 +175,10 @@ class Engine:
         for candle in bar.iter_candles():  # 3
             self._marks[candle.pair] = candle.close
             self._positions.mark(candle.pair, candle.close)
+        if self._reference is not None:
+            reference = bar.get(self._reference)
+            if reference is not None:
+                self._risk.protections.on_reference_candle(reference)
         self._snapshot(ts)
         self._risk.protections.on_equity(ts, self.equity())
         if self._kill_switch is not None:

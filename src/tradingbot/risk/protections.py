@@ -23,10 +23,12 @@ from pathlib import Path
 from typing import Protocol
 
 from tradingbot.config.models import RiskConfig
+from tradingbot.domain.candle import Candle
 from tradingbot.domain.enums import ExitReason
 from tradingbot.domain.money import ZERO
 from tradingbot.domain.pair import Pair
 from tradingbot.domain.positions import Trade
+from tradingbot.risk.market_filter import MarketFilter
 from tradingbot.risk.sizing import ReasonCode
 
 MS_PER_DAY = 86_400_000
@@ -114,6 +116,9 @@ class Protections:
         self._pair_cooldown_until: dict[Pair, int] = {}
         self._kill = KillSwitchState()
         self._events: list[ProtectionEvent] = []
+        self.market_filter: MarketFilter | None = (
+            MarketFilter(config.market_filter) if config.market_filter.enabled else None
+        )
 
     # ------------------------------------------------------------- estado
 
@@ -162,6 +167,11 @@ class Protections:
             else str(self._day_start_equity),
             "loss_streak": str(self._loss_streak),
             "pairs_in_cooldown": ", ".join(sorted(p.symbol for p in self._pair_cooldown_until)),
+            "market_filter": (
+                "off"
+                if self.market_filter is None
+                else self.market_filter.status()["market_filter"]
+            ),
         }
 
     # ------------------------------------------------------------- alimentación
@@ -224,6 +234,27 @@ class Protections:
                 ts=ts,
             )
 
+    def on_reference_candle(self, candle: Candle) -> None:
+        """Vela cerrada del par de referencia del filtro de mercado (ADR-0009)."""
+        if self.market_filter is None or not self.market_filter.on_candle(candle):
+            return
+        state = self.market_filter.state
+        detail = "" if state is None else state.describe()
+        if self.market_filter.enabled:
+            self._emit(
+                PROTECTION_CLEARED,
+                ReasonCode.MARKET_FILTER,
+                f"mercado habilitado: {detail}",
+                ts=candle.close_time,
+            )
+        else:
+            self._emit(
+                PROTECTION_TRIGGERED,
+                ReasonCode.MARKET_FILTER,
+                f"mercado deshabilitado: {detail}",
+                ts=candle.close_time,
+            )
+
     def set_kill_switch(self, state: KillSwitchState) -> None:
         if state.active and not self._kill.active:
             detail = "flatten: cerrar todo" if state.flatten else "sin nuevas entradas"
@@ -265,6 +296,12 @@ class Protections:
             return Block(ReasonCode.DAILY_LOSS_LIMIT, "límite diario alcanzado (día UTC)")
         if self.losses_paused:
             return Block(ReasonCode.CONSECUTIVE_LOSSES, f"pausa hasta el bar {self._pause_until}")
+        if self.market_filter is not None and not self.market_filter.enabled:
+            state = self.market_filter.state
+            return Block(
+                ReasonCode.MARKET_FILTER,
+                "" if state is None else f"{self.market_filter.pair.symbol}: {state.describe()}",
+            )
         return None
 
     def pair_block(self, pair: Pair) -> Block | None:

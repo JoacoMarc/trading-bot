@@ -90,6 +90,8 @@ def _print_walkforward(result: WalkForwardResult) -> None:
     columns: dict[str, Metrics | dict[str, Any]] = {"OOS concatenado": result.oos_metrics}
     if result.benchmark_metrics is not None:
         columns["B&H BTC (OOS)"] = result.benchmark_metrics
+    for name, (_equity, metrics) in result.extra_benchmarks.items():
+        columns[f"{name} (OOS)"] = metrics
     if result.full_sample is not None:
         columns["muestra completa"] = result.full_sample.metrics
     _print_comparison(columns)
