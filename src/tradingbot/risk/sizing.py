@@ -90,3 +90,33 @@ def sellable_qty(position_qty: Decimal, market: MarketInfo) -> tuple[Decimal, De
     """Cantidad vendible (cuantizada hacia abajo) y dust que queda en la cuenta."""
     qty = quantize_qty(position_qty, market.step_size)
     return qty, position_qty - qty
+
+
+def size_by_fraction(
+    *,
+    equity: Decimal,
+    cash_available: Decimal,
+    price: Decimal,
+    fraction: Decimal,
+    cost_factor: Decimal,
+    market: MarketInfo,
+) -> SizingResult:
+    """Tamaño fijo: `fraction` del equity, acotado por el cash libre (ADR-0010).
+
+    Ignora la distancia al stop: el stop es de seguridad y el drawdown se presupuesta con la
+    fracción. Mismos filtros del exchange que `size_by_risk`.
+    """
+    if cash_available <= ZERO or equity <= ZERO:
+        return SizingResult(None, ZERO, ReasonCode.NO_CASH, f"cash libre {cash_available}")
+    budget = min(equity * fraction, cash_available)
+    qty = quantize_qty(budget / (price * cost_factor), market.step_size)
+    if qty <= ZERO or qty < market.min_qty:
+        return SizingResult(None, ZERO, ReasonCode.MIN_QTY, f"qty {qty} < minQty {market.min_qty}")
+    if market.max_qty is not None and qty > market.max_qty:
+        qty = quantize_qty(market.max_qty, market.step_size)
+    notional = price * qty
+    if notional < market.min_notional:
+        return SizingResult(
+            None, notional, ReasonCode.MIN_NOTIONAL, f"notional {notional} < {market.min_notional}"
+        )
+    return SizingResult(qty, notional)

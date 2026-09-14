@@ -20,7 +20,7 @@ from tradingbot.domain.pair import Pair
 from tradingbot.domain.positions import Position
 from tradingbot.exchange.binance import MarketInfo
 from tradingbot.risk.protections import Protections
-from tradingbot.risk.sizing import ReasonCode, sellable_qty, size_by_risk
+from tradingbot.risk.sizing import ReasonCode, sellable_qty, size_by_fraction, size_by_risk
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,16 +130,26 @@ class RiskManager:
                     Rejection(signal, ReasonCode.INVALID_STOP, "sin mercado, precio o stop")
                 )
                 continue
-            sizing = size_by_risk(
-                equity=view.equity,
-                cash_available=cash_running,
-                price=price,
-                stop=signal.stop_price,
-                risk_per_trade=self.risk.risk_per_trade,
-                max_position_pct=self.risk.max_position_pct,
-                cost_factor=self._cost_factor,
-                market=market,
-            )
+            if self.risk.sizing_mode == "fraction":
+                sizing = size_by_fraction(
+                    equity=view.equity,
+                    cash_available=cash_running,
+                    price=price,
+                    fraction=self.risk.position_fraction,
+                    cost_factor=self._cost_factor,
+                    market=market,
+                )
+            else:
+                sizing = size_by_risk(
+                    equity=view.equity,
+                    cash_available=cash_running,
+                    price=price,
+                    stop=signal.stop_price,
+                    risk_per_trade=self.risk.risk_per_trade,
+                    max_position_pct=self.risk.max_position_pct,
+                    cost_factor=self._cost_factor,
+                    market=market,
+                )
             if sizing.qty is None or sizing.reason is not None:
                 rejections.append(
                     Rejection(signal, sizing.reason or ReasonCode.NO_CASH, sizing.detail)

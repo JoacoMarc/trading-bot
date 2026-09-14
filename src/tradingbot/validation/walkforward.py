@@ -38,7 +38,11 @@ from tradingbot.domain.positions import Trade
 from tradingbot.exchange.binance import MarketInfo
 from tradingbot.strategy.registry import build_strategy, effective_warmup
 from tradingbot.validation.gates import GateCheck, GateThresholds, evaluate_gate1
-from tradingbot.validation.montecarlo import MonteCarloResult, bootstrap_trades
+from tradingbot.validation.montecarlo import (
+    MonteCarloResult,
+    block_bootstrap_daily,
+    bootstrap_trades,
+)
 from tradingbot.validation.optimizer import OptimizationResult, OptimizeSettings, optimize
 from tradingbot.validation.plateau import PlateauResult, run_plateau
 from tradingbot.validation.regimes import RegimeCheck, YearRegime, check_regimes, yearly_regimes
@@ -129,6 +133,9 @@ class WalkForwardSettings:
             plateau=cfg.plateau,
             montecarlo_runs=cfg.montecarlo_runs,
             seed=cfg.seed,
+            thresholds=GateThresholds(
+                trades_full_min=cfg.trades_full_min, trades_oos_min=cfg.trades_oos_min
+            ),
         )
 
     def to_config_dict(self) -> dict[str, Any]:
@@ -146,6 +153,8 @@ class WalkForwardSettings:
             "min_trades": opt.min_trades if opt else defaults.min_trades,
             "plateau": self.plateau,
             "montecarlo_runs": self.montecarlo_runs,
+            "trades_full_min": self.thresholds.trades_full_min,
+            "trades_oos_min": self.thresholds.trades_oos_min,
         }
 
     def to_dict(self) -> dict[str, Any]:
@@ -229,6 +238,7 @@ class WalkForwardResult:
     regimes: list[YearRegime]
     regimes_source: str
     montecarlo: MonteCarloResult
+    montecarlo_daily: MonteCarloResult  # bootstrap por bloques de retornos diarios (informativo)
     plateau: PlateauResult | None
     gate: list[GateCheck]
     unused_tail: tuple[date, date] | None
@@ -419,6 +429,9 @@ def run_walkforward(
     montecarlo = bootstrap_trades(
         [t.pnl for t in oos_trades], initial, runs=settings.montecarlo_runs, seed=settings.seed
     )
+    montecarlo_daily = block_bootstrap_daily(
+        oos_equity, runs=settings.montecarlo_runs, seed=settings.seed
+    )
     gate = evaluate_gate1(
         oos=oos_metrics,
         benchmark=benchmark_metrics,
@@ -451,6 +464,7 @@ def run_walkforward(
         regimes=regimes,
         regimes_source=regimes_source,
         montecarlo=montecarlo,
+        montecarlo_daily=montecarlo_daily,
         plateau=plateau,
         gate=gate,
         unused_tail=unused,

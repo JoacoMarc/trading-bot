@@ -116,8 +116,11 @@ class Protections:
         self._pair_cooldown_until: dict[Pair, int] = {}
         self._kill = KillSwitchState()
         self._events: list[ProtectionEvent] = []
+        filter_cfg = config.market_filter
         self.market_filter: MarketFilter | None = (
-            MarketFilter(config.market_filter) if config.market_filter.enabled else None
+            MarketFilter(filter_cfg)
+            if filter_cfg.enabled and not filter_cfg.benchmark_only
+            else None
         )
 
     # ------------------------------------------------------------- estado

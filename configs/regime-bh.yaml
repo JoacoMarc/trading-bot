@@ -1,0 +1,54 @@
+# regime_bh v1 (docs/strategy/regime-bh-v1.md, ADR-0010): BTC long mientras el régimen diario esté
+# encendido (cierre diario > SMA200 y retorno 30 d > 0), en cash cuando se apaga; tamaño fijo 60 %
+# de la equity y stop de seguridad del 20 %. Control ETH: `--pairs ETH/USDT --set risk.market_filter.pair=ETH/USDT`.
+# Variantes de tamaño: `--set risk.position_fraction=0.5`.
+
+mode: backtest
+
+strategy:
+  name: regime_bh
+  timeframe: 4h
+  pairs: [BTC/USDT]
+  params:
+    sma_days: 200
+    momentum_days: 30
+    stop_pct: 0.20
+    bars_per_day: 6
+
+risk:
+  sizing_mode: fraction
+  position_fraction: 0.6      # λ: presupuesto de drawdown (BTC -40 % -> cartera ~ -24 %)
+  risk_per_trade: 0.01        # no se usa en modo fraction
+  max_position_pct: 1.0       # no se usa en modo fraction
+  max_positions: 1
+  max_exposure_pct: 1.0
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.20
+  market_filter:
+    enabled: true
+    benchmark_only: true      # la estrategia trae su régimen; esto solo habilita el benchmark B&H BTC filtrado
+    pair: BTC/USDT
+    average: sma              # misma definición que la estrategia
+    ema_days: 200
+    momentum_days: 30
+
+execution:
+  fee_rate: 0.001
+  pay_with_bnb: false
+  slippage_bps: 5
+
+backtest:
+  start: 2019-08-01
+  end: null
+  include_holdout: false
+  initial_cash: 10000
+
+validation:
+  trades_full_min: 30         # una ida y vuelta por conmutación del régimen (ADR-0010)
+  trades_oos_min: 15
+
+data:
+  data_dir: data
+
+persistence:
+  experiments_dir: experiments

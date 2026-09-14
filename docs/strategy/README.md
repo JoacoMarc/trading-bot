@@ -44,3 +44,4 @@ Se completa después de los experimentos: qué pasó, qué se aprendió, qué si
 | ema_trend | v1 | descartada (defaults `cross` 4h: EXP-0003/0007, WF-0001/0002) | [`ema-trend-v1.md`](ema-trend-v1.md) |
 | ema_trend | v2 | descartada (`entry_mode=state` refutado en 4h y 1h: WF-0003/0004) | [`ema-trend-v2.md`](ema-trend-v2.md) |
 | ema_trend | v3 | descartada (v2 + filtro de mercado: Sharpe OOS 0.90 ≤ 0.98 del B&H filtrado; WF-0005); familia cerrada | [`ema-trend-v3.md`](ema-trend-v3.md) |
+| regime_bh | v1 | en evaluación (BTC long con régimen diario SMA200 + momentum 30 d, λ 0.6; ADR-0010; EXP-0009, WF-0006..0009) | [`regime-bh-v1.md`](regime-bh-v1.md) |

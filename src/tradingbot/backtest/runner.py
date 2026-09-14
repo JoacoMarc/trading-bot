@@ -451,8 +451,9 @@ def _protections_summary(r: RiskConfig) -> list[str]:
         "filtro de mercado off"
         if not mf.enabled
         else (
-            f"filtro de mercado {mf.pair} (cierre diario > EMA{mf.ema_days} y retorno "
-            f"{mf.momentum_days} d > 0)"
+            f"filtro de mercado {mf.pair} (cierre diario > {mf.average.upper()}{mf.ema_days} "
+            f"y retorno {mf.momentum_days} d > 0"
+            f"{', solo benchmark' if mf.benchmark_only else ''})"
         )
     )
     return [daily, drawdown, losses, cooldown, market]

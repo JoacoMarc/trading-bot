@@ -101,6 +101,12 @@ def _print_walkforward(result: WalkForwardResult) -> None:
         f"max DD p50 {mc.dd_p50 * 100:.2f} %, p95 {mc.dd_p95 * 100:.2f} %, "
         f"p99 {mc.dd_p99 * 100:.2f} %; retorno p05 {mc.return_p05 * 100:+.2f} %"
     )
+    mcd = result.montecarlo_daily
+    typer.echo(
+        f"bootstrap por bloques ({mcd.trades} retornos diarios, informativo): max DD p50 "
+        f"{mcd.dd_p50 * 100:.2f} %, p95 {mcd.dd_p95 * 100:.2f} %; "
+        f"retorno p05 {mcd.return_p05 * 100:+.2f} %"
+    )
     if result.plateau is not None and result.plateau.pass_rate is not None:
         typer.echo(
             f"meseta: {len(result.plateau.rows)} variantes, "

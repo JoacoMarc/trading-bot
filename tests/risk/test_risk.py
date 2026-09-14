@@ -10,7 +10,14 @@ from tests.engine.fakes import MARKETS, market
 from tests.factories import BTC, ETH, T0, d, make_position
 from tradingbot.config.models import ExecutionConfig, RiskConfig
 from tradingbot.domain import ExitReason, Pair, Position, Signal, SignalAction
-from tradingbot.risk import PortfolioView, ReasonCode, RiskManager, sellable_qty, size_by_risk
+from tradingbot.risk import (
+    PortfolioView,
+    ReasonCode,
+    RiskManager,
+    sellable_qty,
+    size_by_fraction,
+    size_by_risk,
+)
 
 
 def enter(pair: Pair = BTC, stop: str = "90", strength: float | None = 25.0) -> Signal:
@@ -237,3 +244,45 @@ def test_sizing_never_exceeds_risk_or_budget(
         <= equity * d("0.25") + price * d("1.0005") * MARKETS[BTC].step_size
     )
     assert result.notional >= MARKETS[BTC].min_notional
+
+
+def test_size_by_fraction_ignores_stop_distance() -> None:
+    result = size_by_fraction(
+        equity=d("10000"),
+        cash_available=d("10000"),
+        price=d("100"),
+        fraction=d("0.6"),
+        cost_factor=d("1.0005"),
+        market=MARKETS[BTC],
+    )
+    assert result.ok
+    assert result.qty is not None
+    assert d("59.9") < result.qty <= d("60")  # 6,000 / (100 x 1.0005)
+    capped = size_by_fraction(
+        equity=d("10000"),
+        cash_available=d("2000"),
+        price=d("100"),
+        fraction=d("0.6"),
+        cost_factor=d("1"),
+        market=MARKETS[BTC],
+    )
+    assert capped.qty == d("20")  # el cash libre acota
+    broke = size_by_fraction(
+        equity=d("10000"),
+        cash_available=d("0"),
+        price=d("100"),
+        fraction=d("0.6"),
+        cost_factor=d("1"),
+        market=MARKETS[BTC],
+    )
+    assert broke.reason is ReasonCode.NO_CASH
+
+
+def test_manager_in_fraction_mode_sizes_by_equity_share() -> None:
+    m = manager(RiskConfig(sizing_mode="fraction", position_fraction=d("0.6"), max_positions=1))
+    decision = m.evaluate_entries(
+        [enter(BTC, stop="99")], view(), T0
+    )  # stop a 1 %: por riesgo daría 100 unidades
+    assert len(decision.intents) == 1
+    assert d("59.9") < decision.intents[0].qty <= d("60")
+    assert decision.intents[0].stop_price == d("99")  # el stop viaja igual: es de seguridad

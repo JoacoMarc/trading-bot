@@ -141,3 +141,21 @@ def test_protections_block_entries_but_never_exits_when_market_is_off() -> None:
 def test_disabled_filter_is_not_created() -> None:
     assert manager(RiskConfig()).protections.market_filter is None
     assert manager(RiskConfig()).protections.status()["market_filter"] == "off"
+
+
+def test_sma_average_matches_rolling_mean() -> None:
+    mf = MarketFilter(MarketFilterConfig(enabled=True, average="sma", ema_days=3, momentum_days=2))
+    feed(mf, [*RISING, "140"])
+    state = state_of(mf)
+    assert state is not None
+    assert state.ema == pytest.approx((101 + 102 + 103) / 3)
+    assert state.enabled
+
+
+def test_benchmark_only_filter_does_not_block_entries() -> None:
+    risk = RiskConfig(
+        market_filter=MarketFilterConfig(
+            enabled=True, benchmark_only=True, ema_days=3, momentum_days=2
+        )
+    )
+    assert manager(risk).protections.market_filter is None

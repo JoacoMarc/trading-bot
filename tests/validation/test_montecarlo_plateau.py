@@ -9,12 +9,12 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from tests.factories import d
+from tests.factories import H4_MS, T0, d
 from tests.validation.factories import make_metrics
 from tradingbot.backtest.metrics import Metrics
 from tradingbot.domain.errors import ConfigError
 from tradingbot.strategy.base import Choice, FloatRange, IntRange, ParamRange
-from tradingbot.validation.montecarlo import bootstrap_trades
+from tradingbot.validation.montecarlo import block_bootstrap_daily, bootstrap_trades
 from tradingbot.validation.plateau import _bump, run_plateau, variations
 
 
@@ -131,3 +131,19 @@ def test_relative_pass_rate_uses_half_of_the_base_sharpe() -> None:
     assert result.relative_pass_rate == pytest.approx(0.5)  # ema_fast 24 sí, 16 no
     assert result.to_dict()["base_sharpe"] == 1.0
     assert run_plateau(BASE, SPACE, run_fn, only=("ema_fast",)).relative_pass_rate is None
+
+
+def test_block_bootstrap_of_daily_returns() -> None:
+    day = 6 * H4_MS
+    rising = [(T0 + i * day, d(1000 + 10 * i)) for i in range(120)]
+    steady = block_bootstrap_daily(rising, runs=100, seed=3)
+    assert steady.trades == 119
+    assert steady.dd_p95 == 0.0
+    assert steady.return_p05 > 0
+    zigzag = [(T0 + i * day, d(1000 + (50 if i % 2 else 0))) for i in range(120)]
+    noisy = block_bootstrap_daily(zigzag, runs=100, seed=3)
+    assert noisy.dd_p50 > 0
+    assert noisy == block_bootstrap_daily(zigzag, runs=100, seed=3)
+    assert block_bootstrap_daily(rising[:10], runs=10).trades == 9  # muestra corta: ceros
+    with pytest.raises(ValueError, match="positivos"):
+        block_bootstrap_daily(rising, runs=0)

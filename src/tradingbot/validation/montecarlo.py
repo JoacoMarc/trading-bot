@@ -13,6 +13,8 @@ from decimal import Decimal
 
 import numpy as np
 
+from tradingbot.backtest.metrics import EquityPoint, daily_returns
+
 
 @dataclass(frozen=True, slots=True)
 class MonteCarloResult:
@@ -73,4 +75,49 @@ def bootstrap_trades(
         dd_p99=float(np.percentile(max_dd, 99)),
         return_p05=float(np.percentile(returns, 5)),
         return_p50=float(np.percentile(returns, 50)),
+    )
+
+
+def block_bootstrap_daily(
+    equity: Sequence[EquityPoint],
+    *,
+    block_days: int = 20,
+    runs: int = 5_000,
+    seed: int = 42,
+) -> MonteCarloResult:
+    """Bootstrap por bloques de `block_days` retornos diarios (ADR-0010, informativo).
+
+    Para estrategias con pocos trades el remuestreo por trade dice poco; acá se re-muestrean bloques
+    contiguos de retornos diarios (conservan la autocorrelación corta) y se recomponen caminos de
+    la misma longitud. `trades` en el resultado es la cantidad de retornos diarios.
+    """
+    if runs <= 0 or block_days <= 0:
+        msg = f"runs y block_days deben ser positivos ({runs}, {block_days})"
+        raise ValueError(msg)
+    returns = (
+        np.asarray(daily_returns(equity).to_numpy(), dtype=np.float64) if equity else np.array([])
+    )
+    n = int(returns.size)
+    if n < 2 * block_days:
+        return MonteCarloResult(runs, n, seed, 0.0, 0.0, 0.0, 0.0, 0.0)
+    rng = np.random.default_rng(seed)
+    blocks = -(-n // block_days)  # ceil
+    starts = rng.integers(0, n - block_days + 1, size=(runs, blocks))
+    offsets = np.arange(block_days)
+    index = (starts[:, :, None] + offsets[None, None, :]).reshape(runs, blocks * block_days)[:, :n]
+    paths = np.cumprod(1.0 + returns[index], axis=1)
+    paths = np.concatenate([np.ones((runs, 1)), paths], axis=1)
+    peaks = np.maximum.accumulate(paths, axis=1)
+    drawdowns = np.minimum((peaks - paths) / peaks, 1.0)
+    max_dd = drawdowns.max(axis=1)
+    final = paths[:, -1] - 1.0
+    return MonteCarloResult(
+        runs=runs,
+        trades=n,
+        seed=seed,
+        dd_p50=float(np.percentile(max_dd, 50)),
+        dd_p95=float(np.percentile(max_dd, 95)),
+        dd_p99=float(np.percentile(max_dd, 99)),
+        return_p05=float(np.percentile(final, 5)),
+        return_p50=float(np.percentile(final, 50)),
     )

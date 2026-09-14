@@ -153,3 +153,11 @@ Zona del espacio de parámetros donde los vecinos del punto elegido también son
 ## Filtro de mercado (regime gate)
 
 Interruptor a nivel cartera que habilita o deshabilita todas las entradas según el estado de un activo de referencia (acá BTC: cierre diario sobre su EMA de 200 días y retorno de 30 días positivo). A diferencia del filtro de régimen por par, apaga el bot entero en mercados bajistas. Es una protección del RiskManager: no cierra posiciones ni bloquea salidas. Su benchmark natural es el buy & hold filtrado: comprar el activo cuando el filtro dice sí y quedarse en cash cuando dice no (ADR-0009).
+
+## Bootstrap por bloques (block bootstrap)
+
+Variante del Monte Carlo para series con dependencia temporal: en vez de re-muestrear retornos diarios sueltos, se re-muestrean bloques contiguos (acá 20 días) que conservan la autocorrelación corta y las rachas, y se recomponen caminos de la misma longitud. Sirve cuando la estrategia tiene pocos trades y el bootstrap por trade no dice nada (ADR-0010). Informativo, no criterio del gate.
+
+## Time-series momentum (tendencia de baja frecuencia)
+
+Regularidad documentada en muchos activos: cuando el precio está por encima de su media larga (p. ej. 200 días) y su retorno reciente es positivo, el retorno esperado siguiente es mayor y el drawdown menor que estar siempre comprado. Es la hipótesis de `regime_bh`: estar comprado solo en esos tramos. El riesgo es que el edge sea un solo evento (un bear market), por eso se prueba también sin 2022.

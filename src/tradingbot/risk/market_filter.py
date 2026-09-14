@@ -40,7 +40,7 @@ class MarketState:
         return float(self.close) > self.ema and self.momentum > 0
 
     def describe(self) -> str:
-        ema = "EMA indefinida" if self.ema is None else f"EMA {self.ema:.2f}"
+        ema = "media indefinida" if self.ema is None else f"media {self.ema:.2f}"
         mom = (
             "momentum indefinido"
             if self.momentum is None
@@ -98,7 +98,9 @@ class MarketFilter:
         value = float(close)
         self._closes.append(value)
         n = self._cfg.ema_days
-        if len(self._closes) == n:
+        if self._cfg.average == "sma":
+            self._ema = sum(self._closes[-n:]) / n if len(self._closes) >= n else None
+        elif len(self._closes) == n:
             self._ema = sum(self._closes) / n  # semilla SMA, como en indicators/
         elif len(self._closes) > n and self._ema is not None:
             alpha = 2.0 / (n + 1)

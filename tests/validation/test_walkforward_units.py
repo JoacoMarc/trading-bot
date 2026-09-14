@@ -8,8 +8,14 @@ from itertools import pairwise
 
 import pytest
 
+from tradingbot.config.models import ValidationConfig
 from tradingbot.domain.errors import ConfigError
-from tradingbot.validation.walkforward import add_months, build_windows, chain_equity
+from tradingbot.validation.walkforward import (
+    WalkForwardSettings,
+    add_months,
+    build_windows,
+    chain_equity,
+)
 
 
 def test_add_months_clamps_day_to_month_end() -> None:
@@ -79,3 +85,12 @@ def test_chain_equity_compounds_segment_returns() -> None:
     chained = chain_equity(segments, Decimal(1000))
     assert len(chained) == sum(len(s) for s in segments)
     assert chained[-1][1] == Decimal(1000) * Decimal("1.1") * Decimal("0.9") * Decimal("1.3")
+
+
+def test_settings_take_trade_thresholds_from_config() -> None:
+    cfg = ValidationConfig(trades_full_min=30, trades_oos_min=15)
+    settings = WalkForwardSettings.from_config(cfg)
+    assert settings.thresholds.trades_full_min == 30
+    assert settings.thresholds.trades_oos_min == 15
+    assert settings.to_config_dict()["trades_oos_min"] == 15
+    assert WalkForwardSettings.from_config(ValidationConfig()).thresholds.trades_full_min == 100

@@ -142,7 +142,9 @@ class MarketFilterConfig(_Strict):
     """
 
     enabled: bool = False
+    benchmark_only: bool = False  # no bloquea entradas; solo habilita el benchmark B&H filtrado
     pair: str = "BTC/USDT"
+    average: Literal["ema", "sma"] = "ema"  # media de los cierres diarios
     ema_days: int = Field(default=200, ge=2, le=400)
     momentum_days: int = Field(default=30, ge=1, le=200)
 
@@ -162,6 +164,8 @@ class MarketFilterConfig(_Strict):
 
 class RiskConfig(_Strict):
     risk_per_trade: Decimal = Field(default=Decimal("0.01"), gt=0, le=Decimal("0.05"))
+    sizing_mode: Literal["risk", "fraction"] = "risk"  # ADR-0010: fracción fija de la equity
+    position_fraction: Decimal = Field(default=Decimal("0.6"), gt=0, le=1)
     max_position_pct: Decimal = Field(default=Decimal("0.25"), gt=0, le=1)
     max_positions: int = Field(default=3, ge=1, le=20)
     max_exposure_pct: Decimal = Field(default=Decimal("1.0"), gt=0, le=1)
@@ -262,6 +266,8 @@ class ValidationConfig(_Strict):
     min_trades: int = Field(default=40, ge=0)
     plateau: bool = False
     montecarlo_runs: int = Field(default=5_000, ge=100)
+    trades_full_min: int = Field(default=100, ge=1)  # ADR-0010: por spec
+    trades_oos_min: int = Field(default=40, ge=1)
 
 
 class NotifyConfig(_Strict):

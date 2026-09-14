@@ -5,7 +5,7 @@ import pytest
 
 from tradingbot.indicators import FloatArray, ema
 from tradingbot.strategy import OhlcvArrays
-from tradingbot.strategy.strategies import EmaTrend
+from tradingbot.strategy.strategies import EmaTrend, RegimeBh
 from tradingbot.validation import (
     assert_equivalent,
     check_no_lookahead,
@@ -86,3 +86,12 @@ def test_signal_at_and_sampling_errors(btc_2023: OhlcvArrays) -> None:
     assert trailing is None
     with pytest.raises(ValueError, match="warmup"):
         check_no_lookahead(EmaTrend(), btc_2023.slice(0, 100))
+
+
+def test_regime_bh_is_equivalent_on_real_data(btc_2023: OhlcvArrays) -> None:
+    # SMA y retorno tienen memoria finita: la ventana de warmup reproduce la serie exacta.
+    strategy = RegimeBh.from_params(sma_days=40, momentum_days=10)
+    assert strategy.warmup_candles == (40 + 2) * 6
+    no_lookahead, window = assert_equivalent(strategy, btc_2023, samples=8, seed=2)
+    assert no_lookahead.ok
+    assert window.ok

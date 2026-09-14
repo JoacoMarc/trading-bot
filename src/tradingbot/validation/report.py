@@ -141,6 +141,7 @@ def render_walkforward_report(
     benchmarks.update({f"{n} (OOS)": m for n, (_e, m) in result.extra_benchmarks.items()})
     oos = result.oos_metrics
     mc = result.montecarlo
+    mcd = result.montecarlo_daily
     plateau_section = ""
     if result.plateau is not None:
         rows = sorted(result.plateau.rows, key=lambda r: (r.passed, r.total_return or Decimal(0)))
@@ -213,6 +214,8 @@ Rango OOS {result.windows[0].window.oos_start} -> {result.windows[-1].window.oos
 
 {mc.runs:,} corridas sobre {mc.trades} trades, semilla {mc.seed}: max DD p50 {_pct(mc.dd_p50)}, p95 {_pct(mc.dd_p95)}, p99 {_pct(mc.dd_p99)}; retorno p05 {_pct(mc.return_p05)}, p50 {_pct(mc.return_p50)}.
 
+Informativo (ADR-0010), bootstrap por bloques de 20 días de los {mcd.trades} retornos diarios OOS: max DD p50 {_pct(mcd.dd_p50)}, p95 {_pct(mcd.dd_p95)}, p99 {_pct(mcd.dd_p99)}; retorno p05 {_pct(mcd.return_p05)}, p50 {_pct(mcd.return_p50)}.
+
 {plateau_section}## Gráficos
 
 `equity.png` (curva OOS concatenada base 100 y B&H BTC OOS, con drawdown), `trades.csv` (trades OOS), `equity.csv`.
@@ -250,6 +253,7 @@ def walkforward_meta(result: WalkForwardResult, root: Path) -> ExperimentMeta:
         "gate": [c.to_dict() for c in result.gate],
         "gate_verdict": gate_verdict(result.gate),
         "montecarlo": result.montecarlo.to_dict(),
+        "montecarlo_daily": result.montecarlo_daily.to_dict(),
         "plateau": None if result.plateau is None else result.plateau.to_dict(),
         "inactive_pairs": [p.symbol for p in result.inactive_pairs],
         "open_at_end": [w.open_at_end for w in result.windows],

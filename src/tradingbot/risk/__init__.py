@@ -16,7 +16,13 @@ from tradingbot.risk.protections import (
     ProtectionEvent,
     Protections,
 )
-from tradingbot.risk.sizing import ReasonCode, SizingResult, sellable_qty, size_by_risk
+from tradingbot.risk.sizing import (
+    ReasonCode,
+    SizingResult,
+    sellable_qty,
+    size_by_fraction,
+    size_by_risk,
+)
 
 __all__ = [
     "Block",
@@ -35,5 +41,6 @@ __all__ = [
     "RiskManager",
     "SizingResult",
     "sellable_qty",
+    "size_by_fraction",
     "size_by_risk",
 ]
