@@ -158,3 +158,33 @@ def test_replay_bars_do_not_open_entries_but_do_exit_and_evaluate_stops() -> Non
     assert (
         len(store.orders()) == 3
     )  # compra 0, venta 1 y la compra en vivo de la vela 3 (pendiente)
+
+
+class ExplodingStrategy(ScriptedStrategy):
+    """Explota al evaluar la vela `boom` (simula un bug a mitad de ciclo)."""
+
+    name = "boom_tst"
+
+    def __init__(self, boom: int) -> None:
+        super().__init__({})
+        self.boom = boom
+
+    def on_candle(self, ctx):  # type: ignore[no-untyped-def]
+        if ctx.open_time == self.boom:
+            msg = "bug a mitad de vela"
+            raise RuntimeError(msg)
+        return super().on_candle(ctx)
+
+
+def test_failed_bar_is_not_marked_as_processed() -> None:
+    candles = candles_from_prices([("100", "101", "99", "100")] * 3)
+    bars = bars_from(candles)
+    engine, _, _ = build_engine(ExplodingStrategy(bars[1].open_time), bars, {BTC: candles})
+    engine.process_bar(bars[0])
+    assert engine.state().last_bar_open_time == bars[0].open_time
+    import pytest
+
+    with pytest.raises(RuntimeError, match="mitad de vela"):
+        engine.process_bar(bars[1])
+    # La vela 1 no quedó como procesada: al reiniciar se repone desde ella.
+    assert engine.state().last_bar_open_time == bars[0].open_time

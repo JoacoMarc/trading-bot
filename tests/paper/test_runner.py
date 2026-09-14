@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 from collections.abc import Sequence
 from decimal import Decimal
@@ -147,3 +149,33 @@ def test_build_requires_paper_mode(tmp_path: Path) -> None:
     config = paper_config(tmp_path).model_copy(update={"mode": Mode.BACKTEST})
     with pytest.raises(ConfigError, match="mode: paper"):
         build_paper_session(config, exchange, sleep=exchange.sleep)
+
+
+async def test_watchdog_and_dead_task_stop_the_session(tmp_path: Path) -> None:
+    candles = rising_days(8)
+    exchange = FakePaperExchange({BTC: candles}, now_ms=candles[30].open_time + 300_000)
+    exchange.last[BTC] = "105"
+    stale_calls: list[int] = []
+    session = build_paper_session(paper_config(tmp_path), exchange, sleep=exchange.sleep)
+    session.on_stale = lambda: stale_calls.append(exchange.now)
+    assert not session.is_stale()
+    exchange.now += 2 * 4 * 3_600_000 + 300_001  # 2 x timeframe + gracia, sin ciclos
+    assert session.is_stale()
+    session._handle_stale()
+    assert stale_calls == [exchange.now]
+    status = json.loads((tmp_path / "logs" / "status.json").read_text(encoding="utf-8"))
+    assert status["phase"] == "colgado"
+
+    # Una tarea auxiliar que muere con excepción pide la parada ordenada.
+    async def boom() -> None:
+        msg = "watcher roto"
+        raise RuntimeError(msg)
+
+    task = asyncio.get_running_loop().create_task(boom())
+    with contextlib.suppress(RuntimeError):
+        await task
+    session._task_done("watcher", task)
+    assert any("watcher" in line and "caída" in line for line in session.recent)
+    bars = [bar async for bar in session.feed]  # el feed ya está parado
+    assert bars == []
+    session.store.close()

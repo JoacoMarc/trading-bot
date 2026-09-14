@@ -8,6 +8,7 @@ import pytest
 
 from tests.factories import BTC, ETH, H4_MS, T0, make_series
 from tradingbot.data import (
+    FEED_LATE,
     FEED_MISSING_PAIR,
     FEED_REPLAY,
     FEED_RETRY,
@@ -163,16 +164,41 @@ async def test_partial_bar_after_retry_window_and_missing_pair_event() -> None:
     assert (FEED_MISSING_PAIR, ETH) in kinds
 
 
-async def test_pair_that_never_confirms_is_dropped_after_window() -> None:
+async def test_slow_pair_is_accepted_by_clock_after_the_window() -> None:
     btc = make_series(pair=BTC, n=13)
     eth = make_series(pair=ETH, n=11, base_price=10)  # ETH nunca publica la vela 11
     source = FakeSource({BTC: btc, ETH: eth}, now_ms=T0 + 10 * H4_MS + 60_000)
     feed = make_feed(source, [BTC, ETH], warmup=1, retry_window_s=10.0)
     bars = await take(feed, 1)
-    assert bars[0].pairs == (BTC,)
+    assert bars[0].pairs == (BTC, ETH)  # la vela 10 de ETH existe: cerrada por reloj
     assert bars[0].open_time == T0 + 10 * H4_MS
+    late = next(e for e in events_of(feed) if e.kind == FEED_LATE)
+    assert late.pair == ETH
+
+
+async def test_pair_without_the_candle_is_dropped_after_window() -> None:
+    btc = make_series(pair=BTC, n=13)
+    eth = make_series(pair=ETH, n=10, base_price=10)  # ETH no tiene ni la 10 ni la 11
+    source = FakeSource({BTC: btc, ETH: eth}, now_ms=T0 + 10 * H4_MS + 60_000)
+    feed = make_feed(source, [BTC, ETH], warmup=1, retry_window_s=10.0)
+    bars = await take(feed, 1)
+    assert bars[0].pairs == (BTC,)
     detail = next(e for e in events_of(feed) if e.kind == FEED_MISSING_PAIR).detail
     assert "sin confirmar" in detail
+
+
+async def test_close_is_confirmed_by_any_later_candle_when_binance_skips_one() -> None:
+    # Mantenimiento: no existe la vela 11, pero la 12 sí -> la 10 se confirma igual.
+    btc = make_series(pair=BTC, n=14, skip=frozenset({11}))
+    source = FakeSource({BTC: btc}, now_ms=T0 + 10 * H4_MS + 60_000)
+    feed = make_feed(source, [BTC], warmup=1, retry_window_s=10.0)
+    bars = await take(feed, 2)
+    # La 10 se acepta por reloj pasada la ventana (no existe la 11 que la confirme) y la 11, que
+    # no existe, se saltea con evento: el feed sigue con la 12 en vez de terminar.
+    assert [b.open_time for b in bars] == [T0 + 10 * H4_MS, T0 + 12 * H4_MS]
+    kinds = [e.kind for e in events_of(feed)]
+    assert FEED_LATE in kinds
+    assert FEED_MISSING_PAIR in kinds
 
 
 async def test_exchange_errors_back_off_and_recover() -> None:
@@ -202,3 +228,19 @@ def test_bootstrap_paginates_long_warmups() -> None:
     assert len(warm) == 25
     assert warm[-1].open_time == T0 + 28 * H4_MS
     assert len([c for c in source.calls if c[2] == 10]) >= 3  # varias páginas de 10
+
+
+async def test_stop_during_a_long_wait_returns_within_one_chunk() -> None:
+    source = FakeSource({BTC: make_series(pair=BTC, n=13)}, now_ms=T0 + 10 * H4_MS + 60_000)
+    feed = make_feed(source, [BTC], warmup=1, wait_chunk_s=5.0)
+    feed.bootstrap()
+
+    async def stop_after_first_sleep(seconds: float) -> None:
+        source.sleeps.append(seconds)
+        source.now += int(seconds * 1000)
+        feed.stop()
+
+    feed._sleep = stop_after_first_sleep
+    bars = [bar async for bar in feed]
+    assert bars == []
+    assert source.sleeps == [5.0]  # un solo tramo: `stop()` cortó la espera de 4 h

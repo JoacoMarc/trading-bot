@@ -106,14 +106,16 @@ def test_drawdown_breaker_auto_resume() -> None:
 
 
 def test_drawdown_breaker_manual_resume_rebases_peak() -> None:
-    cfg = RiskConfig(daily_loss_limit_pct=None, max_drawdown_pct=d("0.10"), drawdown_pause_days=1)
+    cfg = RiskConfig(
+        daily_loss_limit_pct=None, max_drawdown_pct=d("0.10"), drawdown_pause_days=None
+    )
     p = Protections(cfg, auto_resume=False)
     p.on_equity(T0, d("10000"))
     p.on_equity(T0 + H4_MS, d("8900"))
     assert halted(p)
-    p.on_equity(T0 + 2 * H4_MS, d("9900"))  # DD 1 %: en paper/live nada reanuda solo
+    p.on_equity(T0 + 2 * H4_MS, d("9900"))  # DD 1 %: en paper/live el nivel no reanuda
     assert halted(p)
-    p.on_equity(T0 + 2 * MS_PER_DAY, d("9900"))  # ni el plazo
+    p.on_equity(T0 + 2 * MS_PER_DAY, d("9900"))  # sin plazo configurado, tampoco
     assert halted(p)
     p.resume()  # inmediato; el pico pasa a ser la equity actual (9900)
     assert not halted(p)
@@ -353,3 +355,43 @@ def test_file_kill_switch_fails_safe_when_unreadable(monkeypatch: pytest.MonkeyP
     assert state == KillSwitchState(active=True, flatten=False)
     assert switch.last_error is not None
     assert "denegado" in switch.last_error
+
+
+def test_drawdown_pause_days_resumes_in_every_mode_and_cooldown_uses_fill_bar() -> None:
+    # La regla por plazo es de reloj y determinística: aplica también sin auto_resume (paper/live).
+    cfg = RiskConfig(
+        daily_loss_limit_pct=None,
+        max_drawdown_pct=d("0.10"),
+        drawdown_pause_days=1,
+        cooldown_candles_after_stop=3,
+    )
+    p = Protections(cfg, auto_resume=False)
+    p.on_equity(T0, d("10000"))
+    p.on_equity(T0 + H4_MS, d("8900"))
+    assert halted(p)
+    p.on_equity(T0 + MS_PER_DAY, d("9400"))  # DD 6 %: el nivel no reanuda sin auto_resume...
+    assert halted(p)
+    p.on_equity(T0 + H4_MS + MS_PER_DAY, d("9400"))  # ...pero el plazo de 1 día sí, y re-basa
+    assert not halted(p)
+    assert p.peak_equity == d("9400")
+    # El cooldown se cuenta desde la vela del fill, no desde la vela en proceso (fills fuera del
+    # ciclo en paper, ADR-0011).
+    p.on_bar(10, T0 + 2 * MS_PER_DAY)
+    trade = Trade(
+        pair=BTC,
+        strategy="ema_trend",
+        qty=d("1"),
+        entry_price=d("100"),
+        entry_time=T0,
+        exit_price=d("90"),
+        exit_time=T0 + 2 * MS_PER_DAY,
+        exit_reason=ExitReason.STOP,
+        fees_quote=d("0.1"),
+        entry_client_order_id="tb-ema_trend-BTCUSDT-1700000000-B",
+        exit_client_order_id="tb-ema_trend-BTCUSDT-1700172800-X",
+    )
+    p.on_trade_closed(trade, bar_index=11)
+    p.on_bar(13, T0 + 3 * MS_PER_DAY)
+    assert p.pair_block(BTC) is not None  # 11 + 3 = 14 > 13
+    p.on_bar(14, T0 + 3 * MS_PER_DAY + H4_MS)
+    assert p.pair_block(BTC) is None

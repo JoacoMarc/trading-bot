@@ -230,3 +230,48 @@ class _NoFeed:
 
     def __aiter__(self):  # type: ignore[no-untyped-def]
         raise NotImplementedError
+
+
+def test_bars_since_exit_matches_backtest_when_fill_arrives_outside_the_bar_loop() -> None:
+    # Backtest: venta decidida al cierre de t1 se llena al open de t2 y en t2 la estrategia ve
+    # bars_since_exit = 0. Paper: el mismo fill llega enseguida (fill_pending) y debe dar 0 igual.
+    prices = [("100", "101", "99", "100")] * 4
+    candles = candles_from_prices(prices)
+    bars = bars_from(candles)
+    t = [c.open_time for c in candles]
+    strategy = ScriptedStrategy({t[0]: ("enter", "90"), t[1]: ("exit", None)})
+    prices_src = FakePrices(now_ms=T0 + 5_000)
+    prices_src.last[BTC] = "100"
+    exec_cfg = ExecutionConfig(slippage_bps=Decimal("0"))
+    b = PaperBroker(exec_cfg, MARKETS, prices_src, Timeframe.H4)
+    engine = Engine(
+        strategy=strategy,
+        feed=_NoFeed(),
+        series=PrecomputedSeries(strategy, {BTC: candles}),
+        broker=b,
+        risk=RiskManager(RiskConfig(**OFF), exec_cfg, MARKETS, strategy.name),
+        store=InMemoryStore(),
+        markets=MARKETS,
+        execution=exec_cfg,
+        initial_cash=d("10000"),
+    )
+    for i in range(3):
+        engine.process_bar(bars[i])
+        prices_src.now = t[i + 1] + 5_000  # 5 s después de abrir la vela siguiente
+        engine.apply_events(b.fill_pending(t[i + 1]))
+    seen = {open_time: since for _pair, open_time, since, _pos in strategy.seen}
+    assert seen[t[2]] == 0  # igual que el backtest (tests/engine/test_engine.py)
+    assert seen[t[1]] is None
+
+
+def test_replay_fill_is_dated_at_the_historical_candle() -> None:
+    prices = FakePrices(now_ms=T0 + 3 * H4 + 5_000)  # tres velas después: reposición
+    prices.forming[BTC] = make_candle(
+        open_time=T0 + H4, open="102", high="103", low="101", close="102"
+    )
+    b = broker(prices, slippage_bps=Decimal("0"))
+    b.submit(make_intent(qty="1"), ts=T0)
+    fill = b.fill_pending(T0 + H4)[0].fill
+    assert fill is not None
+    assert fill.ref_price == d("102")
+    assert fill.fill_ts == T0 + H4  # la vela ya cerró: se fecha en su open_time, no en `ahora`

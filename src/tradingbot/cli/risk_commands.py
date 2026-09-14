@@ -75,13 +75,25 @@ def stop(
 
 
 @risk_app.command("resume")
-def resume(config: ConfigOption = None) -> None:
-    """Retira el kill switch: borra el archivo STOP (ADR-0007)."""
+def resume(
+    config: ConfigOption = None,
+    breaker: Annotated[
+        bool,
+        typer.Option(
+            "--breaker",
+            help="Además pedir la reanudación manual del circuit breaker (archivo RESUME).",
+        ),
+    ] = False,
+) -> None:
+    """Retira el kill switch (borra STOP); con --breaker pide reanudar el circuit breaker."""
     try:
         switch = _switch(config)
     except TradingBotError as exc:
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(code=1) from exc
+    if breaker:
+        switch.request_resume()
+        typer.echo(f"reanudacion del circuit breaker pedida: {switch.resume_path}")
     if not switch.path.exists():
         typer.echo(f"no habia kill switch en {switch.path}")
         return

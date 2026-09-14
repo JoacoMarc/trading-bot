@@ -435,7 +435,17 @@ class BinanceExchange:
         stale = self._offset_ms is None or now - self._offset_measured_at >= self._offset_refresh_ms
         if force or stale:
             t0 = self._local_now_ms()
-            server = self.fetch_time()
+            try:
+                server = self.fetch_time()
+            except ExchangeError:
+                if self._offset_ms is None:
+                    raise
+                # Sin red un rato: el offset cacheado sigue valiendo (deriva de ms por hora).
+                log.warning(
+                    "no se pudo refrescar el offset de reloj; se conserva %+d ms", self._offset_ms
+                )
+                self._offset_measured_at = t0
+                return self._offset_ms
             t1 = self._local_now_ms()
             self._offset_ms = server - (t0 + t1) // 2
             self._offset_measured_at = t1

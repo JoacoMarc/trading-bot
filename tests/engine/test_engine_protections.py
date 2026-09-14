@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -18,9 +20,15 @@ from tests.engine.fakes import (
 from tests.factories import BTC, ETH, T0, d
 from tradingbot.config.models import MarketFilterConfig, RiskConfig
 from tradingbot.domain import ExitReason, Side
+from tradingbot.engine import Engine
 from tradingbot.persistence import TradeStore
 from tradingbot.risk import KillSwitchState, ReasonCode
-from tradingbot.risk.protections import MS_PER_DAY, PROTECTION_CLEARED, PROTECTION_TRIGGERED
+from tradingbot.risk.protections import (
+    MS_PER_DAY,
+    PROTECTION_CLEARED,
+    PROTECTION_TRIGGERED,
+    FileKillSwitch,
+)
 
 DAY_START = T0 - T0 % MS_PER_DAY + MS_PER_DAY  # medianoche UTC siguiente a T0
 FLAT60 = ("60", "61", "59", "60")
@@ -75,9 +83,14 @@ def test_daily_loss_blocks_entries_until_next_utc_day() -> None:
 class FakeSwitch:
     def __init__(self) -> None:
         self.state = KillSwitchState()
+        self.resume_requested = False
 
     def poll(self) -> KillSwitchState:
         return self.state
+
+    def consume_resume(self) -> bool:
+        requested, self.resume_requested = self.resume_requested, False
+        return requested
 
 
 def test_kill_switch_flatten_sells_everything_and_blocks_entries() -> None:
@@ -325,3 +338,45 @@ def test_market_filter_blocks_entries_but_exits_execute() -> None:
     assert rejections(store, ReasonCode.MARKET_FILTER) == 1  # la re-entrada del día 5 no pasa
     assert protection_events(store, ReasonCode.MARKET_FILTER) == [PROTECTION_TRIGGERED]
     assert engine.risk.protections.status()["market_filter"] == "deshabilitado"
+
+
+def _halted(engine: Engine) -> bool:
+    return engine.risk.protections.drawdown_halted
+
+
+def test_resume_file_reanuda_el_breaker_en_el_proximo_bar(tmp_path: Path) -> None:
+    prices = [
+        ("100", "101", "99", "100"),  # 0: entrada al close
+        ("100", "100", "60", "60"),  # 1: fill y caída -> halt
+        FLAT60,  # 2: venta al open; entrada rechazada (halt)
+        FLAT60,  # 3: el operador pidió RESUME antes de este cierre: se reanuda y la entrada pasa
+        FLAT60,  # 4: fill al open
+    ]
+    candles = candles_from_prices(prices)
+    t = [T0 + k * H4 for k in range(len(prices))]
+    strategy = ScriptedStrategy(
+        {t[0]: ("enter", "50"), t[1]: ("exit", None), t[2]: ("enter", "30"), t[3]: ("enter", "30")}
+    )
+    switch = FileKillSwitch(tmp_path / "STOP")
+    risk = RiskConfig(daily_loss_limit_pct=None, max_drawdown_pct=d("0.005"))
+    engine, store, _ = build_engine(
+        strategy,
+        bars_from(candles),
+        {BTC: candles},
+        risk=risk,
+        kill_switch=switch,
+        auto_resume=False,
+    )
+    bars = bars_from(candles)
+    for bar in bars[:3]:
+        engine.process_bar(bar)
+    assert _halted(engine)
+    switch.request_resume()
+    assert switch.resume_path.exists()
+    engine.process_bar(bars[3])
+    assert not switch.resume_path.exists()  # consumido una sola vez
+    assert not _halted(engine)
+    engine.process_bar(bars[4])
+    buys = [f for f in store.fills() if f.side is Side.BUY]
+    assert [f.fill_ts for f in buys] == [t[1], t[4]]
+    assert switch.consume_resume() is False

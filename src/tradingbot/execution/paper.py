@@ -66,13 +66,19 @@ class PaperBroker(SimulatedBroker):
 
     # ------------------------------------------------------------- fills inmediatos
 
-    def _forming_open(self, pair: Pair, open_time: int) -> Decimal | None:
-        """`open` de la vela en formación, o el último precio si todavía no imprimió."""
+    def _forming_open(self, pair: Pair, open_time: int) -> tuple[Decimal, int] | None:
+        """`(open, ts)` de la vela `open_time`, o `(último precio, ahora)` si no imprimió.
+
+        Si la vela ya cerró (reposición tras reinicio) el `ts` del fill es su `open_time`, no
+        ahora: el precio es histórico y el trade tiene que fecharse cuando ocurrió (ADR-0011).
+        """
+        now = self._prices.now_ms()
         try:
             page = self._prices.fetch_ohlcv_page(pair, self._timeframe, open_time, 1)
             if page and page[0].open_time == open_time:
-                return page[0].open
-            return self._prices.fetch_last_price(pair)
+                closed = open_time + self._timeframe.ms <= now
+                return page[0].open, (open_time if closed else now)
+            return self._prices.fetch_last_price(pair), now
         except ExchangeError as exc:
             self.price_errors += 1
             log.warning("paper: sin precio para %s (%s); la orden espera", pair.symbol, exc)
@@ -83,8 +89,7 @@ class PaperBroker(SimulatedBroker):
         self._timeframe.check_aligned(forming_open_time)
         events: list[BrokerEvent] = []
         available = self._free_cash() if self._free_cash is not None else None
-        now = self._prices.now_ms()
-        opens: dict[Pair, Decimal | None] = {}
+        opens: dict[Pair, tuple[Decimal, int] | None] = {}
         for cid in list(self._pending):
             order = self._pending[cid]
             pair = order.intent.pair
@@ -93,7 +98,10 @@ class PaperBroker(SimulatedBroker):
             ref = opens[pair]
             if ref is None:
                 continue
-            event, spent = self._settle(order, ref_price=ref, fill_ts=now, available=available)
+            price, fill_ts = ref
+            event, spent = self._settle(
+                order, ref_price=price, fill_ts=fill_ts, available=available
+            )
             if available is not None:
                 available -= spent
             events.append(event)
@@ -149,6 +157,7 @@ class StopWatcher:
         on_events: Callable[[list[BrokerEvent]], None],
         *,
         sleep: AsyncSleep = asyncio.sleep,
+        pre_tick: Callable[[], None] | None = None,
     ) -> None:
         if interval_s <= 0:
             msg = f"interval_s debe ser positivo, recibido {interval_s}"
@@ -157,6 +166,7 @@ class StopWatcher:
         self._interval_s = interval_s
         self._on_events = on_events
         self._sleep = sleep
+        self._pre_tick = pre_tick
         self._stopped = False
         self.ticks = 0
 
@@ -166,6 +176,8 @@ class StopWatcher:
     def tick(self) -> list[BrokerEvent]:
         """Una pasada (también la usa el runner justo después de cada cierre)."""
         self.ticks += 1
+        if self._pre_tick is not None:
+            self._pre_tick()  # p. ej. reintentar fills que esperaban precio (ADR-0011)
         events = self._broker.check_stops()
         if events:
             self._on_events(events)

@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
 import signal
 from collections import deque
 from collections.abc import Awaitable, Callable
@@ -26,7 +27,7 @@ from tradingbot.backtest.runner import load_markets_for
 from tradingbot.config.models import Mode
 from tradingbot.config.settings import BotConfig
 from tradingbot.data.live_feed import FeedEvent, LiveFeed
-from tradingbot.domain.candle import Candle
+from tradingbot.domain.candle import Bar, Candle
 from tradingbot.domain.enums import OrderStatus
 from tradingbot.domain.errors import ConfigError, ExchangeError
 from tradingbot.domain.money import ZERO
@@ -96,9 +97,18 @@ class PaperSession:
     kill_switch: FileKillSwitch
     status: StatusWriter
     restored: bool
+    _sleep: AsyncSleep = field(default=asyncio.sleep, repr=False)
     recent: deque[str] = field(default_factory=lambda: deque(maxlen=20))
     bars_processed: int = 0
+    watchdog_grace_ms: int = 300_000
+    watchdog_interval_s: float = 60.0
+    on_stale: Callable[[], None] | None = None  # default: salir con 1 (Docker reinicia)
     _stopping: bool = field(default=False, init=False)
+    _last_cycle_ts: int = field(default=0, init=False)
+    _next_open: int | None = field(default=None, init=False)
+
+    def __post_init__(self) -> None:
+        self._last_cycle_ts = self.exchange.now_ms()
 
     # ------------------------------------------------------------- eventos
 
@@ -115,7 +125,9 @@ class PaperSession:
         self.note(f"{event.kind} {'' if event.pair is None else event.pair.symbol} {event.detail}")
 
     def on_broker_events(self, events: list[BrokerEvent]) -> None:
-        self.engine.apply_events(events)
+        with self.store.transaction():
+            self.engine.apply_events(events)
+            self.persist()
         for event in events:
             intent = event.order.intent
             if event.fill is None:
@@ -126,7 +138,15 @@ class PaperSession:
                     f"{event.fill.price} "
                     f"({intent.exit_reason.value if intent.exit_reason else 'entrada'})"
                 )
-        self.persist()
+        self.write_status()
+
+    def retry_pending_fills(self) -> None:
+        """Órdenes que esperaban precio: se reintentan en cada tick del watcher (I8)."""
+        if self._next_open is None or not self.broker.pending_orders():
+            return
+        events = self.broker.fill_pending(self._next_open)
+        if events:
+            self.on_broker_events(events)
 
     # ------------------------------------------------------------- persistencia y status
 
@@ -216,19 +236,66 @@ class PaperSession:
                 with contextlib.suppress(ValueError):
                     signal.signal(sig, lambda *_args: self.request_stop())
 
-    def process(self, bar: Any) -> None:
-        """Un cierre: motor, fills inmediatos, stops, persistencia y status."""
+    def process(self, bar: Bar) -> None:
+        """Un cierre: motor, fills inmediatos, stops, persistencia y status.
+
+        Todo el ciclo va en una transacción: un corte a mitad no deja el cash sin la venta ni la
+        posición sin el débito (ADR-0011).
+        """
         tf = self.config.strategy.timeframe.ms
-        self.engine.process_bar(bar)
-        self.engine.apply_events(self.broker.fill_pending(bar.open_time + tf))
-        self.watcher.tick()
+        self._next_open = bar.open_time + tf
+        with self.store.transaction():
+            self.engine.process_bar(bar)
+            self.engine.apply_events(self.broker.fill_pending(self._next_open))
+            self.engine.apply_events(self.broker.check_stops())
+            self.watcher.ticks += 1
+            self.persist()
         self.bars_processed += 1
+        self._last_cycle_ts = self.exchange.now_ms()
         self.note(
             f"vela {_iso(bar.open_time)}{' (reposición)' if bar.replay else ''}: "
             f"equity {self.engine.equity():.2f}, posiciones {len(self.engine.positions)}"
         )
-        self.persist()
         self.write_status()
+
+    def stale_for_ms(self) -> int:
+        """Milisegundos desde el último ciclo completo (o desde el arranque)."""
+        return max(self.exchange.now_ms() - self._last_cycle_ts, 0)
+
+    def is_stale(self) -> bool:
+        tf = self.config.strategy.timeframe.ms
+        return self.stale_for_ms() > 2 * tf + self.watchdog_grace_ms
+
+    def _handle_stale(self) -> None:
+        self.note(
+            f"watchdog: sin ciclo completo hace {self.stale_for_ms() // 60_000} min; "
+            "el proceso sale con 1 para que Docker lo reinicie"
+        )
+        self.write_status("colgado")
+        if self.on_stale is not None:
+            self.on_stale()
+            return
+        with contextlib.suppress(Exception):
+            self.store.close()
+        os._exit(1)
+
+    async def _watchdog(self, sleep: AsyncSleep) -> None:
+        """El healthcheck de compose no reinicia nada: el proceso se vigila a sí mismo (I3)."""
+        while not self._stopping:
+            await sleep(self.watchdog_interval_s)
+            if not self._stopping and self.is_stale():
+                self._handle_stale()
+                return
+
+    def _task_done(self, name: str, task: asyncio.Task[None]) -> None:
+        """Una tarea auxiliar que muere con excepción para el proceso ordenadamente (I5)."""
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is not None:
+            log.error("paper: la tarea %s murió: %r", name, exc)
+            self.note(f"tarea {name} caída: {exc!r}; parada solicitada")
+            self.request_stop()
 
     async def run(self, *, max_bars: int | None = None, install_signals: bool = True) -> int:
         """Corre hasta `request_stop()` (o `max_bars`). Devuelve la cantidad de velas procesadas."""
@@ -240,8 +307,12 @@ class PaperSession:
             f"{'reanudado desde la DB' if self.restored else 'arranque limpio'}, "
             f"{self.feed.replay_pending} velas de reposición"
         )
+        self._last_cycle_ts = self.exchange.now_ms()
         self.write_status("arranque")
         watcher_task = asyncio.create_task(self.watcher.run())
+        watcher_task.add_done_callback(lambda t: self._task_done("watcher", t))
+        watchdog_task = asyncio.create_task(self._watchdog(self._sleep))
+        watchdog_task.add_done_callback(lambda t: self._task_done("watchdog", t))
         try:
             async for bar in self.feed:
                 self.process(bar)
@@ -249,11 +320,13 @@ class PaperSession:
                     self.request_stop()
                     break
         finally:
-            self.watcher.stop()
-            watcher_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError, Exception):
-                await watcher_task
-            self.persist()
+            self.request_stop()
+            for task in (watcher_task, watchdog_task):
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError, Exception):
+                    await task
+            with self.store.transaction():
+                self.persist()
             self.write_status("detenido")
             self.store.close()
         return self.bars_processed
@@ -366,11 +439,16 @@ def build_paper_session(
         broker=broker,
         engine=engine,
         watcher=StopWatcher(
-            broker, config.execution.stop_watch_interval_s, on_broker_events, sleep=sleep
+            broker,
+            config.execution.stop_watch_interval_s,
+            on_broker_events,
+            sleep=sleep,
+            pre_tick=lambda: holder[0].retry_pending_fills(),
         ),
         kill_switch=kill_switch,
         status=status,
         restored=restore is not None,
+        _sleep=sleep,
     )
     holder.append(session)
     for event in early_events:

@@ -86,3 +86,11 @@ def test_errors_are_clean(tmp_path: Path) -> None:
     assert result.exit_code == 1
     assert "no se pudo leer" in result.output
     assert not (tmp_path / "logs" / "STOP").exists()
+
+
+def test_resume_breaker_writes_the_resume_file(tmp_path: Path) -> None:
+    result = runner.invoke(app, ["resume", "--breaker"])
+    assert result.exit_code == 0, result.output
+    resume_file = tmp_path / "logs" / "RESUME"
+    assert resume_file.exists()
+    assert "circuit breaker" in result.output

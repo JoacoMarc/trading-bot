@@ -405,3 +405,20 @@ def test_fetch_last_price_reads_exact_string() -> None:
     client.last_prices["BTCUSDT"] = "0"
     with pytest.raises(ExchangeError, match="sin precio"):
         exchange.fetch_last_price(BTC)
+
+
+def test_time_offset_keeps_cached_value_when_refresh_fails() -> None:
+    client = FakeCcxt(server_time_ms=1_700_000_000_500)
+    clock = {"now": 1_700_000_000_000}
+    exchange = BinanceExchange(
+        client, sleep=lambda _s: None, max_retries=0, local_now_ms=lambda: clock["now"]
+    )
+    assert exchange.time_offset_ms() == 500
+    clock["now"] += 2 * 3_600_000  # una hora después el offset está vencido...
+    client.failures = [ccxt.NetworkError("sin red")]
+    assert exchange.time_offset_ms() == 500  # ...pero sin red se conserva el cacheado
+    assert exchange.now_ms() == clock["now"] + 500
+    with pytest.raises(ExchangeError):
+        BinanceExchange(
+            FakeCcxt(failures=[ccxt.NetworkError("sin red")]), sleep=lambda _s: None, max_retries=0
+        ).time_offset_ms()  # sin cache no hay con qué seguir

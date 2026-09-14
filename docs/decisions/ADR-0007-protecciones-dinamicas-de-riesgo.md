@@ -33,3 +33,7 @@ La Fase 4 dejó un `RiskManager` estático: slots, exposición, sizing y filtros
 - Cambia el resultado de cualquier config con protecciones activas: EXP-0003 no se reproduce recargando su `config.yaml` (anotado en sus Notas); EXP-0004, con las protecciones en `null`, es la prueba de reproducibilidad.
 - Regla dura 7 verificada por `hypothesis`: `exit_intent` no depende del estado de las protecciones.
 - Deuda: persistencia del estado (Fase 7: al reiniciar se pierden pico, halt diario, pausa y cooldowns; solo el archivo STOP sobrevive, anotar en el runbook de paper), comando remoto de `resume` (Fase 8), cancelación de pendientes (Fase 10), pausa por pérdidas por par.
+
+## Notas
+
+- Nota (2026-09-14, revisión de la Fase 7): la reanudación del circuit breaker **por plazo** (`drawdown_pause_days`, re-basando el pico) aplica en todos los modos, no solo en backtest: es una regla de reloj determinística y es la que validó el walk-forward (WF-0006/0008); sin ella el paper quedaría en cash para siempre tras el primer halt y `parity` fallaría desde ahí. La reanudación **por nivel** (`drawdown_resume_pct`) sigue siendo solo de backtest (`auto_resume`). La reanudación manual en paper/live se pide con `tradingbot resume --breaker` (archivo `RESUME` al lado del `STOP`), que el `Engine` consume una vez por `Bar` (ADR-0011).

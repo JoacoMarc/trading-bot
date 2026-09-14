@@ -21,16 +21,11 @@ risk:
   max_positions: 1
   max_exposure_pct: 1.0
   daily_loss_limit_pct: 0.03  # inerte en esta estrategia (decide al cierre del día); queda como red
-  max_drawdown_pct: 0.20      # en paper el circuit breaker solo reanuda con `tradingbot resume`... (ver runbook)
-  drawdown_pause_days: 30
-  kill_switch_file: logs/STOP # bind mount: el host escribe, el contenedor lo ve
-  market_filter:
-    enabled: true
-    benchmark_only: true      # el régimen lo trae la estrategia; esto solo describe el filtro en el status
-    pair: BTC/USDT
-    average: sma
-    ema_days: 200
-    momentum_days: 30
+  max_drawdown_pct: 0.20      # circuit breaker: reanuda por plazo (30 d, misma regla que el WF)
+  drawdown_pause_days: 30     # o antes a mano con `tradingbot resume --breaker`
+  kill_switch_file: logs/STOP # bind mount: el host escribe, el contenedor lo ve (RESUME al lado)
+  # Sin market_filter: el régimen lo trae la propia estrategia (en backtest solo servía para el
+  # benchmark B&H filtrado).
 
 execution:
   fee_rate: 0.001

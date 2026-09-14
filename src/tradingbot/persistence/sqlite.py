@@ -5,12 +5,17 @@ indexadas para consultar (par, timestamps, `client_order_id`) y una columna `dat
 del modelo pydantic (`model_dump(mode="json")`: los `Decimal` viajan como texto, sin pérdida).
 `state` guarda lo que no es dominio: versión del esquema, última vela procesada, protecciones,
 cash y dust. Un solo proceso escribe; WAL permite lectores concurrentes (`status`, `parity`).
+
+`transaction()` agrupa varias escrituras en una sola transacción: el ciclo de una vela (fills,
+posiciones, trades, snapshot y `state`) se confirma entero o no se confirma, así un corte a mitad
+de ciclo no deja el cash sin la venta ni la posición sin el débito.
 """
 
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
@@ -19,6 +24,7 @@ import sqlalchemy as sa
 from pydantic import BaseModel
 from sqlalchemy import event
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy.engine import Connection
 from sqlalchemy.engine import Engine as SAEngine
 
 from tradingbot.domain.errors import ConfigError
@@ -123,6 +129,7 @@ class SqliteStore:
             f"sqlite+pysqlite:///{self._path.as_posix()}",
             connect_args={"check_same_thread": False},
         )
+        self._tx: Connection | None = None
 
         @event.listens_for(self._engine, "connect")
         def _pragmas(dbapi_connection: Any, _record: Any) -> None:
@@ -142,6 +149,10 @@ class SqliteStore:
     def path(self) -> Path:
         return self._path
 
+    @property
+    def in_transaction(self) -> bool:
+        return self._tx is not None
+
     def close(self) -> None:
         self._engine.dispose()
 
@@ -155,6 +166,28 @@ class SqliteStore:
         tb: TracebackType | None,
     ) -> None:
         self.close()
+
+    @contextmanager
+    def transaction(self) -> Iterator[None]:
+        """Agrupa las escrituras del bloque en una transacción (anidable: la externa manda)."""
+        if self._tx is not None:
+            yield
+            return
+        with self._engine.begin() as conn:
+            self._tx = conn
+            try:
+                yield
+            finally:
+                self._tx = None
+
+    @contextmanager
+    def _conn(self) -> Iterator[Connection]:
+        """Conexión de la transacción abierta o una transacción propia de una sola sentencia."""
+        if self._tx is not None:
+            yield self._tx
+            return
+        with self._engine.begin() as conn:
+            yield conn
 
     def _check_schema(self) -> None:
         current = self.load_state(SCHEMA_KEY)
@@ -194,11 +227,11 @@ class SqliteStore:
                 "data": stmt.excluded.data,
             },
         )
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(stmt)
 
     def save_fill(self, fill: Fill) -> None:
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(
                 fills_table.insert().values(
                     client_order_id=fill.client_order_id,
@@ -216,11 +249,11 @@ class SqliteStore:
         stmt = stmt.on_conflict_do_update(
             index_elements=[positions_table.c.pair], set_={"data": stmt.excluded.data}
         )
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(stmt)
 
     def remove_position(self, pair: Pair) -> None:
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(sa.delete(positions_table).where(positions_table.c.pair == pair.symbol))
 
     def save_trade(self, trade: Trade) -> None:
@@ -235,7 +268,7 @@ class SqliteStore:
             index_elements=[trades_table.c.exit_client_order_id],
             set_={"data": stmt.excluded.data, "exit_time": stmt.excluded.exit_time},
         )
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(stmt)
 
     def snapshot_equity(self, snapshot: PortfolioSnapshot) -> None:
@@ -253,11 +286,11 @@ class SqliteStore:
                 "data": stmt.excluded.data,
             },
         )
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(stmt)
 
     def record_event(self, event_record: EventRecord) -> None:
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(
                 events_table.insert().values(
                     ts=event_record.ts,
@@ -276,13 +309,13 @@ class SqliteStore:
         stmt = stmt.on_conflict_do_update(
             index_elements=[state_table.c.key], set_={"value": stmt.excluded.value}
         )
-        with self._engine.begin() as conn:
+        with self._conn() as conn:
             conn.execute(stmt)
 
     # ------------------------------------------------------------- lectura
 
     def load_state(self, key: str) -> dict[str, Any] | None:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             row = conn.execute(
                 sa.select(state_table.c.value).where(state_table.c.key == key)
             ).scalar_one_or_none()
@@ -292,14 +325,14 @@ class SqliteStore:
         return loaded
 
     def load_open_positions(self) -> tuple[Position, ...]:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             rows = conn.execute(
                 sa.select(positions_table.c.data).order_by(positions_table.c.pair)
             ).scalars()
             return tuple(_loads(Position, text) for text in rows)
 
     def orders(self) -> tuple[Order, ...]:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             rows = conn.execute(
                 sa.select(orders_table.c.data).order_by(
                     orders_table.c.created_ts, orders_table.c.client_order_id
@@ -308,35 +341,35 @@ class SqliteStore:
             return tuple(_loads(Order, text) for text in rows)
 
     def fills(self) -> tuple[Fill, ...]:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             rows = conn.execute(
                 sa.select(fills_table.c.data).order_by(fills_table.c.fill_ts, fills_table.c.id)
             ).scalars()
             return tuple(_loads(Fill, text) for text in rows)
 
     def trades(self) -> tuple[Trade, ...]:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             rows = conn.execute(
                 sa.select(trades_table.c.data).order_by(trades_table.c.exit_time, trades_table.c.id)
             ).scalars()
             return tuple(_loads(Trade, text) for text in rows)
 
     def snapshots(self) -> tuple[PortfolioSnapshot, ...]:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             rows = conn.execute(
                 sa.select(snapshots_table.c.data).order_by(snapshots_table.c.ts)
             ).scalars()
             return tuple(_load_snapshot(text) for text in rows)
 
     def last_snapshot(self) -> PortfolioSnapshot | None:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             text = conn.execute(
                 sa.select(snapshots_table.c.data).order_by(snapshots_table.c.ts.desc()).limit(1)
             ).scalar_one_or_none()
         return None if text is None else _load_snapshot(text)
 
     def events(self) -> tuple[EventRecord, ...]:
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             rows = conn.execute(
                 sa.select(
                     events_table.c.ts,
@@ -360,7 +393,7 @@ class SqliteStore:
     def counts(self) -> dict[str, int]:
         """Filas por tabla, para `status` y diagnóstico."""
         out: dict[str, int] = {}
-        with self._engine.connect() as conn:
+        with self._conn() as conn:
             for table in (
                 orders_table,
                 fills_table,

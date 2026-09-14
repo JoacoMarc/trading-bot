@@ -110,3 +110,31 @@ def test_sqlite_store_rejects_unknown_schema_version(tmp_path: Path) -> None:
     store.close()
     with pytest.raises(ConfigError, match="schema_version"):
         SqliteStore(path)
+
+
+def test_transaction_rolls_back_everything_on_error(tmp_path: Path) -> None:
+    store = SqliteStore(tmp_path / "tx.db")
+    intent = make_intent()
+    seen_inside: list[dict[str, object] | None] = []
+
+    def cycle_that_dies() -> None:
+        with store.transaction():
+            store.save_order(Order(intent=intent, created_ts=T0, updated_ts=T0))
+            store.save_state("engine", {"cash": "1"})
+            seen_inside.append(store.load_state("engine"))  # visible dentro de la transacción
+            with store.transaction():  # anidada: reutiliza la externa
+                store.save_position(make_position(pair=BTC))
+            msg = "corte a mitad de ciclo"
+            raise RuntimeError(msg)
+
+    with pytest.raises(RuntimeError, match="corte"):
+        cycle_that_dies()
+    assert seen_inside == [{"cash": "1"}]
+    assert store.orders() == ()
+    assert store.load_state("engine") is None
+    assert store.load_open_positions() == ()
+    assert not store.in_transaction
+    with store.transaction():
+        store.save_state("engine", {"cash": "2"})
+    assert store.load_state("engine") == {"cash": "2"}
+    store.close()

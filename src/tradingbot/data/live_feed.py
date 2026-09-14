@@ -70,7 +70,7 @@ class LiveFeed:
         retry_s: float = 2.0,
         retry_window_s: float = 60.0,
         backoff_max_s: float = 60.0,
-        wait_chunk_s: float = 30.0,
+        wait_chunk_s: float = 10.0,
         page_limit: int = 1000,
         sleep: AsyncSleep = asyncio.sleep,
         on_event: Callable[[FeedEvent], None] | None = None,
@@ -124,6 +124,9 @@ class LiveFeed:
     def stop(self) -> None:
         """Termina la iteración en el próximo despertar (shutdown ordenado)."""
         self._stopped = True
+
+    def _stop_requested(self) -> bool:
+        return self._stopped  # vía método: mypy no estrecha el atributo entre awaits
 
     def warmup_bars(self) -> list[Bar]:
         self._ensure_bootstrap()
@@ -223,17 +226,26 @@ class LiveFeed:
             target = next_open + tf + self._close_delay_ms
             now = self._source.now_ms()
             if now < target:
-                await self._sleep(min((target - now) / 1000, self._wait_chunk_s))
+                await self._pause((target - now) / 1000)
                 continue
             collected = await self._collect(next_open)
-            if collected is None:
+            if self._stop_requested():
                 return
+            # Sin vela en ningún par (hueco real ya avisado): la vela se saltea, el feed sigue.
             self._last_open_time = next_open
-            yield collected
+            if collected is not None:
+                yield collected
+
+    async def _pause(self, seconds: float) -> None:
+        """Duerme en tramos de `wait_chunk_s` para que `stop()` corte en segundos, no en horas."""
+        remaining = seconds
+        while remaining > 0 and not self._stopped:
+            chunk = min(remaining, self._wait_chunk_s)
+            await self._sleep(chunk)
+            remaining -= chunk
 
     async def _collect(self, open_time: int) -> Bar | None:
-        """Vela `open_time` de cada par, confirmada por la aparición de `open_time + tf`."""
-        tf = self._timeframe.ms
+        """Vela `open_time` de cada par, confirmada por una vela posterior (o por reloj)."""
         deadline = self._source.now_ms() + self._retry_window_ms
         confirmed: dict[Pair, Candle] = {}
         pending = set(self._pairs)
@@ -256,9 +268,24 @@ class LiveFeed:
                     )
                     break
                 by_time = {c.open_time: c for c in page}
-                if open_time + tf not in by_time:
-                    continue  # todavía no apareció t+1: el cierre no está confirmado
                 candle = by_time.get(open_time)
+                # Cierre confirmado por cualquier vela posterior (t+1, o t+2 si Binance salteó
+                # t+1 por mantenimiento). Sin vela posterior, tras la ventana se acepta la vela
+                # si está: el reloj del exchange ya la dio por cerrada hace > retry_window.
+                if not any(t > open_time for t in by_time):
+                    if candle is not None and self._source.now_ms() >= deadline:
+                        confirmed[pair] = candle
+                        pending.discard(pair)
+                        self._on_event(
+                            FeedEvent(
+                                self._source.now_ms(),
+                                FEED_LATE,
+                                pair,
+                                f"vela {open_time} aceptada por reloj: la siguiente no apareció en "
+                                f"{self._retry_window_ms // 1000} s",
+                            )
+                        )
+                    continue
                 if candle is None:
                     self._on_event(
                         FeedEvent(
@@ -291,7 +318,7 @@ class LiveFeed:
                 self._on_event(
                     FeedEvent(now, FEED_LATE, None, f"ningún par confirmó la vela {open_time}")
                 )
-            await self._sleep(backoff)
+            await self._pause(backoff)
             backoff = min(backoff * 2, self._backoff_max_s) if failed else self._retry_s
         if self._stopped or not confirmed:
             return None

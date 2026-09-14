@@ -5,10 +5,11 @@ por proceso: en backtest arranca vacío con la corrida; en paper/live se reconst
 
 - Pérdida diaria (día UTC): equity contra el último snapshot del día anterior. Al alcanzar el
   límite no hay entradas hasta el primer `Bar` del día siguiente.
-- Circuit breaker por drawdown desde el pico de equity: sin entradas. En backtest reanuda solo
-  cuando el DD vuelve por debajo de `drawdown_resume_pct` (mitad del umbral por defecto) o tras
-  `drawdown_pause_days` días frenado, re-basando el pico en la equity actual (en cash el DD no se
-  mueve: sin plazo el halt sería permanente). En paper/live solo reanuda `resume()`, que re-basa.
+- Circuit breaker por drawdown desde el pico de equity: sin entradas. Reanuda por **plazo**
+  (`drawdown_pause_days`, re-basando el pico en la equity actual) en todos los modos: es una
+  regla de reloj determinística y la misma que validó el walk-forward (en cash el DD no se mueve:
+  sin plazo el halt sería permanente). Reanuda por **nivel** (`drawdown_resume_pct`) solo con
+  `auto_resume` (backtest). `resume()` manual reanuda siempre y re-basa (archivo `RESUME`).
 - Pausa tras N pérdidas seguidas: `pause_candles_after_losses` bars sin entradas.
 - Cooldown por par tras una salida perdedora por stop o trailing: `cooldown_candles_after_stop`
   bars sin entradas en ese par, con la semántica de `bars_since_exit` (el bar del fill = 0).
@@ -46,16 +47,23 @@ class KillSwitchState:
 class KillSwitch(Protocol):
     def poll(self) -> KillSwitchState: ...
 
+    def consume_resume(self) -> bool:
+        """True si el operador pidió reanudar el circuit breaker (se consume una vez)."""
+        ...
+
 
 class FileKillSwitch:
     """Archivo en disco: si existe, sin entradas; si contiene `flatten`, además se cierra todo.
 
     Fail-safe: si el archivo no se puede consultar (`OSError`), se responde `active=True` sin
     flatten. Ante la duda no se abren posiciones; las salidas nunca dependen de esto.
+    Al lado vive `RESUME` (`tradingbot resume --breaker`): el `Engine` lo consume una vez por
+    `Bar` y reanuda el circuit breaker (ADR-0011).
     """
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, resume_path: Path | None = None) -> None:
         self.path = path
+        self.resume_path = resume_path if resume_path is not None else path.parent / "RESUME"
         self.last_error: str | None = None
 
     def poll(self) -> KillSwitchState:
@@ -76,6 +84,22 @@ class FileKillSwitch:
 
     def clear(self) -> None:
         self.path.unlink(missing_ok=True)
+
+    def request_resume(self) -> None:
+        """Pide la reanudación manual del circuit breaker (archivo `RESUME`)."""
+        self.resume_path.parent.mkdir(parents=True, exist_ok=True)
+        self.resume_path.write_text("resume\n", encoding="utf-8")
+
+    def consume_resume(self) -> bool:
+        """True (y borra el archivo) si hay una reanudación pedida. Fail-safe: False."""
+        try:
+            if not self.resume_path.exists():
+                return False
+            self.resume_path.unlink()
+        except OSError as exc:
+            self.last_error = str(exc)
+            return False
+        return True
 
 
 @dataclass(frozen=True, slots=True)
@@ -261,15 +285,20 @@ class Protections:
         self._check_daily_loss(equity)
         self._check_drawdown(equity)
 
-    def on_trade_closed(self, trade: Trade) -> None:
-        """Tras cada round trip: racha de pérdidas y cooldown por salida perdedora."""
+    def on_trade_closed(self, trade: Trade, *, bar_index: int | None = None) -> None:
+        """Tras cada round trip: racha de pérdidas y cooldown por salida perdedora.
+
+        `bar_index` es la vela a la que pertenece el fill (en paper el fill llega fuera del ciclo
+        del `Bar`, ADR-0011); por defecto la vela actual.
+        """
+        bar = self._bar if bar_index is None else bar_index
         ts = trade.exit_time
         losing = trade.pnl < ZERO
         self._loss_streak = self._loss_streak + 1 if losing else 0
         limit = self._cfg.pause_after_consecutive_losses
         if limit is not None and self._loss_streak >= limit and not self.losses_paused:
             candles = self._cfg.pause_candles_after_losses
-            self._pause_until = self._bar + candles
+            self._pause_until = bar + candles
             self._loss_streak = 0
             self._emit(
                 PROTECTION_TRIGGERED,
@@ -280,7 +309,7 @@ class Protections:
         cooldown = self._cfg.cooldown_candles_after_stop
         stopped_out = losing and trade.exit_reason in {ExitReason.STOP, ExitReason.TRAILING}
         if cooldown > 0 and stopped_out:
-            self._pair_cooldown_until[trade.pair] = self._bar + cooldown
+            self._pair_cooldown_until[trade.pair] = bar + cooldown
             self._emit(
                 PROTECTION_TRIGGERED,
                 ReasonCode.PAIR_COOLDOWN,
@@ -403,10 +432,8 @@ class Protections:
                     f"drawdown {_pct(dd)} >= {_pct(limit)} desde el pico {self._peak}",
                 )
             return
-        if not self._auto_resume:
-            return  # paper/live: solo `resume()` manual
         resume = self._cfg.effective_drawdown_resume_pct
-        if resume is not None and dd <= resume:
+        if self._auto_resume and resume is not None and dd <= resume:
             self._clear_drawdown(
                 f"drawdown {_pct(dd)} <= {_pct(resume)}; reanudación automática", rebase=False
             )

@@ -145,7 +145,8 @@ class Engine:
         self._blocked: dict[Pair, str] = {}  # último motivo de rechazo por par (dedupe)
         self._bar_index = -1
         self._last_snapshot: PortfolioSnapshot | None = None
-        self._last_bar_open_time: int | None = None
+        self._last_bar_open_time: int | None = None  # última vela terminada (persistida)
+        self._current_bar_open_time: int | None = None  # vela en proceso o recién terminada
         if isinstance(broker, SimulatedBroker):
             broker.bind_cash(lambda: self.cash)
         # Filtro de mercado (ADR-0009): se siembra con el warmup del feed para llegar definido al
@@ -245,7 +246,7 @@ class Engine:
     def process_bar(self, bar: Bar) -> None:
         self._bar_index += 1
         self.stats.bars += 1
-        self._last_bar_open_time = bar.open_time
+        self._current_bar_open_time = bar.open_time
         ts = bar.close_time
         self._risk.protections.on_bar(self._bar_index, ts)
 
@@ -265,6 +266,8 @@ class Engine:
         self._risk.protections.on_equity(ts, self.equity())
         if self._kill_switch is not None:
             self._risk.protections.set_kill_switch(self._kill_switch.poll())
+            if self._kill_switch.consume_resume():
+                self._risk.protections.resume()
         self._drain_protection_events()
 
         signals: dict[Pair, Signal] = {}  # 4
@@ -316,6 +319,8 @@ class Engine:
                 continue
             self._positions.update_trailing(pair, level, ts)
         self.stats.stuck_pairs |= self._positions.unprotected
+        # Al final: si el ciclo explota a mitad, la vela se re-procesa al reiniciar (ADR-0011).
+        self._last_bar_open_time = bar.open_time
 
     # ------------------------------------------------------------- fills
 
@@ -371,12 +376,27 @@ class Engine:
             self.dust[fill.pair.base] = self.dust.get(fill.pair.base, ZERO) + leftover
         self.cash += fill.net_quote_amount
         trade = self._positions.close_from_fill(fill, intent.exit_reason or ExitReason.SIGNAL)
-        self._risk.protections.on_trade_closed(trade)
+        exit_bar = self._bar_of(fill.fill_ts)
+        self._risk.protections.on_trade_closed(trade, bar_index=exit_bar)
         self._drain_protection_events()
         self._pending_exits.pop(fill.pair, None)
         self._stuck_exits.pop(fill.pair, None)
-        self._last_exit_bar[fill.pair] = self._bar_index
+        self._last_exit_bar[fill.pair] = exit_bar
         self.stats.stuck_pairs.discard(fill.pair)
+
+    def _bar_of(self, ts: int) -> int:
+        """Índice de la vela a la que pertenece `ts`.
+
+        En backtest los fills llegan dentro del ciclo de su vela. En paper llegan fuera (fill
+        inmediato al open de `t+1`, stop del watcher a mitad de `t+1`) con `_bar_index` todavía
+        en `t`: se cuentan las velas que abrieron después de la actual para que `bars_since_exit`
+        y los cooldowns den lo mismo que en backtest (ADR-0011).
+        """
+        if self._current_bar_open_time is None:
+            return self._bar_index
+        tf = self._feed.timeframe
+        ahead = (tf.floor(ts) - self._current_bar_open_time) // tf.ms
+        return self._bar_index + max(ahead, 0)
 
     # ------------------------------------------------------------- decisiones
 

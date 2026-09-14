@@ -21,12 +21,15 @@ services:
   # --- Perfiles de larga duración -----------------------------------------------------
   # Fase 7 (ADR-0011): `docker compose --profile paper up -d`; frenar con `tradingbot stop`
   # (archivo logs/STOP desde el host) y apagar con `docker compose --profile paper down`.
+  # El healthcheck solo marca `unhealthy` (compose no reinicia por salud); el proceso tiene un
+  # watchdog interno que sale con 1 si no completa un ciclo en 2 x timeframe + 5 min, y
+  # `restart: unless-stopped` lo vuelve a levantar.
   paper:
     extends: bot
     profiles: ["paper"]
     command: ["paper", "--config", "configs/paper.yaml"]
     restart: unless-stopped
-    stop_grace_period: 30s
+    stop_grace_period: 60s
     healthcheck:
       test: ["CMD", "tradingbot", "status", "--check"]
       interval: 60s
