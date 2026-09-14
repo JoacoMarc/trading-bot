@@ -1,4 +1,5 @@
-"""Filtro de mercado a nivel cartera (ADR-0009): cierre diario, EMA sembrada con SMA, momentum."""
+"""Filtro de mercado a nivel cartera (ADR-0009): cierre diario al cerrar la vela de las 20:00,
+EMA sembrada con SMA (o SMA), momentum; misma definición de día que `regime_bh` (ADR-0010)."""
 
 from __future__ import annotations
 
@@ -7,12 +8,16 @@ from pydantic import ValidationError
 
 from tests.factories import BTC, ETH, H4_MS, d, make_candle, make_position
 from tests.risk.test_risk import enter, manager, view
+from tradingbot.backtest.runner import market_filter_states
 from tradingbot.config.models import MarketFilterConfig, RiskConfig
+from tradingbot.config.settings import BotConfig
 from tradingbot.domain import ExitReason, Pair
 from tradingbot.domain.candle import Candle
 from tradingbot.risk import MarketFilter, MarketState, ReasonCode
 from tradingbot.risk.market_filter import MS_PER_DAY
 from tradingbot.risk.protections import PROTECTION_CLEARED, PROTECTION_TRIGGERED, Protections
+from tradingbot.strategy import OhlcvArrays
+from tradingbot.strategy.strategies import RegimeBh
 
 DAY0 = 1_700_006_400_000 - 1_700_006_400_000 % MS_PER_DAY  # medianoche UTC
 RISING = ["100", "101", "102", "103"]  # EMA(3) definida y momentum(2) > 0 al cerrar el día 3
@@ -56,25 +61,30 @@ def test_config_validation() -> None:
     assert RiskConfig().market_filter.enabled is False
 
 
-def test_daily_close_is_committed_when_the_next_day_starts() -> None:
+def test_daily_close_is_committed_at_the_last_candle_of_the_day() -> None:
     mf = MarketFilter(MarketFilterConfig(enabled=True, ema_days=20, momentum_days=5))
-    for candle in day_candles(0, "100"):
+    day0 = day_candles(0, "100")
+    for candle in day0[:5]:
         mf.on_candle(candle)
-    assert state_of(mf) is None  # el día 0 todavía no cerró
+    assert state_of(mf) is None  # el día 0 todavía no cerró (falta la vela de las 20:00)
     assert mf.enabled
-    first_of_day_1 = day_candles(1, "101")[0]
-    assert mf.on_candle(first_of_day_1) is False  # EMA indefinida: sigue habilitado, sin cambio
+    assert mf.on_candle(day0[5]) is False  # cierra el día: EMA indefinida, sigue habilitado
     committed = state_of(mf)
     assert committed is not None
     assert committed.close == d("100")
     assert committed.ema is None
     assert mf.undefined_days == 1
-    assert mf.on_candle(day_candles(1, "101", pair=ETH)[1]) is False  # otro par: ignorado
+    assert mf.on_candle(day_candles(1, "101", pair=ETH)[5]) is False  # otro par: ignorado
+    assert state_of(mf) is committed
+    # Un día sin su vela de las 20:00 no se comete (misma regla que la estrategia).
+    for candle in day_candles(1, "101")[:5]:
+        mf.on_candle(candle)
+    assert state_of(mf) is committed
 
 
 def test_ema_seeded_with_sma_then_updated_and_momentum() -> None:
     mf = MarketFilter(small_filter())
-    feed(mf, [*RISING, "140"])  # se comprometen los días 0..3; el 4 sigue abierto
+    feed(mf, RISING)  # se comprometen los días 0..3 al cerrar cada vela de las 20:00
     state = state_of(mf)
     assert state is not None
     assert state.close == d("103")
@@ -88,7 +98,7 @@ def test_ema_seeded_with_sma_then_updated_and_momentum() -> None:
 def test_filter_disables_on_crash_and_reenables_on_recovery() -> None:
     mf = MarketFilter(small_filter())
     feed(mf, [*RISING, "90", "80", "85"])
-    # Día 4 (90): EMA = 0.5*90 + 0.5*102 = 96 > 90 -> deshabilitado al abrir el día 5
+    # Día 4 (90): EMA = 0.5*90 + 0.5*102 = 96 > 90 -> deshabilitado al cerrar el día 4
     assert not mf.enabled
     status = mf.status()
     assert status["market_filter"] == "deshabilitado"
@@ -121,8 +131,8 @@ def test_protections_block_entries_but_never_exits_when_market_is_off() -> None:
     events = p.pop_events()
     assert [e.reason for e in events] == [ReasonCode.MARKET_FILTER]
     assert events[0].kind == PROTECTION_TRIGGERED
-    # El cierre del día 4 se conoce con la primera vela del día 5: ese es el ts del evento.
-    assert events[0].ts == day_candles(5, "80")[0].close_time
+    # El cierre del día 4 se conoce al cerrar su vela de las 20:00: ese es el ts del evento.
+    assert events[0].ts == day_candles(4, "90")[5].close_time
     decision = m.evaluate_entries([enter(BTC), enter(ETH, stop="9")], view(), events[0].ts)
     assert decision.intents == ()
     assert {r.reason for r in decision.rejections} == {ReasonCode.MARKET_FILTER}
@@ -145,7 +155,7 @@ def test_disabled_filter_is_not_created() -> None:
 
 def test_sma_average_matches_rolling_mean() -> None:
     mf = MarketFilter(MarketFilterConfig(enabled=True, average="sma", ema_days=3, momentum_days=2))
-    feed(mf, [*RISING, "140"])
+    feed(mf, RISING)
     state = state_of(mf)
     assert state is not None
     assert state.ema == pytest.approx((101 + 102 + 103) / 3)
@@ -159,3 +169,30 @@ def test_benchmark_only_filter_does_not_block_entries() -> None:
         )
     )
     assert manager(risk).protections.market_filter is None
+
+
+def test_filter_states_match_regime_bh_candle_by_candle() -> None:
+    # El benchmark "B&H filtrado" (estados del filtro con `average: sma`) y el régimen de la
+    # estrategia tienen que coincidir vela por vela: misma definición de cierre diario (ADR-0010).
+    closes = ["100", "101", "102", "103", "104", "90", "80", "85", "120", "130"]
+    candles = [c for day, close in enumerate(closes) for c in day_candles(day, close)]
+    candles += day_candles(10, "140")[:4]  # día incompleto al final
+    config = BotConfig(
+        strategy={"name": "regime_bh", "pairs": ["BTC/USDT"]},
+        risk={
+            "market_filter": {
+                "enabled": True,
+                "benchmark_only": True,
+                "average": "sma",
+                "ema_days": 3,
+                "momentum_days": 2,
+            }
+        },
+    )
+    states = market_filter_states(config, [], candles)
+    regime = RegimeBh.from_params(sma_days=3, momentum_days=2).compute_indicators(
+        OhlcvArrays.from_candles(candles)
+    )["regime"]
+    for i, (state, value) in enumerate(zip(states, regime, strict=True)):
+        expected = True if value != value else bool(value)  # NaN -> el filtro queda habilitado
+        assert state is expected, i

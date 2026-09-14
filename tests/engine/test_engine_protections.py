@@ -303,7 +303,8 @@ def test_market_filter_blocks_entries_but_exits_execute() -> None:
     from tests.risk.test_market_filter import day_candles
 
     # Días 0-3 suben (filtro definido y habilitado al cerrar el día 3); el día 4 se desploma y al
-    # empezar el día 5 el filtro se apaga: la salida del día 5 se ejecuta y la re-entrada no.
+    # cerrar su vela de las 20:00 el filtro se apaga: la salida del día 5 se ejecuta y la
+    # re-entrada no.
     closes = ["100", "101", "102", "103", "80", "78"]
     candles = [c for day, close in enumerate(closes) for c in day_candles(day, close)]
     t = [c.open_time for c in candles]

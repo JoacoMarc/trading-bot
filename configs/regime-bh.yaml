@@ -1,6 +1,6 @@
 # regime_bh v1 (docs/strategy/regime-bh-v1.md, ADR-0010): BTC long mientras el régimen diario esté
-# encendido (cierre diario > SMA200 y retorno 30 d > 0), en cash cuando se apaga; tamaño fijo 60 %
-# de la equity (λ 0.5, fijada por presupuesto de DD en WF-0008/0009 antes del holdout) y stop de seguridad del 20 %. Control ETH: `--pairs ETH/USDT --set risk.market_filter.pair=ETH/USDT`.
+# encendido (cierre diario > SMA200 y retorno 30 d > 0), en cash cuando se apaga; fracción fija λ 0.5
+# de la equity (fijada por presupuesto de DD en WF-0008/0009 antes del holdout) y stop de seguridad del 20 %. Control ETH: `--pairs ETH/USDT --set risk.market_filter.pair=ETH/USDT`.
 # Variantes de tamaño: `--set risk.position_fraction=0.5`.
 
 mode: backtest

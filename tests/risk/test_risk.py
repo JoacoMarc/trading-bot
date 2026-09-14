@@ -3,8 +3,10 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from pydantic import ValidationError
 
 from tests.engine.fakes import MARKETS, market
 from tests.factories import BTC, ETH, T0, d, make_position
@@ -286,3 +288,13 @@ def test_manager_in_fraction_mode_sizes_by_equity_share() -> None:
     assert len(decision.intents) == 1
     assert d("59.9") < decision.intents[0].qty <= d("60")
     assert decision.intents[0].stop_price == d("99")  # el stop viaja igual: es de seguridad
+
+
+def test_fraction_mode_validation() -> None:
+    with pytest.raises(ValidationError, match="position_fraction"):
+        RiskConfig(sizing_mode="fraction", position_fraction=d("0.8"), max_exposure_pct=d("0.5"))
+    # En modo fraction `max_position_pct` no aplica y no se valida contra la exposición.
+    ok = RiskConfig(sizing_mode="fraction", position_fraction=d("0.5"), max_exposure_pct=d("0.5"))
+    assert ok.max_position_pct == d("0.25")
+    with pytest.raises(ValidationError, match="max_position_pct"):
+        RiskConfig(max_position_pct=d("0.8"), max_exposure_pct=d("0.5"))

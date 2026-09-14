@@ -400,15 +400,25 @@ def costs_line(config: BotConfig) -> str:
     return f"fee {fee:.3f} % {where}, slippage {config.execution.slippage_bps} bps"
 
 
-def risk_line(config: BotConfig) -> str:
-    r = config.risk
-    base = (
+def sizing_summary(r: RiskConfig) -> str:
+    """Cómo se dimensionan las entradas según `sizing_mode` (ADR-0010)."""
+    if r.sizing_mode == "fraction":
+        return (
+            f"fracción fija {r.position_fraction * 100:.0f} % de la equity por posición "
+            f"(acotada por el cash libre), máx. {r.max_positions} posiciones, "
+            f"exposición máx. {r.max_exposure_pct * 100:.0f} %"
+        )
+    return (
         f"riesgo/trade {r.risk_per_trade * 100:.2f} %, "
         f"tope {r.max_position_pct * 100:.0f} % del cash por posición, "
         f"máx. {r.max_positions} posiciones, "
         f"exposición máx. {r.max_exposure_pct * 100:.0f} %"
     )
-    return f"{base} · protecciones: {', '.join(_protections_summary(r))}"
+
+
+def risk_line(config: BotConfig) -> str:
+    r = config.risk
+    return f"{sizing_summary(r)} · protecciones: {', '.join(_protections_summary(r))}"
 
 
 def _pct_short(value: Decimal) -> str:

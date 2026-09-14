@@ -182,7 +182,11 @@ class RiskConfig(_Strict):
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:
-        if self.max_position_pct > self.max_exposure_pct:
+        if self.sizing_mode == "fraction":
+            if self.position_fraction > self.max_exposure_pct:
+                msg = "position_fraction no puede superar max_exposure_pct (modo fraction)"
+                raise ValueError(msg)
+        elif self.max_position_pct > self.max_exposure_pct:
             msg = "max_position_pct no puede superar max_exposure_pct"
             raise ValueError(msg)
         if self.drawdown_resume_pct is not None:

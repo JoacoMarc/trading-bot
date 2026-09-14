@@ -1,11 +1,13 @@
 """Filtro de mercado a nivel cartera (ADR-0009).
 
 Habilita las entradas solo si el cierre **diario** del par de referencia (BTC/USDT) está sobre su
-EMA(200) diaria y su retorno a 30 días es positivo. Es una protección del `RiskManager`: solo
-bloquea entradas; las salidas y los stops siguen su curso. Se alimenta con las velas cerradas del
-timeframe del `Engine` y toma como cierre diario el último cierre de cada día UTC; el estado cambia
-una vez por día, con días completos (sin lookahead). Mientras la EMA o el momentum no estén
-definidos, el filtro se considera habilitado: sin información no se bloquea.
+media diaria (EMA sembrada con SMA, o SMA con `average: sma`) y su retorno a N días es positivo. Es
+una protección del `RiskManager`: solo bloquea entradas; las salidas y los stops siguen su curso.
+Se alimenta con las velas cerradas del timeframe del `Engine` y toma como cierre diario la vela
+que cierra a las 23:59:59.999 UTC: el estado cambia al cerrar esa vela, con días completos y sin
+lookahead, con la misma definición que usa `regime_bh` (ADR-0010). Un día sin esa vela no se
+comete. Mientras la media o el momentum no estén definidos, el filtro se considera habilitado:
+sin información no se bloquea.
 """
 
 from __future__ import annotations
@@ -20,13 +22,18 @@ from tradingbot.domain.pair import Pair
 MS_PER_DAY = 86_400_000
 
 
+def closes_utc_day(close_time: int) -> bool:
+    """True si la vela es la última de su día UTC (cierra a las 23:59:59.999)."""
+    return close_time % MS_PER_DAY == MS_PER_DAY - 1
+
+
 @dataclass(frozen=True, slots=True)
 class MarketState:
     """Estado al cierre de un día UTC completo."""
 
     day: int
     close: Decimal
-    ema: float | None
+    ema: float | None  # media diaria (EMA o SMA según la config)
     momentum: float | None  # retorno a `momentum_days`
 
     @property
@@ -55,8 +62,6 @@ class MarketFilter:
         self._pair = config.reference_pair
         self._closes: list[float] = []
         self._ema: float | None = None
-        self._current_day: int | None = None
-        self._current_close: Decimal | None = None
         self._state: MarketState | None = None
         self._undefined_days = 0
 
@@ -74,25 +79,16 @@ class MarketFilter:
 
     @property
     def undefined_days(self) -> int:
-        """Días completos evaluados sin EMA o momentum definidos (el filtro quedó habilitado)."""
+        """Días completos evaluados sin media o momentum definidos (el filtro quedó habilitado)."""
         return self._undefined_days
 
     def on_candle(self, candle: Candle) -> bool:
-        """Vela cerrada del par de referencia. Devuelve True si cambió el estado (nuevo día)."""
-        if candle.pair != self._pair:
+        """Vela cerrada del par de referencia. Devuelve True si cambió el estado (cerró un día)."""
+        if candle.pair != self._pair or not closes_utc_day(candle.close_time):
             return False
-        day = candle.close_time // MS_PER_DAY
-        changed = False
-        if self._current_day is None:
-            self._current_day = day
-        elif day != self._current_day:
-            if self._current_close is not None:
-                before = self.enabled
-                self._commit_day(self._current_day, self._current_close)
-                changed = self.enabled != before
-            self._current_day = day
-        self._current_close = candle.close
-        return changed
+        before = self.enabled
+        self._commit_day(candle.close_time // MS_PER_DAY, candle.close)
+        return self.enabled != before
 
     def _commit_day(self, day: int, close: Decimal) -> None:
         value = float(close)
