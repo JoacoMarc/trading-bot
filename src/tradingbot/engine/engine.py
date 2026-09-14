@@ -16,7 +16,7 @@ Por cada `Bar` cerrado, en este orden:
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Collection, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -233,6 +233,13 @@ class Engine:
         self.stats.stuck_pairs |= self._positions.unprotected
 
     # ------------------------------------------------------------- fills
+
+    def apply_events(self, events: Iterable[BrokerEvent]) -> None:
+        """Fills o rechazos que el broker produjo fuera del ciclo del `Bar` (paper: fill
+        inmediato al open de la vela en formación, stops del `StopWatcher`). Mismo camino que
+        los eventos de `on_bar_open`/`on_bar` (ADR-0011)."""
+        for event in events:
+            self._apply_event(event)
 
     def _apply_event(self, event: BrokerEvent) -> None:
         intent = event.order.intent

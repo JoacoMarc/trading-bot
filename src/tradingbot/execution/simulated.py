@@ -20,10 +20,10 @@ from collections.abc import Callable, Mapping
 from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from tradingbot.config.models import ExecutionConfig
-from tradingbot.domain.candle import Bar, Candle
+from tradingbot.domain.candle import Bar
 from tradingbot.domain.enums import OrderStatus, Side
 from tradingbot.domain.errors import DomainError
-from tradingbot.domain.money import BPS_DENOMINATOR, ONE, quantize_price
+from tradingbot.domain.money import BPS_DENOMINATOR, ONE, ZERO, quantize_price
 from tradingbot.domain.orders import Fill, Order, OrderIntent, make_client_order_id
 from tradingbot.domain.pair import Pair
 from tradingbot.exchange.binance import MarketInfo
@@ -93,24 +93,31 @@ class SimulatedBroker:
             candle = bar.get(order.intent.pair)
             if candle is None:
                 continue  # hueco de datos: la orden espera a la próxima vela del par
-            fill = self._fill_market(
-                order.intent, candle, ref_price=candle.open, fill_ts=candle.open_time
+            event, spent = self._settle(
+                order, ref_price=candle.open, fill_ts=candle.open_time, available=available
             )
-            if order.intent.side is Side.BUY and available is not None:
-                cost = fill.notional + (fill.fee_amount if fill.fee_asset == fill.pair.quote else 0)
-                if cost > available:
-                    del self._pending[cid]
-                    rejected = order.with_status(
-                        OrderStatus.REJECTED,
-                        ts=candle.open_time,
-                        reason=f"{INSUFFICIENT_FUNDS}: costo {cost} > cash libre {available}",
-                    )
-                    events.append(BrokerEvent(order=rejected, fill=None))
-                    continue
-                available -= cost
-            del self._pending[cid]
-            events.append(BrokerEvent(order=order.with_fill(fill, ts=fill.fill_ts), fill=fill))
+            if available is not None:
+                available -= spent
+            events.append(event)
         return events
+
+    def _settle(
+        self, order: Order, *, ref_price: Decimal, fill_ts: int, available: Decimal | None
+    ) -> tuple[BrokerEvent, Decimal]:
+        """Llena (o rechaza por cash) una orden pendiente. Devuelve el evento y el cash gastado."""
+        fill = self._fill_market(order.intent, ref_price=ref_price, fill_ts=fill_ts)
+        del self._pending[order.client_order_id]
+        if order.intent.side is Side.BUY and available is not None:
+            cost = fill.notional + (fill.fee_amount if fill.fee_asset == fill.pair.quote else 0)
+            if cost > available:
+                rejected = order.with_status(
+                    OrderStatus.REJECTED,
+                    ts=fill_ts,
+                    reason=f"{INSUFFICIENT_FUNDS}: costo {cost} > cash libre {available}",
+                )
+                return BrokerEvent(order=rejected, fill=None), ZERO
+            return BrokerEvent(order=order.with_fill(fill, ts=fill_ts), fill=fill), cost
+        return BrokerEvent(order=order.with_fill(fill, ts=fill_ts), fill=fill), ZERO
 
     def on_bar(self, bar: Bar) -> list[BrokerEvent]:
         events: list[BrokerEvent] = []
@@ -145,16 +152,14 @@ class SimulatedBroker:
                 created_ts=candle.open_time,
                 updated_ts=candle.open_time,
             )
-            fill = self._fill_market(intent, candle, ref_price=trigger, fill_ts=fill_ts)
+            fill = self._fill_market(intent, ref_price=trigger, fill_ts=fill_ts)
             del self._stops[pair]
             events.append(BrokerEvent(order=order.with_fill(fill, ts=fill.fill_ts), fill=fill))
         return events
 
     # ------------------------------------------------------------- modelo de fill
 
-    def _fill_market(
-        self, intent: OrderIntent, candle: Candle, ref_price: Decimal, fill_ts: int
-    ) -> Fill:
+    def _fill_market(self, intent: OrderIntent, *, ref_price: Decimal, fill_ts: int) -> Fill:
         market = self.market(intent.pair)
         if intent.side is Side.BUY:
             raw = ref_price * (ONE + self._slippage)
