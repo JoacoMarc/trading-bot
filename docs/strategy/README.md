@@ -44,4 +44,4 @@ Se completa después de los experimentos: qué pasó, qué se aprendió, qué si
 | ema_trend | v1 | descartada (defaults `cross` 4h: EXP-0003/0007, WF-0001/0002) | [`ema-trend-v1.md`](ema-trend-v1.md) |
 | ema_trend | v2 | descartada (`entry_mode=state` refutado en 4h y 1h: WF-0003/0004) | [`ema-trend-v2.md`](ema-trend-v2.md) |
 | ema_trend | v3 | descartada (v2 + filtro de mercado: Sharpe OOS 0.90 ≤ 0.98 del B&H filtrado; WF-0005); familia cerrada | [`ema-trend-v3.md`](ema-trend-v3.md) |
-| regime_bh | v1 | confirmada en walk-forward (BTC long con régimen diario SMA200 + momentum 30 d; Gate 1 aprobado salvo holdout en WF-0006; λ final 0.5; ADR-0010); holdout en curso (EXP-0010/0011) | [`regime-bh-v1.md`](regime-bh-v1.md) |
+| regime_bh | v1 | confirmada en walk-forward (Gate 1 aprobado salvo holdout, WF-0006; λ final 0.5; ADR-0010). Holdout EXP-0010: DD 6.4 % OK, PF 0.03 FALLA con la pierna larga abierta al corte → `iterar` hasta que cierre (regla fijada en la spec; decisión del usuario) | [`regime-bh-v1.md`](regime-bh-v1.md) |

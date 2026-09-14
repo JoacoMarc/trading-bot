@@ -1,6 +1,6 @@
 # regime_bh v1
 
-- Estado: confirmada en walk-forward (Gate 1 `aprobado (falta el holdout)`, WF-0006); holdout en curso con λ 0.5 (EXP-0010/0011)
+- Estado: confirmada en walk-forward (Gate 1 `aprobado (falta el holdout)`, WF-0006); holdout corrido (EXP-0010): DD OK, PF 0.03 FALLA con 1 de 5 entradas abierta al corte → `iterar` (medición incompleta; decisión del usuario, ver Resultado)
 - Fecha: 2026-09-13
 - Experimentos: EXP-0009 (muestra completa BTC), WF-0006 (BTC, fijo, meseta), WF-0007 (ETH como control), WF-0008 / WF-0009 (λ 0.5 / 0.75), EXP-0010 (holdout 2025-09 → 2026-09, λ 0.5), EXP-0011 (curva continua 2019-08 → 2026-09 con la config final)
 - Código: `src/tradingbot/strategy/strategies/regime_bh.py`; sizing por fracción en `risk/sizing.py` (ADR-0010); config `configs/regime-bh.yaml`
@@ -89,3 +89,15 @@ Lo que la confirmación **no** dice (WF-0006, Notas y veredicto): la ventaja sob
 - Una sola vez, con la config final (λ 0.5, mismos parámetros): EXP-0010 = holdout solo (`--from 2025-09-01 --include-holdout`, 2025-09-01 → 2026-09-08, ~12 meses), sobre el que se mide el criterio del gate **PF > 1.1 y DD ≤ 25 %**; EXP-0011 = curva continua 2019-08-01 → 2026-09-08 con la misma config (informativa: la equity que hubiera visto una cuenta desde el inicio, sin el corte artificial del 2025-09-01).
 - Expectativa: 8–15 trades; PF > 1.1 es casi una moneda con tan pocos, así que el criterio que discrimina es el DD. Un pase es evidencia débil (12 meses más de la misma familia de mercado); un fallo refuta. La evidencia fuerte para esta hipótesis llega con el próximo bear.
 - Si pasa: `go` a paper (Fase 7) con esta config; en el runbook: el breaker re-basa el pico en backtest pero en paper/live solo reanuda con `resume()`, y la pérdida diaria es inerte en esta estrategia. Si falla: la familia queda en `no-go` y el holdout gastado; nada de ajustar `momentum_days` para pasar.
+
+### Resultado del holdout (2026-09-13, git `278521b`, árbol limpio)
+
+| Corrida | Rango | Retorno | Sharpe | Max DD | PF | Trades | B&H BTC | B&H filtrado |
+|---|---|---|---|---|---|---|---|---|
+| EXP-0010 | holdout 2025-09-01 → 2026-09-08 | +3.11 % | 0.41 | 6.39 % | **0.03** | 4 cerrados + 1 abierta | −27.2 %, DD 53.4 % | +6.71 %, DD 11.7 % |
+| EXP-0011 | continua 2019-08-01 → 2026-09-08 | +315.4 % | 1.10 | 21.44 % | 2.57 | 63 | +681.6 %, 0.78, 77.0 % | +790.3 %, 1.05, 43.0 % |
+
+- **Letra del gate: DD pasa, PF falla.** Los 4 trades cerrados son conmutaciones en el techo de sep–oct 2025 (−343.67 USDT, −3.47 %); la única pierna larga (entrada 2026-08-20, +657.83 no realizados al corte) está abierta y el PF no la cuenta (deuda de ADR-0008: las abiertas al cierre no se sintetizan). Sintetizada daría PF ≈ 1.86, pero es post hoc y no se computa.
+- **Hipótesis:** el holdout fue el segundo bear independiente (BTC −27 %, −47 % al valle) y la estrategia hizo lo que promete: 294 días en cash (nov-2025 → jul-2026 con retorno mensual 0.00 %), pérdida acotada a las conmutaciones del techo (alarma −8 % no disparada), DD 6.4 % vs 53.4 %. Lo que no confirma es el edge de retorno: una sola pierna nueva de 19 días.
+- **Veredicto: `iterar`, con la medición del PF declarada incompleta** (1 de 5 entradas abierta al corte; el pre-registro no dijo qué hacer en ese caso). Es una lectura menos literal que "un fallo refuta" y **la firma el usuario**; la alternativa literal es `no-go` (familia cerrada hasta datos nuevos; el holdout ya fue visto). **Regla fijada ahora, antes de que cierre la posición:** cuando cierre (régimen apagado o stop), correr `tradingbot backtest --config configs/regime-bh.yaml --from 2025-09-01 --include-holdout` con datos hasta esa fecha (misma config, params `937532e2f5`) y leer el PF sobre los 5 trades cerrados: > 1.1 (⇔ salida neta ≥ ~75,000 USDT) → `go` a paper como estaba pre-registrado; ≤ 1.1 → `no-go` literal. Cero grados de libertad: sin cambios de parámetros, de spec ni de umbral. Mientras tanto la Fase 7 puede arrancar por infraestructura con `regime_bh` como carga de prueba; las semanas de paper no cuentan para el Gate 2 hasta cerrar el Gate 1.
+- **Observación metodológica (para un ADR futuro, separada de este veredicto):** para familias con ≤ 15 trades/año el criterio de holdout "PF > 1.1 sobre trades cerrados" mide la fecha de corte, no la estrategia. Propuesta a evaluar: DD ≤ 25 % y ≤ 50 % del DD del B&H (mark-to-market), retorno ≥ 0 o ≥ λ × B&H filtrado − tolerancia, PF solo con ≥ 15 trades cerrados (si no, `n/a`), y posiciones abiertas al corte sintetizadas siempre.
