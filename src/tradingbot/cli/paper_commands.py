@@ -11,7 +11,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Callable, Mapping
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -24,6 +24,11 @@ from tradingbot.exchange.binance import BinanceExchange
 from tradingbot.observability.status import heartbeat_age_ms, is_stale, read_status
 from tradingbot.paper.runner import PaperExchange, build_paper_session
 from tradingbot.persistence.sqlite import SqliteStore
+from tradingbot.validation.parity import (
+    FILL_DEVIATION_MAX_BPS,
+    SIGNAL_MATCH_MIN,
+    run_parity,
+)
 
 paper_app = typer.Typer(add_completion=False)
 
@@ -201,3 +206,51 @@ def trades(
             "abiertas: "
             + ", ".join(f"{p.pair.symbol} {p.qty} @ {p.entry_price}" for p in positions)
         )
+
+
+@paper_app.command("parity")
+def parity(
+    config: Annotated[
+        Path, typer.Option("--config", "-c", help="YAML con la misma config que corrió el paper.")
+    ] = DEFAULT_CONFIG,
+    db: Annotated[Path, typer.Option("--db", help="DB SQLite del paper.")] = Path("db")
+    / "paper.db",
+    start: Annotated[str, typer.Option("--from", help="Desde (YYYY-MM-DD).")] = "",
+    end: Annotated[str, typer.Option("--to", help="Hasta, exclusivo (YYYY-MM-DD).")] = "",
+    experiments_dir: Annotated[
+        Path, typer.Option("--experiments-dir", help="Raíz del registro (default: experiments).")
+    ] = Path("experiments"),
+    label: Annotated[str | None, typer.Option("--label", help="Etiqueta del PAR-.")] = None,
+) -> None:
+    """Re-ejecuta el backtest sobre el período del paper y compara señales y fills (Gate 2)."""
+    try:
+        if not start or not end:
+            msg = "--from y --to son obligatorios (YYYY-MM-DD)"
+            raise TradingBotError(msg)
+        if not db.exists():
+            msg = f"no existe {db}"
+            raise TradingBotError(msg)
+        cfg = _load_config(config, {})
+        result, run_dir = run_parity(
+            cfg,
+            db,
+            date.fromisoformat(start),
+            date.fromisoformat(end),
+            experiments_dir=experiments_dir,
+            root=Path.cwd(),
+            label=label,
+        )
+    except (TradingBotError, ValueError, OSError) as exc:
+        _fail(exc)
+        return
+    typer.echo(
+        f"paridad {result.signal_match_rate * 100:.1f} % de senales coincidentes "
+        f"({result.common_ids} comunes, {len(result.only_paper)} solo paper, "
+        f"{len(result.only_backtest)} solo backtest); desvio medio del fill "
+        f"{result.mean_abs_deviation_bps:.2f} bps (max {result.max_abs_deviation_bps:.2f})"
+    )
+    typer.echo(
+        f"gate 2 (paridad): {'aprobado' if result.passes_gate2 else 'no aprobado'} "
+        f"(>= {SIGNAL_MATCH_MIN * 100:.0f} % y <= {FILL_DEVIATION_MAX_BPS:.0f} bps)"
+    )
+    typer.echo(f"registrado: {run_dir.name} -> {run_dir}")

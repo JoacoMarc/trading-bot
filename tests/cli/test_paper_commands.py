@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import time
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -12,11 +13,14 @@ from typer.testing import CliRunner
 
 from tests.factories import BTC
 from tests.paper.test_runner import FakePaperExchange, rising_days
+from tradingbot.backtest.runner import run_backtest
 from tradingbot.cli import paper_commands
 from tradingbot.cli.app import app
 from tradingbot.config.settings import BotConfig
 from tradingbot.observability import StatusWriter
 from tradingbot.paper.runner import PaperExchange, PaperSession, build_paper_session
+from tradingbot.persistence import SqliteStore
+from tradingbot.validation.parity import backtest_config_for
 
 runner = CliRunner()
 
@@ -109,3 +113,57 @@ def test_status_without_file_and_wrong_mode(tmp_path: Path) -> None:
     assert "mode: paper" in result.output
     result = runner.invoke(app, ["trades", "--db", str(tmp_path / "db" / "nada.db")])
     assert result.exit_code == 1
+
+
+def test_parity_of_a_paper_db_seeded_from_the_same_backtest(
+    workspace: dict[str, Path], tmp_path: Path
+) -> None:
+    # "Paper" = las órdenes y fills del backtest de referencia: la paridad tiene que dar 100 %.
+    config = BotConfig.load(workspace["config"])
+    start, end = date(2023, 4, 1), date(2023, 7, 1)
+    reference = run_backtest(backtest_config_for(config, start, end), with_benchmarks=False)
+    db = tmp_path / "paper.db"
+    with SqliteStore(db) as store:
+        for order in reference.engine_result.store.orders():
+            store.save_order(order)
+        for fill in reference.engine_result.store.fills():
+            store.save_fill(fill)
+        for trade in reference.engine_result.store.trades():
+            store.save_trade(trade)
+    assert reference.metrics.trades > 0
+    experiments = tmp_path / "experiments"
+    result = runner.invoke(
+        app,
+        [
+            "parity",
+            "--config",
+            str(workspace["config"]),
+            "--db",
+            str(db),
+            "--from",
+            start.isoformat(),
+            "--to",
+            end.isoformat(),
+            "--experiments-dir",
+            str(experiments),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert "paridad 100.0 % de senales coincidentes" in result.output
+    assert "desvio medio del fill 0.00 bps" in result.output
+    assert "gate 2 (paridad): aprobado" in result.output
+    assert "registrado: PAR-0001" in result.output
+    run_dir = next(experiments.joinpath("runs").glob("PAR-0001-*"))
+    payload = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert payload["kind"] == "PAR"
+    assert payload["metrics"]["signal_match_rate"] == 1.0
+    assert payload["metrics"]["gate2_parity"] is True
+    report = (run_dir / "REPORT.md").read_text(encoding="utf-8")
+    assert "Gate 2 (paridad): **aprobado**" in report
+    assert "- **Veredicto**: pendiente" in report
+    assert "| PAR-0001" in (experiments / "REGISTRY.md").read_text(encoding="utf-8")
+
+    # Sin rango o sin DB: error claro.
+    result = runner.invoke(app, ["parity", "--config", str(workspace["config"]), "--db", str(db)])
+    assert result.exit_code == 1
+    assert "--from y --to" in result.output

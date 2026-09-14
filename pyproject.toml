@@ -81,6 +81,7 @@ ignore = [
 "tests/**" = ["ANN", "PT011"]
 "scripts/**" = ["T20"]
 "src/tradingbot/validation/report.py" = ["E501"]  # plantillas markdown de WF-/OPT-
+"src/tradingbot/validation/parity.py" = ["E501"]  # plantilla markdown de PAR-
 
 [tool.ruff.lint.isort]
 known-first-party = ["tradingbot"]
