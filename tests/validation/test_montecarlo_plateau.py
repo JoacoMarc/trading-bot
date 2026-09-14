@@ -111,3 +111,16 @@ def test_plateau_warns_when_base_is_outside_the_space() -> None:
     )
     assert result.warnings
     assert "ema_fast=35" in result.warnings[0]
+
+
+def test_relative_pass_rate_uses_half_of_the_base_sharpe() -> None:
+    def run_fn(params: Mapping[str, Any]) -> Metrics:
+        return make_metrics(sharpe=1.2 if params["ema_fast"] >= 20 else 0.3, profit_factor=1.5)
+
+    result = run_plateau(
+        BASE, SPACE, run_fn, only=("ema_fast",), base_metrics=make_metrics(sharpe=1.0)
+    )
+    assert result.pass_rate == 1.0  # el criterio absoluto no discrimina
+    assert result.relative_pass_rate == pytest.approx(0.5)  # ema_fast 24 sí, 16 no
+    assert result.to_dict()["base_sharpe"] == 1.0
+    assert run_plateau(BASE, SPACE, run_fn, only=("ema_fast",)).relative_pass_rate is None

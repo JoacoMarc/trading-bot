@@ -103,6 +103,11 @@ def _print_walkforward(result: WalkForwardResult) -> None:
         typer.echo(
             f"meseta: {len(result.plateau.rows)} variantes, "
             f"pasan {result.plateau.pass_rate * 100:.0f} %"
+            + (
+                ""
+                if result.plateau.relative_pass_rate is None
+                else f"; con Sharpe >= 0.5 x base: {result.plateau.relative_pass_rate * 100:.0f} %"
+            )
         )
     typer.echo(f"gate 1: {gate_verdict(result.gate)}")
     for check in result.gate:

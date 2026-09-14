@@ -41,4 +41,5 @@ Se completa después de los experimentos: qué pasó, qué se aprendió, qué si
 
 | Estrategia | Versión | Estado | Spec |
 |---|---|---|---|
-| ema_trend | v1 | en evaluación (implementada en Fase 3; backtest en Fase 4) | [`ema-trend-v1.md`](ema-trend-v1.md) |
+| ema_trend | v1 | descartada (defaults `cross` 4h: EXP-0003/0007, WF-0001/0002) | [`ema-trend-v1.md`](ema-trend-v1.md) |
+| ema_trend | v2 | en evaluación (`entry_mode=state`; WF-0003) | [`ema-trend-v2.md`](ema-trend-v2.md) |

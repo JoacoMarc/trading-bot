@@ -19,6 +19,7 @@ from tradingbot.domain.errors import TradingBotError
 from tradingbot.strategy.base import FloatRange, IntRange, ParamRange
 
 PASS_PROFIT_FACTOR = 1.1
+RELATIVE_SHARPE_FRACTION = 0.5
 
 
 def _bump(value: Any, space: ParamRange, sign: int, pct: float) -> Any:
@@ -72,6 +73,7 @@ class PlateauRow:
     trades: int | None
     passed: bool
     error: str = ""
+    sharpe: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -79,6 +81,7 @@ class PlateauRow:
             "total_return": None if self.total_return is None else str(self.total_return),
             "profit_factor": self.profit_factor,
             "trades": self.trades,
+            "sharpe": self.sharpe,
             "passed": self.passed,
             "error": self.error,
         }
@@ -90,16 +93,31 @@ class PlateauResult:
     pct: float
     rows: list[PlateauRow]
     warnings: list[str] = field(default_factory=list)
+    base_sharpe: float | None = None
 
     @property
     def pass_rate(self) -> float | None:
         return sum(1 for r in self.rows if r.passed) / len(self.rows) if self.rows else None
+
+    @property
+    def relative_pass_rate(self) -> float | None:
+        """Informativo (no gate): variantes con Sharpe >= 0.5 x el Sharpe base.
+
+        Un criterio absoluto laxo (PF > 1.1) puede dar 100 % con retornos de +7 % a +277 %.
+        """
+        if not self.rows or self.base_sharpe is None or self.base_sharpe <= 0:
+            return None
+        floor = RELATIVE_SHARPE_FRACTION * self.base_sharpe
+        hits = sum(1 for r in self.rows if r.sharpe is not None and r.sharpe >= floor)
+        return hits / len(self.rows)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "base_params": self.base_params,
             "pct": self.pct,
             "pass_rate": self.pass_rate,
+            "base_sharpe": self.base_sharpe,
+            "relative_pass_rate": self.relative_pass_rate,
             "warnings": self.warnings,
             "rows": [r.to_dict() for r in self.rows],
         }
@@ -113,6 +131,7 @@ def run_plateau(
     pct: float = 0.2,
     only: Sequence[str] | None = None,
     progress: Callable[[str], None] | None = None,
+    base_metrics: Metrics | None = None,
 ) -> PlateauResult:
     """Corre cada variante; una variante inválida cuenta como fallida (no como ausente)."""
     subspace = {k: v for k, v in space.items() if only is None or k in only}
@@ -141,7 +160,18 @@ def run_plateau(
         )
         rows.append(
             PlateauRow(
-                dict(params), metrics.total_return, metrics.profit_factor, metrics.trades, passed
+                dict(params),
+                metrics.total_return,
+                metrics.profit_factor,
+                metrics.trades,
+                passed,
+                sharpe=metrics.sharpe,
             )
         )
-    return PlateauResult(base_params=dict(base), pct=pct, rows=rows, warnings=warnings)
+    return PlateauResult(
+        base_params=dict(base),
+        pct=pct,
+        rows=rows,
+        warnings=warnings,
+        base_sharpe=None if base_metrics is None else base_metrics.sharpe,
+    )

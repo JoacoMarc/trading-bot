@@ -1,8 +1,8 @@
 # ema_trend v1
 
-- Estado: en evaluación
-- Fecha: 2026-09-08
-- Experimentos: (pendientes, Fase 4: EXP-0003 default BTC+ETH 4h)
+- Estado: descartada (defaults `cross` en 4h; la familia sigue en [`ema-trend-v2.md`](ema-trend-v2.md))
+- Fecha: 2026-09-08 (cerrada 2026-09-13)
+- Experimentos: EXP-0003 (BTC+ETH), EXP-0004..0006 (protecciones), EXP-0007 (8 pares), WF-0001 (fijo), WF-0002 (optimizado)
 - Código: `src/tradingbot/strategy/strategies/ema_trend.py`
 
 ## Hipótesis
@@ -68,4 +68,8 @@ Restricciones: `ema_fast < ema_slow < ema_regime`; precisión de los reales ≤ 
 
 ## Resultado y veredicto
 
-Pendiente (se completa con EXP-0003 y el walk-forward de la Fase 6).
+- **BTC+ETH 4h (EXP-0003):** +69.9 %, Sharpe 1.17, DD 7.2 %, PF 2.60, 79 trades en 6 años; `iterar` por muestra chica y concentración (top 10 = 111 % del PnL). La salida por señal casi no actúa (1/79): el trailing 3×ATR sale antes.
+- **8 pares 4h (EXP-0007):** +76.9 %, Sharpe 0.75, DD 15.5 %, PF 1.46, 248 trades; `no-go`. Los 6 pares nuevos aportan trades pero PF 1.07 y costos del 21.7 % del bruto; 76 stops todos perdedores, 38 en ≤ 24 h; 7/7 salidas por señal perdedoras.
+- **Walk-forward fijo (WF-0001):** curva OOS 2021-08→2025-08 +23.4 %, Sharpe 0.48 (< 0.8 y < 0.76 del B&H BTC), DD 14.3 %, PF 1.31, 163 trades; Gate 1 no aprobado solo por Sharpe. El edge vive en 2019-08→2021-08 y no persiste: la muestra continua restringida al mismo rango da Sharpe 0.43. La meseta 42/42 con retornos de +7 % a +277 % según `trailing_atr_mult` no es robustez.
+- **Walk-forward optimizado (WF-0002):** Sharpe OOS 1.03 pero 2 trades = 102 % del PnL; el score in-sample anticorrelaciona −0.64 con el OOS; `no-go`: afinar parámetros de esta versión queda refutado.
+- **Veredicto de la versión:** `descartada`. Diagnóstico: la entrada por cruce llega tarde (stops dentro del ruido) y no re-entra tras un stop con la tendencia viva. Sigue la v2 con `entry_mode=state`.

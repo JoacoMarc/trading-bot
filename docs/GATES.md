@@ -19,7 +19,7 @@ Se evalúa con el universo final (≥ 4 pares) y la configuración de riesgo com
 | Ventanas OOS positivas (secundario) | ≥ 60 % | retorno de cada tramo OOS |
 | Cantidad de trades | ≥ 100 en la muestra completa **y** ≥ 40 en la curva OOS | muestra completa = mismo rango que todas las ventanas, parámetros fijos |
 | Regímenes por año | positivo en 2020–21 y 2023–24; pérdida ≤ 8 % en 2022; ningún año con DD **intra-año** > 25 % | `validation/regimes.py` sobre la muestra completa; el DD intra-año reinicia el pico al empezar el año (el `REPORT.md` de backtest muestra otro DD anual, contra el pico corriente) |
-| Meseta de parámetros | ±20 % en cada parámetro (uno a la vez) y en los vértices del hipercubo ±20 %: PF > 1.1 y retorno > 0 en ≥ 80 % de los casos | `--plateau`; variantes cuantizadas al paso del `search_space` de la estrategia |
+| Meseta de parámetros | ±20 % en cada parámetro (uno a la vez) y en los vértices del hipercubo ±20 %: PF > 1.1 y retorno > 0 en ≥ 80 % de los casos | `--plateau`; variantes cuantizadas al paso del `search_space` de la estrategia. Informativo (no gate): fracción de variantes con Sharpe ≥ 0.5 × el Sharpe base, porque el criterio absoluto puede dar 100 % con retornos muy dispersos (WF-0001) |
 | Monte Carlo | 5,000 remuestreos con reemplazo de los trades OOS: DD del percentil 95 ≤ 35 % | equity = cash inicial + PnL acumulado, semilla registrada |
 | Holdout | PF > 1.1 y DD ≤ 25 % | `tradingbot backtest --include-holdout` con la config final, una sola vez |
 | Tests | equivalencia/lookahead en verde | `uv run pytest` |

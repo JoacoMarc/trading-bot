@@ -392,7 +392,9 @@ def run_walkforward(
             def run_full(p: Mapping[str, Any]) -> Metrics:
                 return backtest_metrics(cfg_full, p)
 
-            plateau = run_plateau(base_params, space, run_full, progress=say)
+            plateau = run_plateau(
+                base_params, space, run_full, progress=say, base_metrics=full_sample.metrics
+            )
     else:
         regimes = yearly_regimes(oos_equity, oos_trades)
         regimes_source = "curva OOS concatenada (informativo: n/a en modo optimizado)"

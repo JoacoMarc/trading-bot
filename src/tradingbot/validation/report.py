@@ -144,16 +144,25 @@ def render_walkforward_report(
         rows = sorted(result.plateau.rows, key=lambda r: (r.passed, r.total_return or Decimal(0)))
         worst = "\n".join(
             f"| {_changes({k: v for k, v in r.params.items() if result.base_params.get(k) != v})} | "
-            f"{_pct(r.total_return)} | {_num(r.profit_factor)} | {'-' if r.trades is None else r.trades} | "
+            f"{_pct(r.total_return)} | {_num(r.profit_factor)} | {_num(r.sharpe)} | {'-' if r.trades is None else r.trades} | "
             f"{'sí' if r.passed else 'no'} |"
             for r in rows[:8]
         )
         plateau_section = (
             f"## Meseta ±{result.plateau.pct * 100:.0f} %\n\n"
             f"{len(result.plateau.rows)} variantes, pasan {_pct(result.plateau.pass_rate)} "
-            "(PF > 1.1 y retorno > 0). Las 8 peores:\n\n"
+            "(PF > 1.1 y retorno > 0). "
+            + (
+                ""
+                if result.plateau.relative_pass_rate is None
+                else (
+                    f"Informativo: {_pct(result.plateau.relative_pass_rate)} de las variantes tiene "
+                    f"Sharpe >= 0.5 x el base ({_num(result.plateau.base_sharpe)}). "
+                )
+            )
+            + "Las 8 peores:\n\n"
             + "".join(f"> Aviso: {w}\n\n" for w in result.plateau.warnings)
-            + f"| Cambios | Retorno | PF | Trades | Pasa |\n|---|---|---|---|---|\n{worst}\n\n"
+            + f"| Cambios | Retorno | PF | Sharpe | Trades | Pasa |\n|---|---|---|---|---|---|\n{worst}\n\n"
         )
     full_line = ""
     if result.full_sample is not None:
