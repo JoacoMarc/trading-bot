@@ -67,6 +67,8 @@ class Bar(BaseModel):
     timeframe: Timeframe
     open_time: int = Field(ge=0)
     candles: Mapping[Pair, Candle]
+    # Reposición tras un reinicio (ADR-0011): el Engine marca y evalúa stops, no abre entradas.
+    replay: bool = False
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:
@@ -87,7 +89,9 @@ class Bar(BaseModel):
         return self
 
     @classmethod
-    def from_candles(cls, candles: list[Candle] | tuple[Candle, ...]) -> Bar:
+    def from_candles(
+        cls, candles: list[Candle] | tuple[Candle, ...], *, replay: bool = False
+    ) -> Bar:
         """Construye un Bar a partir de velas del mismo cierre."""
         if not candles:
             msg = "un Bar necesita al menos una vela"
@@ -100,7 +104,9 @@ class Bar(BaseModel):
             )
             msg = f"velas duplicadas para el mismo cierre: {', '.join(duplicated)}"
             raise ValueError(msg)
-        return cls(timeframe=first.timeframe, open_time=first.open_time, candles=by_pair)
+        return cls(
+            timeframe=first.timeframe, open_time=first.open_time, candles=by_pair, replay=replay
+        )
 
     @property
     def close_time(self) -> int:

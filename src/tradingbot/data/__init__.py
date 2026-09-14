@@ -9,6 +9,15 @@ from tradingbot.data.downloader import (
     drop_forming,
 )
 from tradingbot.data.feeds import HistoricalFeed, MarketFeed
+from tradingbot.data.live_feed import (
+    FEED_LATE,
+    FEED_MISSING_PAIR,
+    FEED_REPLAY,
+    FEED_RETRY,
+    FeedEvent,
+    LiveFeed,
+    LiveSource,
+)
 from tradingbot.data.quality import Gap, GapRegistry, QualityReport, check_frame, find_gaps
 from tradingbot.data.store import (
     COLUMNS,
@@ -28,14 +37,21 @@ from tradingbot.data.store import (
 __all__ = [
     "COLUMNS",
     "DEFAULT_CLOSE_SAFETY_MS",
+    "FEED_LATE",
+    "FEED_MISSING_PAIR",
+    "FEED_REPLAY",
+    "FEED_RETRY",
     "OHLCV_SCHEMA",
     "DatasetInfo",
     "DownloadResult",
     "Downloader",
+    "FeedEvent",
     "Gap",
     "GapFillResult",
     "GapRegistry",
     "HistoricalFeed",
+    "LiveFeed",
+    "LiveSource",
     "MarketFeed",
     "ParquetStore",
     "QualityReport",

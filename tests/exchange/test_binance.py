@@ -395,3 +395,13 @@ def test_short_intermediate_page_does_not_stop_pagination_when_until_is_set() ->
     assert len(candles) == 22
     assert candles[-1].open_time == until - H4_MS
     assert client.count("klines") == 3  # 10 + 2 (corta, sigue) + 10 (llega a until)
+
+
+def test_fetch_last_price_reads_exact_string() -> None:
+    client = FakeCcxt()
+    client.last_prices["BTCUSDT"] = "65000.12345678"
+    exchange, _ = make_exchange(client)
+    assert exchange.fetch_last_price(BTC) == Decimal("65000.12345678")
+    client.last_prices["BTCUSDT"] = "0"
+    with pytest.raises(ExchangeError, match="sin precio"):
+        exchange.fetch_last_price(BTC)

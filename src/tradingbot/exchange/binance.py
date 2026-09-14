@@ -123,6 +123,8 @@ class CcxtClient(Protocol):
 
     def public_get_exchangeinfo(self, params: dict[str, Any] | None = None) -> dict[str, Any]: ...
 
+    def public_get_ticker_price(self, params: dict[str, Any] | None = None) -> dict[str, Any]: ...
+
 
 # --------------------------------------------------------------------------- errores
 
@@ -444,6 +446,20 @@ class BinanceExchange:
     def now_ms(self) -> int:
         """Hora actual según el reloj del exchange (local + offset cacheado)."""
         return self._local_now_ms() + self.time_offset_ms()
+
+    # ----------------------------------------------------------------- precios
+
+    def fetch_last_price(self, pair: Pair) -> Decimal:
+        """Último precio operado (`/api/v3/ticker/price`), exacto como string (Fase 7)."""
+        raw = self._call(
+            f"ticker {pair}",
+            lambda: self._client.public_get_ticker_price({"symbol": pair.binance_symbol}),
+        )
+        price = _dec(raw.get("price"))
+        if price is None or price <= 0:
+            msg = f"ticker de {pair} sin precio válido: {redact(str(raw))}"
+            raise ExchangeError(msg)
+        return price
 
     # ----------------------------------------------------------------- OHLCV
 

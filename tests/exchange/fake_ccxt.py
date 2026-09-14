@@ -107,6 +107,7 @@ class FakeCcxt:
         self.fail_klines_from: int | None = None
         self.klines_failure: Exception | None = None
         self.last_response_headers: dict[str, str] = {}
+        self.last_prices: dict[str, str] = {}  # símbolo Binance -> precio como string
 
     def _maybe_fail(self) -> None:
         if self.failures:
@@ -152,3 +153,9 @@ class FakeCcxt:
         self.calls.append(("public_get_exchangeinfo", ()))
         self._maybe_fail()
         return dict(self.exchange_info)
+
+    def public_get_ticker_price(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        symbol = str((params or {}).get("symbol"))
+        self.calls.append(("ticker_price", (symbol,)))
+        self._maybe_fail()
+        return {"symbol": symbol, "price": self.last_prices.get(symbol, "0")}
