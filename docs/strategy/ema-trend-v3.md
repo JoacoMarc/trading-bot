@@ -1,8 +1,8 @@
 # ema_trend v3
 
-- Estado: en evaluación
-- Fecha: 2026-09-13
-- Experimentos: WF-0005 (fijo, 4h, 8 pares, meseta); control: WF-0003 (v2 `state` sin filtro, mismo `data_hash`)
+- Estado: descartada (refutada por el criterio prefijado: Sharpe OOS 0.90 ≤ 0.98 del B&H BTC filtrado; la familia `ema_trend` queda cerrada)
+- Fecha: 2026-09-13 (cerrada el mismo día)
+- Experimentos: WF-0005 (fijo, 4h, 8 pares, meseta) `no-go`; EXP-0008 (muestra completa, diagnóstico del breaker en 2024); control: WF-0003
 - Código: `src/tradingbot/strategy/strategies/ema_trend.py` sin cambios; el cambio es el filtro de mercado en `risk/market_filter.py` (ADR-0009), activado por `risk.market_filter.enabled`
 - Sustituye a: [`ema-trend-v2.md`](ema-trend-v2.md) (`state` sin filtro de mercado, `descartada`)
 
@@ -57,4 +57,8 @@ Sobre la curva OOS concatenada de WF-0005 (IS 24 m / OOS 6 m, 8 ventanas 2021-08
 
 ## Resultado y veredicto
 
-Pendiente (se completa con WF-0005).
+- **WF-0005 (4h):** curva OOS 2021-08→2025-08 +81.8 %, Sharpe 0.90, DD 20.3 %, PF 1.40, 435 trades, exposición 41 %; 6/8 ventanas positivas; MC p95 25.8 %; meseta 42/42. Gate 1 falla por un solo criterio (retorno 2024 −0.05 % en la muestra completa, ligado al disparo del circuit breaker con DD intra-año 20.6 %). Benchmarks OOS: B&H BTC +175.8 % / Sharpe 0.76 / DD 77.1 %; **B&H BTC filtrado +186.0 % / Sharpe 0.98 / DD 30.9 %**.
+- **Criterios prefijados:** confirma 2022 (−3.9 % ≥ −8 %), DD OOS (20.3 % ≤ 25 %), PF (1.40 ≥ 1.3), Sharpe ≥ 0.8; **refuta** porque Sharpe OOS 0.90 ≤ 0.98 del B&H filtrado. Lectura justa: el B&H filtrado dimensionado al mismo DD rinde +100 % vs +81.8 % y la diferencia pareada diaria es t −1.17: la estrategia no agrega nada a "comprar BTC cuando el filtro dice sí" salvo menos exposición (41 %, beta 0.36). El criterio "2023–24 ≥ 70 % del PnL de WF-0003" pasa solo en trades OOS (75 %); en la tabla de regímenes da 45 %.
+- **Qué hizo el filtro:** exactamente lo prometido en 2022 (7 entradas vs 122; −3.9 % vs −24.4 %; encendido 8 de 365 días) y arregló DD, PF, Monte Carlo y costos de WF-0003; el precio fueron los años alcistas (2023 +11 %, 2024 +30 % vs +84 % / +73 % del B&H filtrado) por 39 apagados en 2024 y por la estructura 3 slots × 1 %. Sin 2022 el filtro no aporta (Sharpe B&H 1.62 > B&H filtrado 1.21 > estrategia 1.06): es control de drawdown, no generador de retorno.
+- **Familia `ema_trend`:** cerrada tras cinco diseños (cross/state × 4h/1h × fijo/optimizado × filtro) con la misma patología: el cuerpo de la distribución no tiene edge (PF sin los 10 mejores trades 0.95; 57 % de los stops saltan en ≤ 24 h). Un v4 con entrada por pullback bajaría aún más la exposición sin atacar la brecha estructural con el B&H filtrado; no se gasta la última iteración en eso.
+- **Próximo paso propuesto (decisión del usuario):** familia nueva `regime_bh`: BTC long mientras el filtro habilita, flat al deshabilitar, tamaño fijo λ ≈ 0.6 de la equity, stop amplio de seguridad, ETH como control; Gate 1 adaptado (pocos trades: Monte Carlo por bloques de retornos diarios, meseta sobre `ema_days` × `momentum_days` × λ) con confirmación/refutación escritas en el REPORT de WF-0005.
