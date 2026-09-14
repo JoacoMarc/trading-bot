@@ -18,14 +18,22 @@ services:
       # La DB va en volumen nombrado: SQLite sobre bind mount de Windows tiene problemas de locking.
       - tradingbot-db:/app/db
 
-  # --- Perfiles de larga duración (se habilitan en sus fases) -------------------------
-  # Fase 7:
-  # paper:
-  #   extends: bot
-  #   profiles: ["paper"]
-  #   command: ["paper", "--config", "configs/paper.yaml"]
-  #   restart: unless-stopped
-  #
+  # --- Perfiles de larga duración -----------------------------------------------------
+  # Fase 7 (ADR-0011): `docker compose --profile paper up -d`; frenar con `tradingbot stop`
+  # (archivo logs/STOP desde el host) y apagar con `docker compose --profile paper down`.
+  paper:
+    extends: bot
+    profiles: ["paper"]
+    command: ["paper", "--config", "configs/paper.yaml"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "tradingbot", "status", "--check"]
+      interval: 60s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+
   # Fase 10:
   # testnet:
   #   extends: bot

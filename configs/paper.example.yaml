@@ -1,36 +1,36 @@
-# Paper trading de ema_trend con precios en vivo de Binance y órdenes simuladas.
-# Copiar a configs/paper.yaml. Se lanza con `docker compose --profile paper up -d` (Fase 7).
-# Sin secretos acá: el token de Telegram va en .env.
+# Paper trading de regime_bh (ADR-0011): precios en vivo de Binance, órdenes simuladas, misma
+# config que WF-0008 / EXP-0010 (λ 0.5). Copiar a configs/paper.yaml y lanzar con
+# `docker compose --profile paper up -d`. Sin secretos acá: el paper no necesita claves.
+# Mientras el Gate 1 de regime_bh no cierre (ROADMAP, Fase 7), estas semanas no cuentan para el Gate 2.
 
 mode: paper
 
 strategy:
-  name: ema_trend
+  name: regime_bh
   timeframe: 4h
-  pairs: [BTC/USDT, ETH/USDT]
+  pairs: [BTC/USDT]
   params:
-    ema_fast: 20
-    ema_slow: 50
-    ema_regime: 200
-    adx_period: 14
-    adx_threshold: 20
-    atr_period: 14
-    stop_atr_mult: 2.0
-    trailing_atr_mult: 3.0
-    entry_mode: cross
+    sma_days: 200
+    momentum_days: 30
+    stop_pct: 0.20
+    bars_per_day: 6
 
 risk:
-  risk_per_trade: 0.01
-  max_position_pct: 0.25
-  max_positions: 3
-  daily_loss_limit_pct: 0.03
-  max_drawdown_pct: 0.20
-  drawdown_resume_pct: 0.10
+  sizing_mode: fraction
+  position_fraction: 0.5      # λ final (WF-0008)
+  max_positions: 1
+  max_exposure_pct: 1.0
+  daily_loss_limit_pct: 0.03  # inerte en esta estrategia (decide al cierre del día); queda como red
+  max_drawdown_pct: 0.20      # en paper el circuit breaker solo reanuda con `tradingbot resume`... (ver runbook)
   drawdown_pause_days: 30
-  cooldown_candles_after_stop: 2
-  pause_after_consecutive_losses: 3
-  pause_candles_after_losses: 12   # velas del timeframe
-  kill_switch_file: logs/STOP       # bind mount: el host escribe, el contenedor lo ve
+  kill_switch_file: logs/STOP # bind mount: el host escribe, el contenedor lo ve
+  market_filter:
+    enabled: true
+    benchmark_only: true      # el régimen lo trae la estrategia; esto solo describe el filtro en el status
+    pair: BTC/USDT
+    average: sma
+    ema_days: 200
+    momentum_days: 30
 
 execution:
   fee_rate: 0.001
@@ -47,9 +47,8 @@ backtest:
 
 notify:
   timezone: America/Argentina/Buenos_Aires
-  telegram_enabled: false     # true requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en .env
-  daily_summary_hour: 9
+  telegram_enabled: false     # true requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en .env (Fase 8)
 
 persistence:
   db_dir: db                  # paper.db (volumen nombrado en Docker)
-  logs_dir: logs
+  logs_dir: logs              # status.json y STOP

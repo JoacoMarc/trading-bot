@@ -20,13 +20,14 @@ uv run tradingbot backtest [--set k=v ...]    # configs/backtest.yaml (ema_trend
 uv run tradingbot benchmark --kind bh_btc|equal_weight        # buy & hold registrado como EXP
 uv run tradingbot experiments list|show|compare|sync          # REGISTRY.md se regenera con sync
 uv run tradingbot stop [--flatten] && uv run tradingbot resume  # kill switch por archivo logs/STOP (paper/live)
+uv run tradingbot status [--check] && uv run tradingbot trades --db db/paper.db  # lee logs/status.json (heartbeat) y la DB del paper
 uv run tradingbot walkforward [--optimize --trials N] [--plateau]  # IS 24m/OOS 6m + gate 1; registra WF-NNNN (lento: background o terminal del usuario)
 uv run tradingbot optimize --to YYYY-MM-DD --trials N          # optuna solo in-sample; registra OPT-NNNN
 docker compose build
 docker compose run --rm bot doctor
 ```
 
-`paper`, `testnet` y `live` corren con `docker compose --profile <modo> up -d`, **lanzado por el usuario**. `optimize` y `walkforward` se lanzan en background o desde la terminal del usuario.
+`paper`, `testnet` y `live` corren con `docker compose --profile <modo> up -d`, **lanzado por el usuario** (`tradingbot paper --config configs/paper.yaml [--max-bars N]` es lo que corre el contenedor; runbook en `docs/runbooks/paper.md`). `optimize` y `walkforward` se lanzan en background o desde la terminal del usuario.
 
 ## Mapa del código (`src/tradingbot/`)
 
@@ -34,16 +35,18 @@ docker compose run --rm bot doctor
 |---|---|
 | `domain/` | Tipos inmutables: Candle, Bar, Timeframe, Signal, OrderIntent, Order, Fill, Position, Trade, Money |
 | `config/` | BotConfig (pydantic-settings). Precedencia CLI > env > YAML > defaults |
-| `data/` | Parquet store, downloader incremental, quality check, HistoricalFeed / LiveFeed (emiten `Bar`) |
+| `data/` | Parquet store, downloader incremental, quality check, HistoricalFeed / LiveFeed (emiten `Bar`; el live confirma el cierre por la vela t+1) |
 | `indicators/` | Indicadores propios vectorizados, semilla y warmup documentados |
-| `strategy/` | Protocol `Strategy` + `StrategyContext`; `strategies/ema_trend.py` |
+| `strategy/` | Protocol `Strategy` + `StrategyContext`; `strategies/ema_trend.py`, `strategies/regime_bh.py` |
 | `risk/` | Sizing, límites, circuit breakers, cooldowns, kill switch. Nunca bloquea salidas |
 | `execution/` | Protocol `Broker`: SimulatedBroker, PaperBroker (+StopWatcher), BinanceBroker, reconciliación |
 | `exchange/` | Adapter ccxt: markets, OHLCV, rate limit, errores, offset de reloj |
-| `engine/` | Engine async + PositionManager (niveles de stop) + Clock |
+| `engine/` | Engine async (+ `EngineState` para reanudar, `Bar.replay`) + PositionManager (niveles de stop) + series precomputadas/rodantes + Clock |
 | `backtest/` | Runner, métricas, reporte, benchmark |
 | `validation/` | equivalence (lookahead), walkforward, optimizer, plateau, montecarlo, regimes |
-| `persistence/` | Protocol `TradeStore`: InMemoryStore, SqliteStore; artefactos de experimentos |
+| `persistence/` | Protocol `TradeStore`: InMemoryStore, SqliteStore (WAL, JSON + columnas índice, `state` clave/valor); artefactos de experimentos |
+| `paper/` | `PaperSession`: LiveFeed → Engine → PaperBroker → SqliteStore, reanudación desde la DB, status.json, shutdown ordenado |
+| `observability/` | `logs/status.json` (heartbeat + foto del bot) para Docker, `tradingbot status` y `/paper-status` |
 | `notify/` | Notifier: logs, Telegram |
 | `analyst/` | LLM analista fuera del loop (anthropic SDK) |
 | `cli/` | typer |

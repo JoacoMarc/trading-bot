@@ -3,7 +3,7 @@
 from tradingbot.engine.clock import Clock, RealClock, SimClock
 from tradingbot.engine.engine import Engine, EngineResult, EngineState, EngineStats
 from tradingbot.engine.position_manager import PositionManager
-from tradingbot.engine.series import PrecomputedSeries, SeriesAt, SeriesProvider
+from tradingbot.engine.series import PrecomputedSeries, RollingSeries, SeriesAt, SeriesProvider
 
 __all__ = [
     "Clock",
@@ -14,6 +14,7 @@ __all__ = [
     "PositionManager",
     "PrecomputedSeries",
     "RealClock",
+    "RollingSeries",
     "SeriesAt",
     "SeriesProvider",
     "SimClock",

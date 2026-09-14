@@ -31,7 +31,8 @@ COPY --chown=bot:bot configs ./configs
 RUN mkdir -p data db logs experiments && chown -R bot:bot data db logs experiments
 USER bot
 
-# Fase 7 reemplaza este healthcheck por la lectura de logs/status.json (heartbeat).
+# Los perfiles de larga duración (compose) leen el heartbeat de logs/status.json con
+# `tradingbot status --check`; para comandos sueltos alcanza con que el binario responda.
 HEALTHCHECK --interval=60s --timeout=10s --start-period=20s --retries=3 \
     CMD ["tradingbot", "--version"]
 

@@ -48,9 +48,15 @@ def test_defaults() -> None:
 @pytest.mark.parametrize("name", ["backtest.example.yaml", "paper.example.yaml"])
 def test_example_configs_load(name: str) -> None:
     cfg = load(yaml_path=ROOT / "configs" / name)
-    assert cfg.strategy.name == "ema_trend"
-    assert cfg.strategy.pairs == (Pair.parse("BTC/USDT"), Pair.parse("ETH/USDT"))
-    assert cfg.strategy.params["ema_fast"] == 20
+    if name.startswith("paper"):  # regime_bh, la carga de prueba del paper (ADR-0011)
+        assert cfg.strategy.name == "regime_bh"
+        assert cfg.strategy.pairs == (Pair.parse("BTC/USDT"),)
+        assert cfg.strategy.params["sma_days"] == 200
+        assert cfg.risk.sizing_mode == "fraction"
+    else:
+        assert cfg.strategy.name == "ema_trend"
+        assert cfg.strategy.pairs == (Pair.parse("BTC/USDT"), Pair.parse("ETH/USDT"))
+        assert cfg.strategy.params["ema_fast"] == 20
     assert cfg.mode is (Mode.PAPER if "paper" in name else Mode.BACKTEST)
 
 

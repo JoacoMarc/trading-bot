@@ -1,4 +1,4 @@
-"""CLI principal. Fase 0: `--version` y `doctor`; Fase 2: datos. El resto llega por fase."""
+"""CLI principal: doctor, datos, backtest/experimentos, riesgo, validación y paper."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import typer
 from tradingbot import __version__
 from tradingbot.cli.backtest_commands import bt_app, experiments_app
 from tradingbot.cli.data_commands import data_app
+from tradingbot.cli.paper_commands import paper_app
 from tradingbot.cli.risk_commands import risk_app
 from tradingbot.cli.validation_commands import valid_app
 from tradingbot.doctor import CheckResult, run_all
@@ -27,6 +28,7 @@ for command in (
     *bt_app.registered_commands,
     *risk_app.registered_commands,
     *valid_app.registered_commands,
+    *paper_app.registered_commands,
 ):
     app.registered_commands.append(command)
 app.add_typer(experiments_app, name="experiments")
