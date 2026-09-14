@@ -1,8 +1,8 @@
 # ema_trend v2
 
-- Estado: en evaluación
-- Fecha: 2026-09-13
-- Experimentos: WF-0003 (fijo, 4h, 8 pares, meseta); si falla, WF-0004 (1h)
+- Estado: descartada (`state` refutado en 4h y en 1h; la familia `ema_trend` queda en `no-go` salvo una v3 con otra entrada, ver abajo)
+- Fecha: 2026-09-13 (cerrada el mismo día)
+- Experimentos: WF-0003 (fijo, 4h, 8 pares, meseta) `no-go`; WF-0004 (fijo, 1h) `no-go`
 - Código: `src/tradingbot/strategy/strategies/ema_trend.py` (sin cambios respecto de v1: `entry_mode=state` ya existía; cambia la configuración evaluada)
 - Sustituye a: [`ema-trend-v1.md`](ema-trend-v1.md) (defaults `cross` en 4h, `descartada` tras WF-0001 y WF-0002)
 
@@ -66,4 +66,8 @@ Sobre la curva OOS concatenada de WF-0003 (IS 24 m / OOS 6 m, 8 ventanas 2021-08
 
 ## Resultado y veredicto
 
-Pendiente (se completa con WF-0003 y, si hace falta, WF-0004).
+- **WF-0003 (4h):** curva OOS 2021-08→2025-08 +55.7 %, Sharpe 0.64, DD 30.4 %, PF 1.19, 644 trades, exposición 65 %; muestra completa +184 %, Sharpe 0.83, DD 36 %. Refutación binaria disparada: PF OOS 1.19 < 1.2 (Sharpe 0.64 en zona intermedia no la salva). Gate 1 falla 6 criterios (Sharpe, PF, DD 30 %, 2022 −24.4 %, DD intra-año 28.7 %, MC p95 38.6 %). De los criterios prefijados pasaron 5/7 (top 2 41 %, top 10 143 %, PF sin top 2 1.11, 5/8 ventanas, costos 10.7 % del bruto ganador).
+- **WF-0004 (1h):** curva OOS −43.5 %, Sharpe −0.39, DD 62.7 %, PF 0.92, 2,549 trades, fees 9,273; muestra completa −20 %, Sharpe 0.02; 3/8 ventanas positivas; meseta 0/42. Gate 1 falla 9 criterios. Se cumplió la expectativa escrita en WF-0003 (más stops en el día, costos que se comen el PnL).
+- **Qué confirmó la hipótesis y qué no:** la re-entrada tras stop funcionó (191 re-entradas, +2,015 = 39 % del PnL OOS de WF-0003, PF 1.26; las ≤ 48 h PF 1.51). Lo que refuta a `state` es la entrada a mitad de tendencia: 192 stops todos perdedores (−16,211 = 3.2× el PnL), 63 % en ≤ 24 h, 98 salidas por señal con win rate 20 %. La patología "todos los stops pierden, la mayoría en el día" se repite en EXP-0007, WF-0001, WF-0003 y WF-0004: es la entrada, no el parámetro ni el timeframe.
+- **Cartera:** el DD de 30 % no es un evento: 40 % del tiempo con los 3 slots llenos sobre pares con correlación diaria media 0.65 (0.78 en 2022) equivale a una sola apuesta de ≈ 2.6 % de riesgo, no tres de 1 %. El filtro EMA200 por par no saca al bot de un bear: 122 entradas en 2022.
+- **Veredicto de la versión:** `descartada`. **Familia `ema_trend` (cross/state × 4h/1h × fijo/optimizado):** `no-go` sin gastar el holdout. Caminos posibles para la próxima iteración (decisión del usuario, presupuesto: 1–2 iteraciones): (a) v3 con entrada por pullback dentro de la tendencia (entrar tras un cierre bajo la EMA20 y recuperación por encima, stop bajo el mínimo del pullback) + tope de riesgo agregado ≤ 2 % de la equity; refuta si PF OOS < 1.2 o Sharpe OOS ≤ 0.5 o los stops ≤ 24 h siguen ≥ 50 %. (b) Nueva familia `regime-gated` con filtro de mercado a nivel cartera (BTC sobre su EMA200 diaria y retorno de 30 días > 0 habilitan entradas; estrategia interna = esta v2 sin tocar, para que el único cambio sea el filtro). El analista recomienda (b) primero; ambas en 4h, la 1h queda descartada por costos. Ver el REPORT de WF-0004 para los criterios detallados.

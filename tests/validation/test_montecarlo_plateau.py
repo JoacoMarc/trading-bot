@@ -42,6 +42,13 @@ def test_bootstrap_edge_cases() -> None:
         bootstrap_trades([d("1")], d("1000"), runs=0)
 
 
+def test_bootstrap_drawdown_is_capped_at_100_percent() -> None:
+    ruin = bootstrap_trades([d("-600")] * 3, d("1000"), runs=50, seed=1)
+    assert ruin.dd_p50 == 1.0
+    assert ruin.dd_p99 == 1.0
+    assert ruin.return_p50 == pytest.approx(-1.8)
+
+
 SPACE: dict[str, ParamRange] = {
     "ema_fast": IntRange(10, 30, 1),
     "stop_atr_mult": FloatRange(1.5, 4.0, 0.5),

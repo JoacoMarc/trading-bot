@@ -202,6 +202,11 @@ class WindowResult:
             Decimal(0),
         )
 
+    @property
+    def rejections(self) -> dict[str, int]:
+        """Rechazos del RiskManager en el tramo OOS por motivo (slots, protecciones...)."""
+        return dict(self.run.engine_result.stats.rejections)
+
     def changed_params(self, base: Mapping[str, Any]) -> dict[str, Any]:
         return {k: v for k, v in self.params.items() if base.get(k) != v}
 

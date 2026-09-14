@@ -15,3 +15,5 @@ Holdout reservado: desde 2025-09-01 (ver `docs/GATES.md`). Ninguna corrida lo in
 | EXP-0007 | 2026-09-09 | ema_trend | b978b0fa53 | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +76.9 % | 0.75 | +15.5 % | 248 | no-go (defaults v1 `cross` en 8 pares: top 10 > 100 % del PnL) |
 | WF-0001 | 2026-09-09 | ema_trend | b978b0fa53 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +23.4 % | 0.48 | +14.3 % | 163 | no-go (Gate 1 no aprobado: Sharpe OOS 0.48) |
 | WF-0002 | 2026-09-09 | ema_trend | b978b0fa53 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +77.5 % | 1.03 | +15.5 % | 140 | no-go (afinar parámetros refutada: 2 trades = 102 % del PnL) |
+| WF-0003 | 2026-09-14 | ema_trend | 3067ccea6a | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +55.7 % | 0.64 | +30.4 % | 644 | no-go (`state` en 4h refutado: PF OOS 1.19 < 1.2, DD 30 %) |
+| WF-0004 | 2026-09-14 | ema_trend | 3067ccea6a | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -43.5 % | -0.39 | +62.7 % | 2549 | no-go (1h refutada por costos; familia `ema_trend` cerrada) |

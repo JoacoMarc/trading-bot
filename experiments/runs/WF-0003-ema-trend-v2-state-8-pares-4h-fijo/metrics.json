@@ -1,0 +1,1358 @@
+{
+  "id": "WF-0003",
+  "kind": "WF",
+  "label": "ema-trend v2 state 8 pares 4h fijo",
+  "metrics": {
+    "start_ts": 1627790399999,
+    "end_ts": 1754006399999,
+    "days": 1460.8333333333333,
+    "bars": 8766,
+    "initial_equity": "10000",
+    "final_equity": "15567.85288693281393962466205",
+    "total_return": "0.556785288693281393962466205",
+    "cagr": 0.11702440706907247,
+    "sharpe": 0.635446541870795,
+    "sortino": 0.9853587027625845,
+    "calmar": 0.38505046295564377,
+    "max_drawdown": 0.3039196633365773,
+    "longest_underwater_days": 847.5,
+    "trades": 644,
+    "win_rate": 0.33540372670807456,
+    "profit_factor": 1.1927266217901809,
+    "expectancy": "7.941369061378571428571428571",
+    "avg_trade_hours": 85.72670783902691,
+    "exposure": 0.6483002509696555,
+    "fees_quote": "2275.686733434600",
+    "avg_shortfall_bps": 5.458724414994778,
+    "exits": {
+      "signal": 98,
+      "stop": 192,
+      "trailing": 354
+    }
+  },
+  "benchmarks": {
+    "B&H BTC (OOS)": {
+      "start_ts": 1627776000000,
+      "end_ts": 1754006399999,
+      "days": 1460.999999988426,
+      "bars": 8774,
+      "initial_equity": "10000",
+      "final_equity": "27583.18391899577102412656406",
+      "total_return": "1.758318391899577102412656406",
+      "cagr": 0.28872750840231975,
+      "sharpe": 0.7573642766455634,
+      "sortino": 1.1172014648088162,
+      "calmar": 0.3744138287932107,
+      "max_drawdown": 0.7711454177131485,
+      "longest_underwater_days": 852.0,
+      "trades": 0,
+      "win_rate": null,
+      "profit_factor": null,
+      "expectancy": null,
+      "avg_trade_hours": null,
+      "exposure": 1.0,
+      "fees_quote": "0",
+      "avg_shortfall_bps": null,
+      "exits": {}
+    }
+  },
+  "meta": {
+    "created_at": "2026-09-14T00:45:45+00:00",
+    "git_sha": "1a8c36b",
+    "git_dirty": false,
+    "data_hash": "4d776a274063",
+    "host": "PC-Joaco",
+    "python": "3.12.14",
+    "tradingbot_version": "0.1.0",
+    "duration_s": 314.09,
+    "strategy": "ema_trend",
+    "timeframe": "4h",
+    "pairs": [
+      "ADA/USDT",
+      "BNB/USDT",
+      "BTC/USDT",
+      "ETH/USDT",
+      "LINK/USDT",
+      "LTC/USDT",
+      "SOL/USDT",
+      "XRP/USDT"
+    ],
+    "start": "2021-08-01",
+    "end": "2025-08-01",
+    "include_holdout": false,
+    "params_hash": "3067ccea6a",
+    "extra": {
+      "walkforward": {
+        "is_months": 24,
+        "oos_months": 6,
+        "anchored": false,
+        "mode": "fijo",
+        "optimize": null,
+        "plateau": true,
+        "montecarlo_runs": 5000,
+        "seed": 42
+      },
+      "windows": [
+        {
+          "index": 0,
+          "is": [
+            "2019-08-01",
+            "2021-08-01"
+          ],
+          "oos": {
+            "total_return": "0.206840330039",
+            "sharpe": 1.7978461661640157,
+            "max_drawdown": 0.1507043378206031,
+            "trades": 76,
+            "profit_factor": 1.5817779671890262
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 1,
+          "is": [
+            "2020-02-01",
+            "2022-02-01"
+          ],
+          "oos": {
+            "total_return": "-0.0932872883160000",
+            "sharpe": -0.9422190950238245,
+            "max_drawdown": 0.18284865587400967,
+            "trades": 46,
+            "profit_factor": 0.5667657864486537
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 2,
+          "is": [
+            "2020-08-01",
+            "2022-08-01"
+          ],
+          "oos": {
+            "total_return": "0.0554060062799800",
+            "sharpe": 0.6799295965925729,
+            "max_drawdown": 0.15826596311756103,
+            "trades": 78,
+            "profit_factor": 1.1329897073258928
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 3,
+          "is": [
+            "2021-02-01",
+            "2023-02-01"
+          ],
+          "oos": {
+            "total_return": "-0.0624320418860000",
+            "sharpe": -0.5973241216511467,
+            "max_drawdown": 0.11453049191845421,
+            "trades": 93,
+            "profit_factor": 0.8129605353107895
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 4,
+          "is": [
+            "2021-08-01",
+            "2023-08-01"
+          ],
+          "oos": {
+            "total_return": "0.0481784611580000",
+            "sharpe": 0.5191833078960731,
+            "max_drawdown": 0.10411881382341837,
+            "trades": 92,
+            "profit_factor": 1.1436628051829083
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 5,
+          "is": [
+            "2022-02-01",
+            "2024-02-01"
+          ],
+          "oos": {
+            "total_return": "0.2387413767150000",
+            "sharpe": 1.7698854260516081,
+            "max_drawdown": 0.14998901657272634,
+            "trades": 80,
+            "profit_factor": 1.7226910946813838
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 6,
+          "is": [
+            "2022-08-01",
+            "2024-08-01"
+          ],
+          "oos": {
+            "total_return": "0.1487919395330000",
+            "sharpe": 1.2562202305832961,
+            "max_drawdown": 0.13024133973640328,
+            "trades": 96,
+            "profit_factor": 1.4083680320708563
+          },
+          "params": {},
+          "is_score": null
+        },
+        {
+          "index": 7,
+          "is": [
+            "2023-02-01",
+            "2025-02-01"
+          ],
+          "oos": {
+            "total_return": "-0.0361052243180000",
+            "sharpe": -0.1436177873795463,
+            "max_drawdown": 0.16745757647583426,
+            "trades": 83,
+            "profit_factor": 0.9004205563880072
+          },
+          "params": {},
+          "is_score": null
+        }
+      ],
+      "gate": [
+        {
+          "name": "Sharpe OOS",
+          "threshold": ">= 0.8 y >= B&H BTC (0.76)",
+          "value": "0.64",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Profit factor OOS",
+          "threshold": ">= 1.3",
+          "value": "1.19",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Max DD OOS",
+          "threshold": "<= 25 % y <= 50 % del DD B&H (77.11 %)",
+          "value": "30.39 %",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Universo activo en OOS",
+          "threshold": "todos los pares con datos en todas las ventanas",
+          "value": "8/8",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Ventanas OOS positivas",
+          "threshold": ">= 60 %",
+          "value": "5/8 (62 %)",
+          "passed": true,
+          "note": "secundario"
+        },
+        {
+          "name": "Trades muestra completa",
+          "threshold": ">= 100",
+          "value": "953",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Trades curva OOS",
+          "threshold": ">= 40",
+          "value": "644",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Régimen: retorno 2020",
+          "threshold": "> 0",
+          "value": "+71.72 %",
+          "passed": true,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2021",
+          "threshold": "> 0",
+          "value": "+61.63 %",
+          "passed": true,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2023",
+          "threshold": "> 0",
+          "value": "+21.53 %",
+          "passed": true,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2024",
+          "threshold": "> 0",
+          "value": "+39.01 %",
+          "passed": true,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2022",
+          "threshold": ">= -8 %",
+          "value": "-24.43 %",
+          "passed": false,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: max DD intra-año",
+          "threshold": "<= 25 %",
+          "value": "28.72 % (2022)",
+          "passed": false,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Meseta ±20 %",
+          "threshold": ">= 80 % de variantes con PF > 1.1 y retorno > 0",
+          "value": "92.86 %",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Monte Carlo DD p95",
+          "threshold": "<= 35 %",
+          "value": "38.61 %",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Holdout",
+          "threshold": "PF > 1.1 y DD <= 25 %",
+          "value": "-",
+          "passed": null,
+          "note": "una sola vez, al final"
+        }
+      ],
+      "gate_verdict": "no aprobado (6 criterios fallan)",
+      "montecarlo": {
+        "runs": 5000,
+        "trades": 644,
+        "seed": 42,
+        "dd_p50": 0.18356370500972538,
+        "dd_p95": 0.38606477071058715,
+        "dd_p99": 0.518013780684835,
+        "return_p05": -0.08959518118354899,
+        "return_p50": 0.5038194833143945
+      },
+      "plateau": {
+        "base_params": {
+          "ema_fast": 20,
+          "ema_slow": 50,
+          "ema_regime": 200,
+          "adx_period": 14,
+          "adx_threshold": 20.0,
+          "atr_period": 14,
+          "stop_atr_mult": 2.0,
+          "trailing_atr_mult": 3.0,
+          "entry_mode": "state",
+          "cooldown_candles": 2,
+          "warmup_multiplier": 6
+        },
+        "pct": 0.2,
+        "pass_rate": 0.9285714285714286,
+        "base_sharpe": 0.8324392084729272,
+        "relative_pass_rate": 0.9761904761904762,
+        "warnings": [],
+        "rows": [
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.9132078505500000",
+            "profit_factor": 1.2307538059812486,
+            "trades": 965,
+            "sharpe": 0.8493509751642367,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.9748225854550000",
+            "profit_factor": 1.2536980938736213,
+            "trades": 964,
+            "sharpe": 0.8619900605121007,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.4104604219640000",
+            "profit_factor": 1.1829410857668126,
+            "trades": 964,
+            "sharpe": 0.7223594211473985,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.6936875330740000",
+            "profit_factor": 1.2262238465950182,
+            "trades": 962,
+            "sharpe": 0.7981152530951787,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "0.9362190170465000",
+            "profit_factor": 1.1497174020289322,
+            "trades": 1049,
+            "sharpe": 0.5660988088745111,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "4.4193385895940000",
+            "profit_factor": 1.4049366757490749,
+            "trades": 827,
+            "sharpe": 1.2829952607536674,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "2.2734954558250000",
+            "profit_factor": 1.224881986891623,
+            "trades": 1069,
+            "sharpe": 0.8518000327372736,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.0,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.5886319790430000",
+            "profit_factor": 1.2426938851506293,
+            "trades": 917,
+            "sharpe": 0.8488105949104213,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.7713543445320000",
+            "profit_factor": 1.1960485686005855,
+            "trades": 1152,
+            "sharpe": 0.8285987404713477,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 20,
+              "ema_slow": 50,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 20.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.0,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "4.6824411075020000",
+            "profit_factor": 1.4628456108453958,
+            "trades": 808,
+            "sharpe": 1.1868583363493312,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "0.7471850295282000",
+            "profit_factor": 1.0927684065292034,
+            "trades": 1385,
+            "sharpe": 0.4779659089480339,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.6163659996881000",
+            "profit_factor": 1.1744286779832855,
+            "trades": 1005,
+            "sharpe": 0.7014061943944265,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.7306681632816000",
+            "profit_factor": 1.1854389779778371,
+            "trades": 1275,
+            "sharpe": 0.8575757878427082,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.6858624190277000",
+            "profit_factor": 1.3603668733947143,
+            "trades": 885,
+            "sharpe": 1.1684239065252398,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.6509207414960000",
+            "profit_factor": 1.1508624075665974,
+            "trades": 1081,
+            "sharpe": 0.7484999444305556,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "7.4643782265681000",
+            "profit_factor": 1.4808356552691249,
+            "trades": 778,
+            "sharpe": 1.3498781953247305,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.9483313972800000",
+            "profit_factor": 1.253418872123672,
+            "trades": 944,
+            "sharpe": 1.0029579053797644,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.0159027679148000",
+            "profit_factor": 1.3840335252234128,
+            "trades": 669,
+            "sharpe": 1.1242927450784228,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "0.3841461048261000",
+            "profit_factor": 1.0530473625977137,
+            "trades": 1426,
+            "sharpe": 0.33299218871925246,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.4131025106929000",
+            "profit_factor": 1.2649429814925868,
+            "trades": 995,
+            "sharpe": 0.9667683715680098,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.4599015389436000",
+            "profit_factor": 1.164656170339809,
+            "trades": 1275,
+            "sharpe": 0.7850518148012223,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.9263270283986000",
+            "profit_factor": 1.4232646227020984,
+            "trades": 859,
+            "sharpe": 1.1939671998355208,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.7331181632580000",
+            "profit_factor": 1.1746904281780441,
+            "trades": 1091,
+            "sharpe": 0.766787367714492,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "5.4002488145535000",
+            "profit_factor": 1.4501276947717234,
+            "trades": 819,
+            "sharpe": 1.1819201479450816,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "2.1558143691060000",
+            "profit_factor": 1.2734410069488193,
+            "trades": 978,
+            "sharpe": 1.0569170257014537,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 16,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "4.6170025958560000",
+            "profit_factor": 1.5192749868662567,
+            "trades": 678,
+            "sharpe": 1.3299074143283875,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "0.6133827475027000",
+            "profit_factor": 1.0786536268279119,
+            "trades": 1395,
+            "sharpe": 0.42735407656598384,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "5.6426020682771000",
+            "profit_factor": 1.3731883979796196,
+            "trades": 984,
+            "sharpe": 1.1748107746611285,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.4826761123790000",
+            "profit_factor": 1.1663046553959504,
+            "trades": 1266,
+            "sharpe": 0.7917290279168995,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.6320982825220000",
+            "profit_factor": 1.4002394199171786,
+            "trades": 869,
+            "sharpe": 1.1374752139079303,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "2.5030570464650000",
+            "profit_factor": 1.220198270206025,
+            "trades": 1092,
+            "sharpe": 0.9118352367242716,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "6.6513117842363000",
+            "profit_factor": 1.423413844004779,
+            "trades": 808,
+            "sharpe": 1.2704576430423211,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.1130069106750000",
+            "profit_factor": 1.158395061789887,
+            "trades": 948,
+            "sharpe": 0.7423980200306353,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 40,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "5.7542672553010000",
+            "profit_factor": 1.6356840346286259,
+            "trades": 675,
+            "sharpe": 1.4049983859148938,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.0001870700573000",
+            "profit_factor": 1.1062378544138443,
+            "trades": 1403,
+            "sharpe": 0.5497140001976983,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "6.6839332040416000",
+            "profit_factor": 1.38154447386026,
+            "trades": 1003,
+            "sharpe": 1.237027261855053,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.3256869071589000",
+            "profit_factor": 1.164914888039383,
+            "trades": 1249,
+            "sharpe": 0.7440694665277349,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 16.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.6895872602736000",
+            "profit_factor": 1.383101121037625,
+            "trades": 861,
+            "sharpe": 1.151117904420087,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.1505436109830000",
+            "profit_factor": 1.132893330290617,
+            "trades": 1093,
+            "sharpe": 0.6141396543810769,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 1.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "3.4270334176081000",
+            "profit_factor": 1.327491201524911,
+            "trades": 821,
+            "sharpe": 0.9885328708309391,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 2.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "1.2695587844070000",
+            "profit_factor": 1.1690890289141709,
+            "trades": 988,
+            "sharpe": 0.7869634130659238,
+            "passed": true,
+            "error": ""
+          },
+          {
+            "params": {
+              "ema_fast": 24,
+              "ema_slow": 60,
+              "ema_regime": 200,
+              "adx_period": 14,
+              "adx_threshold": 24.0,
+              "atr_period": 14,
+              "stop_atr_mult": 2.5,
+              "trailing_atr_mult": 3.5,
+              "entry_mode": "state",
+              "cooldown_candles": 2,
+              "warmup_multiplier": 6
+            },
+            "total_return": "5.6161562068570000",
+            "profit_factor": 1.6304514165787398,
+            "trades": 688,
+            "sharpe": 1.4088387454520805,
+            "passed": true,
+            "error": ""
+          }
+        ]
+      },
+      "inactive_pairs": [],
+      "open_at_end": [
+        0,
+        3,
+        3,
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "regimes": [
+        {
+          "year": 2019,
+          "total_return": "-0.137692978494",
+          "max_drawdown": 0.17416134918027276,
+          "trades": 53,
+          "pnl": "-1375.897959014900",
+          "complete": false
+        },
+        {
+          "year": 2020,
+          "total_return": "0.717185869206060830834558657",
+          "max_drawdown": 0.188419244249385,
+          "trades": 187,
+          "pnl": "5032.766386218000",
+          "complete": true
+        },
+        {
+          "year": 2021,
+          "total_return": "0.616276774089308552602813017",
+          "max_drawdown": 0.22680020002638562,
+          "trades": 176,
+          "pnl": "10304.196271214800",
+          "complete": true
+        },
+        {
+          "year": 2022,
+          "total_return": "-0.2443316444041999804036259378",
+          "max_drawdown": 0.2872115065600356,
+          "trades": 111,
+          "pnl": "-5836.447255625600",
+          "complete": true
+        },
+        {
+          "year": 2023,
+          "total_return": "0.215258461298183930761089620",
+          "max_drawdown": 0.1440803933806935,
+          "trades": 178,
+          "pnl": "4091.276788972000",
+          "complete": true
+        },
+        {
+          "year": 2024,
+          "total_return": "0.390125486193735096144794143",
+          "max_drawdown": 0.21562800115181163,
+          "trades": 162,
+          "pnl": "8412.307543498000",
+          "complete": true
+        },
+        {
+          "year": 2025,
+          "total_return": "-0.0700426686678916643017241518",
+          "max_drawdown": 0.2213667040830582,
+          "trades": 86,
+          "pnl": "-2064.481427684000",
+          "complete": false
+        }
+      ],
+      "regimes_source": "muestra completa, parámetros fijos",
+      "full_sample": {
+        "start_ts": 1564631999999,
+        "end_ts": 1754006399999,
+        "days": 2191.8333333333335,
+        "bars": 13150,
+        "initial_equity": "10000",
+        "final_equity": "28412.6589551200000000",
+        "total_return": "1.8412658955120000",
+        "cagr": 0.19007359163905369,
+        "sharpe": 0.8324392084729272,
+        "sortino": 1.3275861142265972,
+        "calmar": 0.528458452879249,
+        "max_drawdown": 0.3596755631468438,
+        "longest_underwater_days": 853.8333333333334,
+        "trades": 953,
+        "win_rate": 0.3515215110178384,
+        "profit_factor": 1.243148535261647,
+        "expectancy": "19.47924485580094438614900315",
+        "avg_trade_hours": 85.37250763320509,
+        "exposure": 0.6339923954372624,
+        "fees_quote": "6011.363437261700",
+        "avg_shortfall_bps": 5.863114446084285,
+        "exits": {
+          "signal": 141,
+          "stop": 265,
+          "trailing": 547
+        }
+      },
+      "unused_tail": [
+        "2025-08-01",
+        "2025-09-01"
+      ]
+    }
+  }
+}

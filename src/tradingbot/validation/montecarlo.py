@@ -60,7 +60,8 @@ def bootstrap_trades(
     equity = np.concatenate([np.full((runs, 1), initial), equity], axis=1)
     peaks = np.maximum.accumulate(equity, axis=1)
     with np.errstate(divide="ignore", invalid="ignore"):
-        drawdowns = np.where(peaks > 0, (peaks - equity) / peaks, 1.0)
+        # PnL aditivo: la equity puede irse a cero o negativa; un DD nunca supera el 100 %.
+        drawdowns = np.where(peaks > 0, np.minimum((peaks - equity) / peaks, 1.0), 1.0)
     max_dd = drawdowns.max(axis=1)
     returns = equity[:, -1] / initial - 1.0
     return MonteCarloResult(

@@ -110,7 +110,8 @@ def render_walkforward_report(
         f"{'optimización fallida: base' if w.optimization_failed else _changes(w.changed_params(result.base_params))} | "
         f"{_pct(w.oos_metrics.total_return)} | {_num(w.oos_metrics.sharpe)} | "
         f"{_pct_abs(w.oos_metrics.max_drawdown)} | {w.oos_metrics.trades} | {_num(w.oos_metrics.profit_factor)} | "
-        f"{w.open_at_end}{'' if w.open_at_end == 0 else f' ({w.unrealized_pnl:+,.2f})'} |"
+        f"{w.open_at_end}{'' if w.open_at_end == 0 else f' ({w.unrealized_pnl:+,.2f})'} | "
+        f"{w.rejections.get('max_positions', 0)} |"
         for w in result.windows
     )
     open_total = sum(w.open_at_end for w in result.windows)
@@ -189,8 +190,8 @@ def render_walkforward_report(
 
 ## Ventanas
 
-| # | IS | OOS | Parámetros | Retorno OOS | Sharpe | Max DD | Trades | PF | Abiertas al cierre |
-|---|---|---|---|---|---|---|---|---|---|
+| # | IS | OOS | Parámetros | Retorno OOS | Sharpe | Max DD | Trades | PF | Abiertas al cierre | Rechazos por slots |
+|---|---|---|---|---|---|---|---|---|---|---|
 {window_rows}
 {open_note}{inactive_note}
 ## Curva OOS concatenada
@@ -231,6 +232,7 @@ def walkforward_meta(result: WalkForwardResult, root: Path) -> ExperimentMeta:
             **w.window.to_dict(),
             "params": w.changed_params(result.base_params),
             "is_score": None if w.optimization is None else w.optimization.best_score,
+            "rejections": w.rejections,
             "oos": {
                 "total_return": str(w.oos_metrics.total_return),
                 "sharpe": w.oos_metrics.sharpe,
