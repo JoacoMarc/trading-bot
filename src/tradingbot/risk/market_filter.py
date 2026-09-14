@@ -12,8 +12,10 @@ sin información no se bloquea.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Any
 
 from tradingbot.config.models import MarketFilterConfig
 from tradingbot.domain.candle import Candle
@@ -106,6 +108,35 @@ class MarketFilter:
         self._state = MarketState(day, close, self._ema, momentum)
         if not self._state.defined:
             self._undefined_days += 1
+
+    def to_state(self) -> dict[str, Any]:
+        """Estado serializable para reanudar sin re-sembrar (ADR-0011)."""
+        s = self._state
+        return {
+            "closes": list(self._closes),
+            "ema": self._ema,
+            "undefined_days": self._undefined_days,
+            "state": None
+            if s is None
+            else {"day": s.day, "close": str(s.close), "ema": s.ema, "momentum": s.momentum},
+        }
+
+    def restore(self, state: Mapping[str, Any]) -> None:
+        self._closes = [float(v) for v in state.get("closes", [])]
+        ema = state.get("ema")
+        self._ema = None if ema is None else float(ema)
+        self._undefined_days = int(state.get("undefined_days", 0))
+        raw = state.get("state")
+        self._state = (
+            None
+            if raw is None
+            else MarketState(
+                day=int(raw["day"]),
+                close=Decimal(str(raw["close"])),
+                ema=None if raw.get("ema") is None else float(raw["ema"]),
+                momentum=None if raw.get("momentum") is None else float(raw["momentum"]),
+            )
+        )
 
     def status(self) -> dict[str, str]:
         state = self._state

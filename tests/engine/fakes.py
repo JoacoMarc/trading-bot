@@ -8,11 +8,11 @@ from decimal import Decimal
 from tests.factories import BTC, ETH, T0, d, make_candle
 from tradingbot.config.models import ExecutionConfig, RiskConfig
 from tradingbot.domain import Bar, Candle, ExitReason, Pair, Signal, SignalAction, Timeframe
-from tradingbot.engine import Engine, PrecomputedSeries
+from tradingbot.engine import Engine, EngineState, PrecomputedSeries
 from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution import SimulatedBroker
 from tradingbot.indicators import FloatArray
-from tradingbot.persistence import InMemoryStore
+from tradingbot.persistence import InMemoryStore, TradeStore
 from tradingbot.risk import KillSwitch, RiskManager
 from tradingbot.strategy import OhlcvArrays, Strategy, StrategyContext, StrategyParams
 
@@ -163,11 +163,13 @@ def build_engine(
     markets: Mapping[Pair, MarketInfo] | None = None,
     kill_switch: KillSwitch | None = None,
     auto_resume: bool = True,
-) -> tuple[Engine, InMemoryStore, SimulatedBroker]:
+    store: TradeStore | None = None,
+    restore: EngineState | None = None,
+) -> tuple[Engine, TradeStore, SimulatedBroker]:
     risk_cfg = risk or RiskConfig()
     exec_cfg = execution or ExecutionConfig()
     mkts = dict(markets or MARKETS)
-    store = InMemoryStore()
+    store = store if store is not None else InMemoryStore()
     broker = SimulatedBroker(exec_cfg, mkts)
     engine = Engine(
         strategy=strategy,
@@ -180,5 +182,6 @@ def build_engine(
         execution=exec_cfg,
         initial_cash=d(cash),
         kill_switch=kill_switch,
+        restore=restore,
     )
     return engine, store, broker

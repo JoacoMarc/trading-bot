@@ -18,7 +18,7 @@ from tests.engine.fakes import (
 from tests.factories import BTC, ETH, T0, d
 from tradingbot.config.models import MarketFilterConfig, RiskConfig
 from tradingbot.domain import ExitReason, Side
-from tradingbot.persistence import InMemoryStore
+from tradingbot.persistence import TradeStore
 from tradingbot.risk import KillSwitchState, ReasonCode
 from tradingbot.risk.protections import MS_PER_DAY, PROTECTION_CLEARED, PROTECTION_TRIGGERED
 
@@ -27,11 +27,11 @@ FLAT60 = ("60", "61", "59", "60")
 OFF = {"daily_loss_limit_pct": None, "max_drawdown_pct": None}
 
 
-def rejections(store: InMemoryStore, reason: ReasonCode) -> int:
+def rejections(store: TradeStore, reason: ReasonCode) -> int:
     return sum(1 for e in store.events() if e.kind == "entry_rejected" and e.reason == reason.value)
 
 
-def protection_events(store: InMemoryStore, reason: ReasonCode) -> list[str]:
+def protection_events(store: TradeStore, reason: ReasonCode) -> list[str]:
     return [
         e.kind
         for e in store.events()

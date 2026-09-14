@@ -17,10 +17,11 @@ por proceso: en backtest arranca vacío con la corrida; en paper/live se reconst
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from tradingbot.config.models import RiskConfig
 from tradingbot.domain.candle import Candle
@@ -176,6 +177,58 @@ class Protections:
                 else self.market_filter.status()["market_filter"]
             ),
         }
+
+    # ------------------------------------------------------------- persistencia (ADR-0011)
+
+    def to_state(self) -> dict[str, Any]:
+        """Todo lo que hace falta para reanudar tras un reinicio sin perder el pico ni los halts."""
+
+        def dec(value: Decimal | None) -> str | None:
+            return None if value is None else str(value)
+
+        return {
+            "bar": self._bar,
+            "ts": self._ts,
+            "day": self._day,
+            "day_start_equity": dec(self._day_start_equity),
+            "last_equity": dec(self._last_equity),
+            "peak": dec(self._peak),
+            "daily_halt_day": self._daily_halt_day,
+            "drawdown_halted": self._drawdown_halted,
+            "halt_ts": self._halt_ts,
+            "loss_streak": self._loss_streak,
+            "pause_until": self._pause_until,
+            "pair_cooldown_until": {p.symbol: u for p, u in self._pair_cooldown_until.items()},
+            "market_filter": None if self.market_filter is None else self.market_filter.to_state(),
+        }
+
+    def restore(self, state: Mapping[str, Any]) -> None:
+        """Inverso de `to_state`. El kill switch no se persiste: se vuelve a leer del archivo."""
+
+        def dec(value: Any) -> Decimal | None:
+            return None if value is None else Decimal(str(value))
+
+        def opt_int(value: Any) -> int | None:
+            return None if value is None else int(value)
+
+        self._bar = int(state.get("bar", 0))
+        self._ts = int(state.get("ts", 0))
+        self._day = opt_int(state.get("day"))
+        self._day_start_equity = dec(state.get("day_start_equity"))
+        self._last_equity = dec(state.get("last_equity"))
+        self._peak = dec(state.get("peak"))
+        self._daily_halt_day = opt_int(state.get("daily_halt_day"))
+        self._drawdown_halted = bool(state.get("drawdown_halted", False))
+        self._halt_ts = opt_int(state.get("halt_ts"))
+        self._loss_streak = int(state.get("loss_streak", 0))
+        self._pause_until = opt_int(state.get("pause_until"))
+        self._pair_cooldown_until = {
+            Pair.parse(symbol): int(until)
+            for symbol, until in dict(state.get("pair_cooldown_until", {})).items()
+        }
+        filter_state = state.get("market_filter")
+        if self.market_filter is not None and filter_state is not None:
+            self.market_filter.restore(filter_state)
 
     # ------------------------------------------------------------- alimentación
 

@@ -22,7 +22,7 @@ from tests.factories import BTC, ETH, T0, d
 from tradingbot.config.models import ExecutionConfig, RiskConfig
 from tradingbot.domain import ExitReason, Fill, OrderStatus, Side, Signal
 from tradingbot.engine import Engine, EngineResult
-from tradingbot.persistence import InMemoryStore
+from tradingbot.persistence import TradeStore
 from tradingbot.strategy import StrategyContext
 
 # open, high, low, close
@@ -33,7 +33,7 @@ def run(engine: Engine) -> EngineResult:
     return asyncio.run(engine.run())
 
 
-def sell_fill(store: InMemoryStore) -> Fill:
+def sell_fill(store: TradeStore) -> Fill:
     return next(f for f in store.fills() if f.side is Side.SELL)
 
 

@@ -19,6 +19,7 @@ from collections import Counter
 from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
+from typing import Any
 
 from tradingbot.config.models import ExecutionConfig
 from tradingbot.data.feeds import MarketFeed
@@ -27,7 +28,7 @@ from tradingbot.domain.enums import ExitReason, Side, SignalAction
 from tradingbot.domain.money import ZERO
 from tradingbot.domain.orders import OrderIntent, Signal
 from tradingbot.domain.pair import Pair
-from tradingbot.domain.positions import PortfolioSnapshot
+from tradingbot.domain.positions import PortfolioSnapshot, Position
 from tradingbot.engine.position_manager import PositionManager
 from tradingbot.engine.series import SeriesProvider
 from tradingbot.exchange.binance import MarketInfo
@@ -36,6 +37,7 @@ from tradingbot.execution.simulated import INSUFFICIENT_FUNDS, SimulatedBroker
 from tradingbot.persistence.store import EventRecord, TradeStore
 from tradingbot.risk.manager import PortfolioView, RiskManager
 from tradingbot.risk.protections import KillSwitch
+from tradingbot.risk.sizing import ReasonCode
 from tradingbot.strategy.base import Strategy, StrategyContext
 
 
@@ -47,6 +49,52 @@ class EngineStats:
     fills: int = 0
     stuck_pairs: set[Pair] = field(default_factory=set)
     protections: Counter[str] = field(default_factory=Counter)
+
+
+@dataclass(frozen=True, slots=True)
+class EngineState:
+    """Lo que el motor necesita para reanudar tras un reinicio (ADR-0011).
+
+    Las posiciones viven en la tabla `positions` del store (fuente de verdad); el resto va al
+    `state` clave/valor. `to_dict`/`from_dict` son JSON-friendly (Decimal como texto).
+    """
+
+    cash: Decimal
+    dust: Mapping[str, Decimal]
+    positions: tuple[Position, ...]
+    marks: Mapping[Pair, Decimal]
+    bar_index: int
+    last_bar_open_time: int | None
+    last_exit_bar: Mapping[Pair, int]
+    protections: Mapping[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "cash": str(self.cash),
+            "dust": {k: str(v) for k, v in self.dust.items()},
+            "marks": {p.symbol: str(v) for p, v in self.marks.items()},
+            "bar_index": self.bar_index,
+            "last_bar_open_time": self.last_bar_open_time,
+            "last_exit_bar": {p.symbol: b for p, b in self.last_exit_bar.items()},
+            "protections": dict(self.protections),
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any], positions: Iterable[Position]) -> EngineState:
+        return cls(
+            cash=Decimal(str(data["cash"])),
+            dust={k: Decimal(str(v)) for k, v in dict(data.get("dust", {})).items()},
+            positions=tuple(positions),
+            marks={Pair.parse(k): Decimal(str(v)) for k, v in dict(data.get("marks", {})).items()},
+            bar_index=int(data.get("bar_index", -1)),
+            last_bar_open_time=None
+            if data.get("last_bar_open_time") is None
+            else int(data["last_bar_open_time"]),
+            last_exit_bar={
+                Pair.parse(k): int(v) for k, v in dict(data.get("last_exit_bar", {})).items()
+            },
+            protections=dict(data.get("protections", {})),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,6 +120,7 @@ class Engine:
         execution: ExecutionConfig,
         initial_cash: Decimal,
         kill_switch: KillSwitch | None = None,
+        restore: EngineState | None = None,
     ) -> None:
         if initial_cash <= ZERO:
             msg = f"initial_cash debe ser positivo, recibido {initial_cash}"
@@ -96,6 +145,7 @@ class Engine:
         self._blocked: dict[Pair, str] = {}  # último motivo de rechazo por par (dedupe)
         self._bar_index = -1
         self._last_snapshot: PortfolioSnapshot | None = None
+        self._last_bar_open_time: int | None = None
         if isinstance(broker, SimulatedBroker):
             broker.bind_cash(lambda: self.cash)
         # Filtro de mercado (ADR-0009): se siembra con el warmup del feed para llegar definido al
@@ -107,6 +157,37 @@ class Engine:
                 candle = warm.get(self._reference)
                 if candle is not None:
                     risk.protections.on_reference_candle(candle)
+        if restore is not None:
+            self._restore(restore)
+
+    # ------------------------------------------------------------- recuperación (ADR-0011)
+
+    def _restore(self, state: EngineState) -> None:
+        self.cash = state.cash
+        self.dust = dict(state.dust)
+        self._marks = dict(state.marks)
+        self._bar_index = state.bar_index
+        self._last_bar_open_time = state.last_bar_open_time
+        self._last_exit_bar = dict(state.last_exit_bar)
+        if state.protections:
+            self._risk.protections.restore(state.protections)
+        ts = 0 if state.last_bar_open_time is None else state.last_bar_open_time
+        self._positions.restore(state.positions, ts)
+        self.stats.stuck_pairs |= self._positions.unprotected
+
+    def state(self) -> EngineState:
+        """Foto serializable del motor al terminar el último `Bar` procesado."""
+        positions = tuple(self._positions.positions[p] for p in sorted(self._positions.positions))
+        return EngineState(
+            cash=self.cash,
+            dust=dict(self.dust),
+            positions=positions,
+            marks=dict(self._marks),
+            bar_index=self._bar_index,
+            last_bar_open_time=self._last_bar_open_time,
+            last_exit_bar=dict(self._last_exit_bar),
+            protections=self._risk.protections.to_state(),
+        )
 
     # ------------------------------------------------------------- API
 
@@ -164,6 +245,7 @@ class Engine:
     def process_bar(self, bar: Bar) -> None:
         self._bar_index += 1
         self.stats.bars += 1
+        self._last_bar_open_time = bar.open_time
         ts = bar.close_time
         self._risk.protections.on_bar(self._bar_index, ts)
 
@@ -217,7 +299,10 @@ class Engine:
                     pair, signal.exit_reason or ExitReason.SIGNAL, signal.open_time, ts
                 )
 
-        self._submit_entries(list(signals.values()), ts)  # 6
+        if bar.replay:  # 6: reposición tras reinicio, sin entradas nuevas (ADR-0011)
+            self._reject_replay_entries(list(signals.values()), ts)
+        else:
+            self._submit_entries(list(signals.values()), ts)
 
         for pair, ctx in contexts.items():  # 7
             if pair in self._pending_exits or self._positions.get(pair) is None:
@@ -369,6 +454,21 @@ class Engine:
             order = self._broker.submit(intent, ts)
             self._store.save_order(order)
             self._pending_entries[intent.client_order_id] = intent
+
+    def _reject_replay_entries(self, signals: list[Signal], ts: int) -> None:
+        for signal in signals:
+            if signal.action is not SignalAction.ENTER_LONG:
+                continue
+            self.stats.rejections[ReasonCode.REPLAY.value] += 1
+            self._store.record_event(
+                EventRecord(
+                    ts=ts,
+                    kind="entry_rejected",
+                    pair=signal.pair,
+                    reason=ReasonCode.REPLAY.value,
+                    payload={"detail": "vela de reposición tras reinicio"},
+                )
+            )
 
     # ------------------------------------------------------------- snapshot
 

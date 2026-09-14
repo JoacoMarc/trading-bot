@@ -8,7 +8,7 @@ o notional bajo `minNotional`) no se publica y la posición queda marcada sin pr
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from decimal import Decimal
 
 from tradingbot.domain.enums import ExitReason
@@ -44,6 +44,22 @@ class PositionManager:
 
     def __len__(self) -> int:
         return len(self._positions)
+
+    # ------------------------------------------------------------- recuperación (ADR-0011)
+
+    def restore(self, positions: Iterable[Position], ts: int) -> None:
+        """Carga posiciones persistidas y vuelve a publicar sus stops en el broker."""
+        for position in positions:
+            if position.pair in self._positions:
+                msg = f"posición duplicada al restaurar: {position.pair}"
+                raise DomainError(msg)
+            self._positions[position.pair] = position
+            reason = (
+                ExitReason.TRAILING
+                if position.stop_price > position.entry_price
+                else ExitReason.STOP
+            )
+            self._publish_stop(position, reason, ts)
 
     # ------------------------------------------------------------- apertura y cierre
 

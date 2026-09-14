@@ -33,6 +33,7 @@ class ReasonCode(StrEnum):
     CONSECUTIVE_LOSSES = "consecutive_losses"
     PAIR_COOLDOWN = "pair_cooldown"
     MARKET_FILTER = "market_filter"
+    REPLAY = "replay"  # Bar de reposición tras un reinicio (ADR-0011): sin entradas
 
 
 @dataclass(frozen=True, slots=True)
