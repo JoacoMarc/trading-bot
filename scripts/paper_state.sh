@@ -8,6 +8,8 @@
 # El nombre del volumen depende del nombre del proyecto de compose (`name: tradingbot` en
 # compose.yaml => `tradingbot_tradingbot-db`); se puede pisar con PAPER_DB_VOLUME.
 set -euo pipefail
+# Git Bash (Windows) convierte `/backup` en una ruta de Windows: desactivar esa conversión.
+export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
 
 action="${1:-}"
 archive="${2:-paper-state.tgz}"
@@ -31,7 +33,7 @@ if ! docker volume inspect "$volume" >/dev/null 2>&1; then
   docker volume create "$volume" >/dev/null
 fi
 
-archive_dir="$(cd "$(dirname "$archive")" && pwd)"
+archive_dir="$(cd "$(dirname "$archive")" && (pwd -W 2>/dev/null || pwd))"  # ruta Windows en Git Bash
 archive_name="$(basename "$archive")"
 mkdir -p "$archive_dir"
 

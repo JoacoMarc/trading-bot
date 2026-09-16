@@ -119,7 +119,7 @@ cd ~/trading-bot && git pull && docker compose --profile paper build && docker c
 ## Respaldo y monitoreo mínimo
 
 - **Backup semanal de la DB** (cron en el VPS, domingo 03:00 UTC): `0 3 * * 0 cd ~/trading-bot && bash scripts/paper_state.sh export backups/paper-$(date +\%F).tgz`. Guardar una copia fuera del VPS cada tanto (`scp` a la PC).
-- **Reinicios:** `docker inspect trading-bot-paper-1 --format '{{.RestartCount}}'` (el nombre del proyecto es la carpeta: `trading-bot-paper-1`). El watchdog interno sale con 1 si no completa un ciclo en 8 h 5 min y Docker lo relanza.
+- **Reinicios:** `docker inspect tradingbot-paper-1 --format '{{.RestartCount}}'` (el proyecto se llama `tradingbot` por el `name:` de compose). El watchdog interno sale con 1 si no completa un ciclo en 8 h 5 min y Docker lo relanza.
 - **Alertas:** hasta la Fase 8 (Telegram) no hay aviso automático; revisar `paper-status` cuando se pueda. Con Telegram, el bot avisa fills, stops, breaker y errores.
 - **Actualizaciones del SO:** `unattended-upgrades` aplica parches de seguridad; si reinicia el host, Docker levanta el contenedor solo (`restart: unless-stopped`).
 
