@@ -33,6 +33,9 @@ services:
     command: ["paper", "--config", "configs/paper.yaml"]
     restart: unless-stopped
     stop_grace_period: 60s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
     healthcheck:
       test: ["CMD", "tradingbot", "status", "--check"]
       interval: 60s

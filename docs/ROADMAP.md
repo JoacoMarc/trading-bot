@@ -92,6 +92,7 @@ Deuda registrada (revisor de la Fase 6, menores no aplicados): las posiciones ab
 ## Fase 8 — Telegram y observabilidad (M) · `en curso`
 
 - [ ] **Pendiente transversal (Gate 1 de `regime_bh`):** cuando se apague el régimen y cierre la pierna abierta el 2026-08-20 en el backtest (el paper la tiene abierta desde el 2026-09-14), `download-data` y `tradingbot backtest --config configs/regime-bh.yaml --from 2025-09-01 --include-holdout`; PF sobre los 5 trades cerrados > 1.1 → `go` y arranca el reloj de las 8 semanas del Gate 2; si no → `no-go` y la familia se cierra. Sin cambios de config ni de spec
+- [ ] Paper en un VPS antes de Telegram (pedido del usuario el 2026-09-16: no dejar la PC prendida): runbook `docs/runbooks/vps.md` + `scripts/paper_state.sh` para migrar la DB del volumen; región fuera de EE. UU. (Binance responde 451); deploy key de solo lectura; un solo paper corriendo a la vez
 - [ ] `notify/telegram.py` (comandos, alertas, resumen diario, whitelist); runbook de incidentes
 
 ## Fase 9 — Analista LLM (M) · `pendiente`
