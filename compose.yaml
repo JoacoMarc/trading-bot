@@ -5,6 +5,9 @@ services:
   bot:
     build: .
     image: tradingbot:local
+    # Solo para `docker compose run --rm bot ...` (run activa el perfil solo): así `up -d` de otro
+    # perfil no levanta este contenedor auxiliar, que corre `--help` y termina.
+    profiles: ["tools"]
     env_file:
       - path: .env
         required: false
