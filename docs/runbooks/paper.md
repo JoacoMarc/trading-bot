@@ -6,7 +6,7 @@ Proceso de larga duración en Docker (perfil `paper` de compose) que corre el mi
 
 1. `configs/paper.yaml` = copia de `configs/paper.example.yaml` (hoy `regime_bh` λ 0.5, la config de WF-0008 / EXP-0010). Sin secretos: el paper no necesita claves.
 2. Requisitos del host: Docker Desktop iniciado (con "Start Docker Desktop when you sign in"), **suspensión de Windows desactivada** (Configuración → Sistema → Energía: "Nunca" con corriente), Windows Update con horas activas amplias y reinicio automático apagado, y `data/`, `logs/`, `db` (volumen) con permisos.
-3. `docker compose build` si cambió el código; después `docker compose --profile paper up -d`.
+3. `docker compose --profile paper build` si cambió el código (el servicio tiene perfil: sin `--profile` no se buildea nada); después `docker compose --profile paper up -d`.
 4. Verificar en el primer minuto: `docker compose --profile paper logs -f paper` debe mostrar `arranque limpio` (o `reanudado desde la DB`), el bootstrap del warmup (1,212 velas de 4h para `regime_bh`) y `status en logs/status.json`. Después `uv run tradingbot status` (o `docker compose exec paper tradingbot status`).
 
 El primer cierre puede tardar hasta 4 h. Hasta entonces `status` muestra la fase `arranque`/`corriendo` con la última vela del bootstrap.

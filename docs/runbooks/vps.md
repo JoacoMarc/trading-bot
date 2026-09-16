@@ -48,7 +48,7 @@ git clone git@github.com:JoacoMarc/trading-bot.git ~/trading-bot && cd ~/trading
 ```
 
 ```bash
-cp configs/paper.example.yaml configs/paper.yaml && docker compose build
+cp configs/paper.example.yaml configs/paper.yaml && docker compose --profile paper build
 ```
 
 ## Migrar el estado desde la PC (opcional pero recomendado)
@@ -111,7 +111,7 @@ function paper-status { ssh root@IP_DEL_VPS "cd ~/trading-bot && docker compose 
 Cada cambio en `strategy/`, `risk/`, `engine/` o `execution/` reinicia el reloj del Gate 2 (`docs/GATES.md`). Para desplegar:
 
 ```bash
-cd ~/trading-bot && git pull && docker compose build && docker compose --profile paper up -d
+cd ~/trading-bot && git pull && docker compose --profile paper build && docker compose --profile paper up -d
 ```
 
 `up -d` reemplaza el contenedor: SIGTERM ordenado, estado en la DB, reanudación con reposición de las velas perdidas (segundos).

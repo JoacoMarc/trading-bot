@@ -23,8 +23,8 @@ uv run tradingbot stop [--flatten] && uv run tradingbot resume  # kill switch po
 uv run tradingbot status [--check] && uv run tradingbot trades --db db/paper.db  # lee logs/status.json (heartbeat) y la DB del paper
 uv run tradingbot walkforward [--optimize --trials N] [--plateau]  # IS 24m/OOS 6m + gate 1; registra WF-NNNN (lento: background o terminal del usuario)
 uv run tradingbot optimize --to YYYY-MM-DD --trials N          # optuna solo in-sample; registra OPT-NNNN
-docker compose build
-docker compose run --rm bot doctor
+docker compose --profile paper build       # los servicios tienen perfil: sin --profile no se buildea nada
+docker compose run --rm bot doctor        # `run` activa el perfil `tools` del servicio base solo
 ```
 
 `paper`, `testnet` y `live` corren con `docker compose --profile <modo> up -d`, **lanzado por el usuario** (`tradingbot paper --config configs/paper.yaml [--max-bars N]` es lo que corre el contenedor; runbook en `docs/runbooks/paper.md`). `optimize` y `walkforward` se lanzan en background o desde la terminal del usuario.
