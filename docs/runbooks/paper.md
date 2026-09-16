@@ -35,4 +35,4 @@ El primer cierre puede tardar hasta 4 h. Hasta entonces `status` muestra la fase
 
 ## Registro
 
-Cada semana de paper se anota en `docs/ROADMAP.md` (Fase 7): fecha, velas procesadas, fills, eventos raros, reinicios, y el resultado de `tradingbot parity` cuando exista (Fase 7, pendiente).
+Cada semana de paper se anota en `docs/ROADMAP.md`: fecha, velas procesadas, fills, eventos raros, reinicios, y el resultado de `tradingbot parity --config configs/paper.yaml --db db/paper.db --from <inicio> --to <fin>` (copiar antes la DB del volumen con `docker compose cp paper:/app/db/paper.db ./db/paper.db`; registra `PAR-NNNN`).
