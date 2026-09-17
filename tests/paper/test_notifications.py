@@ -69,13 +69,17 @@ async def test_session_announces_lifecycle_and_entry_after_commit(tmp_path: Path
     await session.run(max_bars=2, install_signals=False)
 
     lifecycle = notifier.texts(Category.LIFECYCLE)
-    assert lifecycle[0].startswith("paper regime_bh 4h BTC/USDT: arranque limpio")
-    assert lifecycle[-1].startswith("paper detenido tras 2 velas")
+    assert lifecycle[0].startswith(
+        "El bot arrancó en modo prueba (dinero simulado). Empieza de cero: 0 compra(s) abierta(s)"
+    )
+    assert lifecycle[-1].startswith("El bot se detuvo después de 2 revisiones de precio.")
     entries = notifier.texts(Category.ENTRY)
     assert len(entries) == 1
-    assert entries[0].startswith("compra BTC/USDT:")
-    assert "stop" in entries[0]
-    assert "-20.0 %" in entries[0]
+    assert entries[0].startswith("Compró ")
+    assert "vende solo para no perder más" in entries[0]
+    assert "(-20,00 %)" in entries[0]
+    for jargon in ("equity", "pnl", "fill", "stop"):
+        assert jargon not in entries[0].lower()
     assert session._pending_notes == []  # todo lo del ciclo salió tras el commit
     assert notifier.stopped
     status = session.status_payload("detenido")
@@ -89,15 +93,15 @@ async def test_commands_read_the_session_and_write_the_kill_switch(tmp_path: Pat
     session.store = type(session.store)(session.config.db_path)  # reabrir: `run` la cerró
 
     status = session.commands.handle("/status")
-    assert status.startswith("paper regime_bh 4h BTC/USDT - corriendo")
-    assert "BTC/USDT: " in status
-    assert "equity" in status
+    assert status.startswith("Modo prueba (dinero simulado) - funcionando")
+    assert "Comprado: " in status
+    assert "Tenés en total" in status
     health = session.commands.handle("/health")
-    assert "velas 2, fills 1" in health
-    assert "avisos (recording)" in health
-    assert session.commands.handle("/trades") == "sin trades cerrados"
+    assert "Revisiones: 2; compras/ventas: 1" in health
+    assert "Avisos por recording" in health
+    assert session.commands.handle("/trades").startswith("Todavía no cerró ninguna operación")
     daily = session.commands.handle("/daily")
-    assert daily.startswith("resumen 24 h")
+    assert daily.startswith("Resumen de las últimas 24 h")
 
     switch = session.kill_switch
     assert not switch.path.exists()
@@ -169,7 +173,7 @@ async def test_watchdog_alert_is_sent_directly_before_exiting(tmp_path: Path) ->
     exchange.now += 2 * 4 * 3_600_000 + 300_001
     await session._handle_stale()
     assert len(notifier.urgent) == 1
-    assert notifier.urgent[0].startswith("watchdog: sin ciclo completo")
+    assert notifier.urgent[0].startswith("PROBLEMA: el bot lleva")
     assert notifier.texts(Category.ERROR) == []  # no pasó por la cola: no llegaría a drenarse
     session.store.close()
 
@@ -184,5 +188,5 @@ def test_daily_key_follows_the_local_summary_hour(tmp_path: Path) -> None:
     assert key is not None
     assert session._daily_key(noon_utc + 86_400_000) == key + 1
     session.send_daily_summary()
-    assert notifier.texts(Category.DAILY)[0].startswith("resumen 24 h")
+    assert notifier.texts(Category.DAILY)[0].startswith("Resumen de las últimas 24 h")
     session.store.close()

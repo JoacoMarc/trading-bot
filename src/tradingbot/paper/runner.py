@@ -41,13 +41,14 @@ from tradingbot.engine.series import RollingSeries
 from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution.broker import BrokerEvent
 from tradingbot.execution.paper import PaperBroker, StopWatcher
+from tradingbot.notify import texts
 from tradingbot.notify.base import Category, LogNotifier, Notification, Notifier
 from tradingbot.notify.commands import CommandService
 from tradingbot.observability.status import StatusWriter
 from tradingbot.persistence.sqlite import SqliteStore
 from tradingbot.persistence.store import EventRecord
 from tradingbot.risk.manager import RiskManager
-from tradingbot.risk.protections import PROTECTION_CLEARED, FileKillSwitch
+from tradingbot.risk.protections import FileKillSwitch
 from tradingbot.risk.sizing import ReasonCode
 from tradingbot.strategy.base import Strategy
 from tradingbot.strategy.registry import build_strategy, effective_warmup
@@ -123,6 +124,7 @@ class PaperSession:
     def __post_init__(self) -> None:
         self._last_cycle_ts = self.exchange.now_ms()
         self.engine.listener = self
+        self._tz = ZoneInfo(self.config.notify.timezone)
         self.commands = CommandService(
             self,
             timezone=self.config.notify.timezone,
@@ -167,73 +169,32 @@ class PaperSession:
     # EngineListener (ADR-0012): se llama dentro de la transacción; se avisa tras el commit.
 
     def on_event(self, event: EventRecord) -> None:
-        symbol = "" if event.pair is None else f" {event.pair.symbol}"
-        detail = str(event.payload.get("detail", "")) if event.payload else ""
-        tail = f": {detail}" if detail else ""
-        when = f" ({_iso(event.ts)})"
         if event.kind.startswith("protection_"):
-            verb = "liberada" if event.kind == PROTECTION_CLEARED else "activada"
-            self._queue_note(
-                Category.PROTECTION,
-                f"proteccion {verb}{symbol}: {event.reason}{tail}{when}",
-                event.ts,
-                event.pair,
-            )
+            category, text = Category.PROTECTION, texts.protection_text(event, self._tz)
         elif event.kind == "exit_stuck":
-            self._queue_note(
-                Category.STUCK,
-                f"salida trabada{symbol}: {event.reason}{tail}; la posicion queda sin salida hasta "
-                f"que pase los filtros del exchange{when}",
-                event.ts,
-                event.pair,
-            )
+            category, text = Category.STUCK, texts.stuck_text(event, self._tz)
         elif event.kind == "exit_rejected":
             # Una salida rechazada por el broker deja la posición abierta: es un error, no ruido.
-            self._queue_note(
-                Category.ERROR,
-                f"salida rechazada{symbol}: {event.reason}{tail}{when}",
-                event.ts,
-                event.pair,
-            )
+            category, text = Category.ERROR, texts.exit_rejected_text(event, self._tz)
         elif event.kind == "entry_rejected":
             if event.reason == ReasonCode.REPLAY.value:
                 return  # una por vela de reposición: quedan en la DB y en el log, no en el chat
-            self._queue_note(
-                Category.REJECTION,
-                f"entrada rechazada{symbol}: {event.reason}{tail}{when}",
-                event.ts,
-                event.pair,
-            )
+            category, text = Category.REJECTION, texts.rejection_text(event, self._tz)
         else:
-            self._queue_note(
-                Category.ERROR,
-                f"evento {event.kind}{symbol}: {event.reason}{tail}{when}",
-                event.ts,
-                event.pair,
-            )
+            category, text = Category.ERROR, texts.generic_event_text(event, self._tz)
+        self._queue_note(category, text, event.ts, event.pair)
 
     def on_position_opened(self, position: Position, fill: Fill) -> None:
-        stop_pct = (position.stop_price - position.entry_price) / position.entry_price * 100
         self._queue_note(
-            Category.ENTRY,
-            f"compra {position.pair.symbol}: {fill.qty} @ {fill.price:,.2f} "
-            f"({fill.notional:,.2f} {position.pair.quote} brutos; neto en cuenta "
-            f"{position.qty}), stop {position.stop_price:,.2f} ({stop_pct:+.1f} %) "
-            f"({_iso(fill.fill_ts)})",
-            fill.fill_ts,
-            position.pair,
+            Category.ENTRY, texts.entry_text(fill, position, self._tz), fill.fill_ts, position.pair
         )
 
     def on_trade_closed(self, trade: Trade, fill: Fill) -> None:
         by_stop = trade.exit_reason in (ExitReason.STOP, ExitReason.TRAILING)
-        hours = trade.duration_ms / 3_600_000
+        # El efectivo tras la venta es exacto; el total dependería de marks de la vela anterior.
+        text = texts.exit_text(trade, fill, self.engine.cash, self._tz)
         self._queue_note(
-            Category.STOP if by_stop else Category.EXIT,
-            f"venta {trade.pair.symbol} por {trade.exit_reason.value}: {trade.qty} @ "
-            f"{fill.price:,.2f}, pnl {trade.pnl:+,.2f} ({trade.pnl_pct * 100:+.2f} %) en "
-            f"{hours:.0f} h ({_iso(fill.fill_ts)}); /status para la equity",
-            fill.fill_ts,
-            trade.pair,
+            Category.STOP if by_stop else Category.EXIT, text, fill.fill_ts, trade.pair
         )
 
     def on_feed_event(self, event: FeedEvent) -> None:
@@ -242,11 +203,15 @@ class PaperSession:
                 ts=event.ts, kind=event.kind, pair=event.pair, reason=event.detail[:80], payload={}
             )
         )
-        text = f"{event.kind} {'' if event.pair is None else event.pair.symbol} {event.detail}"
-        self.note(text)
+        self.note(f"{event.kind} {'' if event.pair is None else event.pair.symbol} {event.detail}")
         if event.kind != FEED_RETRY:  # los reintentos ya se ven en el log; no son un aviso
             self.notifier.notify(
-                Notification(ts=event.ts, category=Category.FEED, text=text, pair=event.pair)
+                Notification(
+                    ts=event.ts,
+                    category=Category.FEED,
+                    text=texts.feed_text(event),
+                    pair=event.pair,
+                )
             )
 
     def on_broker_events(self, events: list[BrokerEvent]) -> None:
@@ -286,6 +251,10 @@ class PaperSession:
     @property
     def initial_cash(self) -> Decimal:
         return self.config.backtest.initial_cash
+
+    @property
+    def _quote(self) -> str:
+        return self.config.strategy.pairs[0].quote
 
     def retry_pending_fills(self) -> None:
         """Órdenes que esperaban precio: se reintentan en cada tick del watcher (I8)."""
@@ -419,10 +388,7 @@ class PaperSession:
         return self.stale_for_ms() > 2 * tf + self.watchdog_grace_ms
 
     async def _handle_stale(self) -> None:
-        text = (
-            f"watchdog: sin ciclo completo hace {self.stale_for_ms() // 60_000} min; "
-            "el proceso sale con 1 para que Docker lo reinicie"
-        )
+        text = texts.stale_text(self.stale_for_ms() // 60_000)
         self.note(text)
         # Envío directo: la cola del notificador no llegaría a drenarse antes del `os._exit`.
         with contextlib.suppress(Exception):
@@ -456,7 +422,14 @@ class PaperSession:
             return
         log.error("paper: la tarea %s murió: %r", name, exc)
         if critical:
-            self.announce(Category.ERROR, f"tarea {name} caída: {exc!r}; parada solicitada")
+            self.note(f"tarea {name} caída: {exc!r}; parada solicitada")  # técnico, al log
+            self.notifier.notify(
+                Notification(
+                    ts=self.exchange.now_ms(),
+                    category=Category.ERROR,
+                    text=texts.task_dead_text(name, exc, critical=True),
+                )
+            )
             self.request_stop()
         else:
             self.note(f"tarea {name} caída: {exc!r}; el paper sigue sin ella")
@@ -499,13 +472,25 @@ class PaperSession:
             self._install_signal_handlers()
         notifier_task = asyncio.create_task(self.notifier.run())
         notifier_task.add_done_callback(lambda t: self._task_done("notifier", t, critical=False))
-        self.announce(
-            Category.LIFECYCLE,
+        self.note(
             f"paper {self.strategy.name} {self.config.strategy.timeframe.value} "
             f"{', '.join(p.symbol for p in self.config.strategy.pairs)}: "
             f"{'reanudado desde la DB' if self.restored else 'arranque limpio'}, "
-            f"{self.feed.replay_pending} velas de reposición, "
-            f"{len(self.engine.positions)} posicion(es), equity {self.engine.equity():,.2f}",
+            f"{self.feed.replay_pending} velas de reposición"
+        )
+        self.notifier.notify(
+            Notification(
+                ts=self.exchange.now_ms(),
+                category=Category.LIFECYCLE,
+                text=texts.startup_text(
+                    self.config.mode.value,
+                    restored=self.restored,
+                    replay=self.feed.replay_pending,
+                    positions=len(self.engine.positions),
+                    equity=self.engine.equity(),
+                    quote=self._quote,
+                ),
+            )
         )
         self._last_cycle_ts = self.exchange.now_ms()
         self.write_status("arranque")
@@ -533,10 +518,18 @@ class PaperSession:
             with self._cycle():
                 self.persist()
             self.flush_notifications()
-            self.announce(
-                Category.LIFECYCLE,
-                f"paper detenido tras {self.bars_processed} velas; equity "
-                f"{self.engine.equity():,.2f}, {len(self.engine.positions)} posicion(es) abiertas",
+            self.note(f"paper detenido tras {self.bars_processed} velas")
+            self.notifier.notify(
+                Notification(
+                    ts=self.exchange.now_ms(),
+                    category=Category.LIFECYCLE,
+                    text=texts.shutdown_text(
+                        self.bars_processed,
+                        self.engine.equity(),
+                        len(self.engine.positions),
+                        self._quote,
+                    ),
+                )
             )
             self.write_status("detenido")
             # Primero se apaga el notificador (drena la cola y deja de atender comandos) y recién
