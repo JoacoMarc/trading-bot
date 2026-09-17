@@ -180,3 +180,29 @@ def test_parity_of_a_paper_db_seeded_from_the_same_backtest(
     result = runner.invoke(app, ["parity", "--config", str(workspace["config"]), "--db", str(db)])
     assert result.exit_code == 1
     assert "--from y --to" in result.output
+
+
+def test_telegram_send_only_never_receives_commands(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tradingbot.notify import telegram
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:dummy")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    config = tmp_path / "paper.yaml"
+    config.write_text(PAPER_YAML.format(root=tmp_path.as_posix()), encoding="utf-8")
+    received: list[bool] = []
+
+    async def fake_smoke(
+        _token: str, _chat: str, **kwargs: Any
+    ) -> tuple[dict[str, Any], list[str]]:
+        received.append(kwargs["receive_commands"])
+        assert kwargs["prefix"] == "[PAPER | regime_bh] "
+        return {"sent": 1, "errors": 0, "commands": 0}, []
+
+    monkeypatch.setattr(telegram, "run_smoke_test", fake_smoke)
+    result = runner.invoke(app, ["telegram-test", "--config", str(config), "--send-only"])
+    assert result.exit_code == 0, result.output
+    assert received == [False]
+    assert "no llego" not in result.output

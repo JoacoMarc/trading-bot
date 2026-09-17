@@ -103,6 +103,19 @@ state_table = sa.Table(
     sa.Column("value", sa.Text, nullable=False),
 )
 
+# Extensión aditiva: el schema v1 y los lectores anteriores siguen siendo compatibles.
+notification_outbox = sa.Table(
+    "notification_outbox",
+    metadata,
+    sa.Column("delivery_id", sa.Text, primary_key=True),
+    sa.Column("created_ts", sa.Integer, nullable=False),
+    sa.Column("text", sa.Text, nullable=False),
+    sa.Column("silent", sa.Boolean, nullable=False),
+    sa.Column("attempts", sa.Integer, nullable=False, default=0),
+    sa.Column("next_attempt_ts", sa.Integer, nullable=False, default=0),
+    sa.Column("sent_ts", sa.Integer, nullable=True),
+)
+
 
 def _dumps(model: BaseModel) -> str:
     return json.dumps(model.model_dump(mode="json"), separators=(",", ":"), ensure_ascii=False)
@@ -313,6 +326,69 @@ class SqliteStore:
             conn.execute(stmt)
 
     # ------------------------------------------------------------- lectura
+
+    def enqueue_notification(self, delivery_id: str, text: str, silent: bool, ts: int) -> None:
+        """Se llama dentro de la transacción del fill. Repetir un id no lo reenvía."""
+        stmt = (
+            sqlite_insert(notification_outbox)
+            .values(
+                delivery_id=delivery_id,
+                created_ts=ts,
+                text=text,
+                silent=silent,
+                attempts=0,
+                next_attempt_ts=0,
+            )
+            .on_conflict_do_nothing(index_elements=[notification_outbox.c.delivery_id])
+        )
+        with self._conn() as conn:
+            conn.execute(stmt)
+
+    def pending_notifications(self, now_ms: int, limit: int = 5) -> list[dict[str, Any]]:
+        table = notification_outbox
+        with self._conn() as conn:
+            rows = conn.execute(
+                sa.select(table)
+                .where(
+                    table.c.sent_ts.is_(None),
+                    table.c.next_attempt_ts <= now_ms,
+                )
+                .order_by(table.c.created_ts, table.c.delivery_id)
+                .limit(limit)
+            ).mappings()
+            return [dict(row) for row in rows]
+
+    def finish_notification(self, delivery_id: str, now_ms: int) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                notification_outbox.update()
+                .where(
+                    notification_outbox.c.delivery_id == delivery_id,
+                )
+                .values(sent_ts=now_ms)
+            )
+
+    def retry_notification(self, delivery_id: str, attempts: int, next_ts: int) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                notification_outbox.update()
+                .where(
+                    notification_outbox.c.delivery_id == delivery_id,
+                )
+                .values(attempts=attempts, next_attempt_ts=next_ts)
+            )
+
+    def pending_notification_count(self) -> int:
+        with self._conn() as conn:
+            return int(
+                conn.execute(
+                    sa.select(sa.func.count())
+                    .select_from(
+                        notification_outbox,
+                    )
+                    .where(notification_outbox.c.sent_ts.is_(None))
+                ).scalar_one()
+            )
 
     def load_state(self, key: str) -> dict[str, Any] | None:
         with self._conn() as conn:

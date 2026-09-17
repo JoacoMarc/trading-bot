@@ -42,7 +42,14 @@ from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution.broker import BrokerEvent
 from tradingbot.execution.paper import PaperBroker, StopWatcher
 from tradingbot.notify import texts
-from tradingbot.notify.base import Category, LogNotifier, Notification, Notifier
+from tradingbot.notify.base import (
+    Category,
+    Level,
+    LogNotifier,
+    Notification,
+    Notifier,
+    resolve_level,
+)
 from tradingbot.notify.commands import CommandService
 from tradingbot.observability.status import StatusWriter
 from tradingbot.persistence.sqlite import SqliteStore
@@ -120,6 +127,12 @@ class PaperSession:
     _next_open: int | None = field(default=None, init=False)
     _pending_notes: list[Notification] = field(default_factory=list, init=False, repr=False)
     _last_daily_key: int | None = field(default=None, init=False)
+    _cycle_failed: bool = field(default=False, init=False)
+    _pending_operations: list[tuple[Position | Trade, Fill, Decimal]] = field(
+        default_factory=list,
+        init=False,
+        repr=False,
+    )
 
     def __post_init__(self) -> None:
         self._last_cycle_ts = self.exchange.now_ms()
@@ -137,14 +150,32 @@ class PaperSession:
         self.recent.append(f"{_iso(self.exchange.now_ms())} {text}")
         log.info(text)
 
-    def _queue_note(self, category: Category, text: str, ts: int, pair: Pair | None = None) -> None:
+    @property
+    def instance_name(self) -> str:
+        return self.config.notify.instance_name or self.strategy.name
+
+    @property
+    def notification_prefix(self) -> str:
+        return f"[{self.config.mode.value.upper()} | {self.instance_name}] "
+
+    def _queue_note(
+        self,
+        category: Category,
+        text: str,
+        ts: int,
+        pair: Pair | None = None,
+        delivery_id: str | None = None,
+    ) -> None:
         """Aviso que espera al commit del ciclo (ADR-0012). `ts` es el del fill o del evento."""
-        self._pending_notes.append(Notification(ts=ts, category=category, text=text, pair=pair))
+        self._pending_notes.append(
+            Notification(ts=ts, category=category, text=text, pair=pair, delivery_id=delivery_id)
+        )
 
     def flush_notifications(self) -> None:
         notes, self._pending_notes = self._pending_notes, []
         for note in notes:
-            self.notifier.notify(note)
+            if not (self.config.notify.telegram_enabled and note.delivery_id is not None):
+                self.notifier.notify(note)
 
     @contextlib.contextmanager
     def _cycle(self) -> Iterator[None]:
@@ -155,8 +186,37 @@ class PaperSession:
         try:
             with self.store.transaction():
                 yield
+                if self.config.notify.telegram_enabled:
+                    # Formatear fuera del listener observacional: una falla debe hacer rollback.
+                    for record, fill, cash in self._pending_operations:
+                        if isinstance(record, Position):
+                            category = Category.ENTRY
+                            text = texts.entry_text(fill, record, self._tz)
+                        else:
+                            by_stop = record.exit_reason in (ExitReason.STOP, ExitReason.TRAILING)
+                            category = Category.STOP if by_stop else Category.EXIT
+                            text = texts.exit_text(record, fill, cash, self._tz)
+                        self._queue_note(
+                            category,
+                            text,
+                            fill.fill_ts,
+                            fill.pair,
+                            f"{self.instance_name}:{fill.client_order_id}:{category.value}",
+                        )
+                    for note in self._pending_notes:
+                        level = resolve_level(self.config.notify.events, note.category)
+                        if note.delivery_id is not None and level is not Level.OFF:
+                            self.store.enqueue_notification(
+                                note.delivery_id,
+                                self.notification_prefix + note.text,
+                                level is Level.SILENT,
+                                note.ts,
+                            )
+            self._pending_operations.clear()
         except BaseException:
             self._pending_notes.clear()
+            self._pending_operations.clear()
+            self._cycle_failed = True
             raise
 
     def announce(self, category: Category, text: str, pair: Pair | None = None) -> None:
@@ -185,16 +245,30 @@ class PaperSession:
         self._queue_note(category, text, event.ts, event.pair)
 
     def on_position_opened(self, position: Position, fill: Fill) -> None:
+        if self.config.notify.telegram_enabled:
+            self._pending_operations.append((position, fill, self.engine.cash))
+            return
         self._queue_note(
-            Category.ENTRY, texts.entry_text(fill, position, self._tz), fill.fill_ts, position.pair
+            Category.ENTRY,
+            texts.entry_text(fill, position, self._tz),
+            fill.fill_ts,
+            position.pair,
+            f"{self.instance_name}:{fill.client_order_id}:entry",
         )
 
     def on_trade_closed(self, trade: Trade, fill: Fill) -> None:
+        if self.config.notify.telegram_enabled:
+            self._pending_operations.append((trade, fill, self.engine.cash))
+            return
         by_stop = trade.exit_reason in (ExitReason.STOP, ExitReason.TRAILING)
         # El efectivo tras la venta es exacto; el total dependería de marks de la vela anterior.
         text = texts.exit_text(trade, fill, self.engine.cash, self._tz)
         self._queue_note(
-            Category.STOP if by_stop else Category.EXIT, text, fill.fill_ts, trade.pair
+            Category.STOP if by_stop else Category.EXIT,
+            text,
+            fill.fill_ts,
+            trade.pair,
+            f"{self.instance_name}:{fill.client_order_id}:{'stop' if by_stop else 'exit'}",
         )
 
     def on_feed_event(self, event: FeedEvent) -> None:
@@ -295,6 +369,7 @@ class PaperSession:
         last = state.last_bar_open_time
         return {
             "mode": self.config.mode.value,
+            "instance_name": self.instance_name,
             "phase": phase,
             "bot_version": __version__,
             "strategy": self.strategy.name,
@@ -515,9 +590,10 @@ class PaperSession:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError, Exception):
                     await task
-            with self._cycle():
-                self.persist()
-            self.flush_notifications()
+            if not self._cycle_failed:
+                with self._cycle():
+                    self.persist()
+                self.flush_notifications()
             self.note(f"paper detenido tras {self.bars_processed} velas")
             self.notifier.notify(
                 Notification(
@@ -565,10 +641,14 @@ def _drop_pending_orders(store: SqliteStore, now_ms: int) -> int:
     return dropped
 
 
-def _build_notifier(config: BotConfig, on_command: Callable[[str], str]) -> Notifier:
+def _build_notifier(
+    config: BotConfig, on_command: Callable[[str], str], store: SqliteStore | None = None
+) -> Notifier:
     """Telegram si está habilitado (token y chat_id vienen del entorno); si no, el log."""
+    name = config.notify.instance_name or config.strategy.name
+    prefix = f"[{config.mode.value.upper()} | {name}] "
     if not config.notify.telegram_enabled:
-        return LogNotifier(config.notify.events)
+        return LogNotifier(config.notify.events, prefix=prefix)
     from tradingbot.notify.telegram import TelegramNotifier  # import pesado: solo si se usa
 
     token = config.telegram_bot_token
@@ -580,7 +660,13 @@ def _build_notifier(config: BotConfig, on_command: Callable[[str], str]) -> Noti
         token.get_secret_value(),
         chat_id.get_secret_value(),
         levels=config.notify.events,
-        on_command=on_command,
+        on_command=lambda text: (
+            "Comandos de esta instancia (referencia); no controlan las candidatas.\n"
+            + on_command(text)
+        ),
+        receive_commands=config.notify.telegram_receive_commands,
+        prefix=prefix,
+        outbox=store,
     )
 
 
@@ -660,7 +746,7 @@ def build_paper_session(
         status_path if status_path is not None else config.persistence.logs_dir / "status.json"
     )
     if notifier is None:
-        notifier = _build_notifier(config, lambda text: holder[0].commands.handle(text))
+        notifier = _build_notifier(config, lambda text: holder[0].commands.handle(text), store)
     session = PaperSession(
         config=config,
         strategy=strategy,

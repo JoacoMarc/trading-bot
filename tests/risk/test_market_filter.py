@@ -53,6 +53,27 @@ def small_filter() -> MarketFilterConfig:
     return MarketFilterConfig(enabled=True, ema_days=3, momentum_days=2)
 
 
+def test_undefined_filter_can_fail_closed_without_changing_legacy_default() -> None:
+    strict = MarketFilter(
+        MarketFilterConfig(
+            enabled=True,
+            average="sma",
+            ema_days=3,
+            momentum_days=2,
+            block_when_undefined=True,
+        )
+    )
+    assert not strict.enabled
+    assert MarketFilter(small_filter()).enabled
+    feed(strict, RISING[:2])
+    assert not strict.enabled
+    restored = MarketFilter(strict._cfg)
+    restored.restore(strict.to_state())
+    assert not restored.enabled
+    feed(restored, RISING[2:], start_day=2)
+    assert restored.enabled
+
+
 def test_config_validation() -> None:
     assert MarketFilterConfig().reference_pair == BTC
     assert MarketFilterConfig(pair="eth/usdt").reference_pair == ETH

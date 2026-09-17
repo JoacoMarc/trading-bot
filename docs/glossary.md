@@ -161,3 +161,37 @@ Variante del Monte Carlo para series con dependencia temporal: en vez de re-mues
 ## Time-series momentum (tendencia de baja frecuencia)
 
 Regularidad documentada en muchos activos: cuando el precio está por encima de su media larga (p. ej. 200 días) y su retorno reciente es positivo, el retorno esperado siguiente es mayor y el drawdown menor que estar siempre comprado. Es la hipótesis de `regime_bh`: estar comprado solo en esos tramos. El riesgo es que el edge sea un solo evento (un bear market), por eso se prueba también sin 2022.
+
+## Pullback (retroceso en tendencia)
+
+Corrección corta dentro de una tendencia más larga. Una estrategia de pullback intenta comprar la recuperación posterior a esa corrección. Que el precio haya caído no garantiza que vaya a rebotar; las reglas de contexto, entrada y salida son hipótesis que deben validarse.
+
+## Reversión a la media (mean reversion)
+
+Hipótesis de que una desviación del precio o del retorno tiende a revertirse hacia una referencia. Puede motivar compras tras caídas, pero la referencia puede cambiar y una caída puede continuar. Un patrón estadístico bruto no implica rentabilidad después de costos.
+
+## Ruptura de rango y canal Donchian
+
+Un canal Donchian usa el máximo y mínimo de una ventana de velas. Una estrategia de ruptura compra cuando el cierre supera el máximo de la ventana anterior. Para esta regla se excluye la vela actual del canal; las rupturas falsas pueden encadenar pérdidas.
+
+## Momentum transversal y rotación
+
+Compara la fuerza reciente de varios activos entre sí, en lugar de comparar un activo solo con su propio pasado. La rotación modifica la cartera según ese ranking en fechas definidas. Ordenar nuevas entradas no basta: también hay que definir cuándo vender un activo que pierde su lugar.
+
+## RSI y bandas de Bollinger
+
+El RSI resume la intensidad relativa de subas y bajas recientes en una escala de 0 a 100. Las bandas de Bollinger rodean una media móvil con bandas calculadas a partir de la dispersión del precio. Sobreventa o contacto con una banda no garantizan un rebote: son condiciones posibles de una estrategia, no pruebas de ventaja.
+
+## Sesgo de supervivencia
+
+Evaluar el pasado usando solamente activos que todavía existen o son populares hoy. Excluir las monedas desaparecidas o elegir el universo mirando resultados puede sobreestimar el rendimiento. La elegibilidad histórica debe usar información disponible en cada fecha.
+
+## Ablación de una estrategia
+
+Comparación controlada en la que se quita un componente, por ejemplo el filtro diario, para medir su contribución. Las variantes se definen antes de mirar resultados y se registran aunque empeoren el rendimiento.
+
+## Outbox de notificaciones
+
+Tabla de avisos pendientes guardada junto con la operación que los origina. Permite enviar
+después de confirmar la operación y recuperar avisos tras una caída. Si el proveedor recibió
+un aviso pero se perdió su confirmación, un reintento puede repetirlo.

@@ -39,7 +39,7 @@ PHASE_LABEL = {
 }
 
 EXIT_REASON_TEXT = {
-    ExitReason.SIGNAL: "la estrategia dio señal de salir (la tendencia se dio vuelta)",
+    ExitReason.SIGNAL: "la estrategia dio señal de salir",
     ExitReason.STOP: "el precio tocó el límite de pérdida",
     ExitReason.TRAILING: "el precio cayó hasta el límite móvil que protege la ganancia",
     ExitReason.FLATTEN: "vos pediste cerrar todo",

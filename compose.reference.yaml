@@ -1,0 +1,4 @@
+# Override del proyecto original: up --no-build --no-deps paper.
+services:
+  paper:
+    image: ${REFERENCE_IMAGE:?Definir imagen validada por revision}

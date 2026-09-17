@@ -73,8 +73,8 @@ def test_entry_and_exit_texts() -> None:
     )
     text = texts.exit_text(trade, sell, Decimal("9930.25"), BA)
     assert text.startswith(
-        "Vendió 0,0632 BTC a 81.000,00 USDT porque la estrategia dio señal de salir (la tendencia "
-        "se dio vuelta). Resultado: ganó 115,04 USDT (+2,30 %) en 2 días. "
+        "Vendió 0,0632 BTC a 81.000,00 USDT porque la estrategia dio señal de salir. "
+        "Resultado: ganó 115,04 USDT (+2,30 %) en 2 días. "
         "Efectivo ahora: 9.930,25 USDT."
     )
     loser = trade.model_copy(update={"exit_price": d("70000"), "exit_reason": ExitReason.STOP})

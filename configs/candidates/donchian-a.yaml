@@ -1,0 +1,44 @@
+# ADR-0013. Candidata sin aprobación: no desplegar hasta superar Gate 1.
+mode: backtest
+strategy:
+  name: donchian
+  timeframe: 4h
+  pairs: [BTC/USDT, ETH/USDT, BNB/USDT, XRP/USDT, ADA/USDT, LTC/USDT, LINK/USDT, SOL/USDT]
+  params: {entry_period: 60, exit_period: 20, atr_mult: 3.0}
+risk:
+  sizing_mode: risk
+  risk_per_trade: 0.0025
+  max_position_pct: 0.25
+  max_positions: 2
+  max_exposure_pct: 0.50
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.20
+  drawdown_pause_days: 30
+  kill_switch_file: logs/STOP
+  market_filter:
+    enabled: true
+    block_when_undefined: true
+    pair: BTC/USDT
+    average: sma
+    ema_days: 200
+    momentum_days: 30
+execution:
+  fee_rate: 0.001
+  slippage_bps: 5
+  pay_with_bnb: false
+backtest:
+  initial_cash: 10000
+  start: 2019-08-01
+  end: 2025-09-01
+notify:
+  instance_name: "Rupturas - moderado"
+  telegram_enabled: false
+  telegram_receive_commands: false
+  timezone: America/Argentina/Buenos_Aires
+  events:
+    rejection: "off"
+    feed: "silent"
+persistence:
+  db_dir: db
+  logs_dir: logs
+

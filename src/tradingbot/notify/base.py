@@ -74,6 +74,7 @@ class Notification:
     category: Category
     text: str
     pair: Pair | None = None
+    delivery_id: str | None = None
 
 
 class Notifier(Protocol):
@@ -99,7 +100,8 @@ class Notifier(Protocol):
 class LogNotifier:
     """Escribe cada aviso al log; `run()` solo espera a `stop()`."""
 
-    def __init__(self, levels: Mapping[Category, Level] | None = None) -> None:
+    def __init__(self, levels: Mapping[Category, Level] | None = None, *, prefix: str = "") -> None:
+        self._prefix = prefix
         self._levels = dict(DEFAULT_LEVELS if levels is None else levels)
         self._stopped = False
         self._sent = 0
@@ -109,11 +111,11 @@ class LogNotifier:
         if resolve_level(self._levels, note.category) is Level.OFF:
             return
         self._sent += 1
-        log.info("[%s] %s", note.category.value, note.text)
+        log.info("[%s] %s%s", note.category.value, self._prefix, note.text)
 
     async def send_now(self, text: str, *, timeout_s: float = 5.0) -> bool:
         self._sent += 1
-        log.warning("[urgente] %s", text)
+        log.warning("[urgente] %s%s", self._prefix, text)
         return True
 
     async def run(self) -> None:

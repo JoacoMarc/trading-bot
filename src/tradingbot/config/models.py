@@ -143,6 +143,7 @@ class MarketFilterConfig(_Strict):
     """
 
     enabled: bool = False
+    block_when_undefined: bool = False
     benchmark_only: bool = False  # no bloquea entradas; solo habilita el benchmark B&H filtrado
     pair: str = "BTC/USDT"
     average: Literal["ema", "sma"] = "ema"  # media de los cierres diarios
@@ -280,6 +281,8 @@ class NotifyConfig(_Strict):
 
     timezone: str = "America/Argentina/Buenos_Aires"
     telegram_enabled: bool = False
+    instance_name: str | None = Field(default=None, min_length=1, max_length=80)
+    telegram_receive_commands: bool = True
     daily_summary_hour: int = Field(default=9, ge=0, le=23, description="hora local del resumen")
     confirm_window_s: int = Field(
         default=60, ge=5, le=600, description="segundos para confirmar `/stop flatten`"

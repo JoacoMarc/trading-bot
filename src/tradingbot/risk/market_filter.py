@@ -77,7 +77,9 @@ class MarketFilter:
 
     @property
     def enabled(self) -> bool:
-        return True if self._state is None else self._state.enabled
+        if self._state is None or not self._state.defined:
+            return not self._cfg.block_when_undefined
+        return self._state.enabled
 
     @property
     def undefined_days(self) -> int:

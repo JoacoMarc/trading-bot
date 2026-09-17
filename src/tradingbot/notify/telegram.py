@@ -18,6 +18,7 @@ import asyncio
 import contextlib
 import logging
 import socket
+import time
 from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
@@ -34,6 +35,7 @@ from tradingbot.notify.base import (
     resolve_level,
     truncate,
 )
+from tradingbot.persistence.sqlite import SqliteStore
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +63,9 @@ class TelegramNotifier:
         *,
         levels: Mapping[Category, Level] | None = None,
         on_command: CommandFn | None = None,
+        receive_commands: bool = True,
+        prefix: str = "",
+        outbox: SqliteStore | None = None,
         queue_size: int = 200,
         send_timeout_s: float = 10.0,
         startup_backoff_s: float = 30.0,
@@ -76,6 +81,9 @@ class TelegramNotifier:
         self._chat_id = str(chat_id).strip()
         self._levels = dict(DEFAULT_LEVELS if levels is None else levels)
         self._on_command = on_command
+        self._receive_commands = receive_commands
+        self._prefix = prefix
+        self._outbox = outbox
         self._queue: asyncio.Queue[QueueItem] = asyncio.Queue(maxsize=queue_size)
         self._send_timeout_s = send_timeout_s
         self._backoff_s = startup_backoff_s
@@ -102,14 +110,14 @@ class TelegramNotifier:
         level = resolve_level(self._levels, note.category)
         if level is Level.OFF:
             return
-        self._enqueue((truncate(note.text), level is Level.SILENT))
+        self._enqueue((truncate(self._prefix + note.text), level is Level.SILENT))
 
     async def send_now(self, text: str, *, timeout_s: float = 5.0) -> bool:
         """Envío directo, sin cola, acotado: para avisar antes de que el proceso muera (I3)."""
         if not self._connected:
             return False
         try:
-            await asyncio.wait_for(self._send(truncate(text), False), timeout_s)
+            await asyncio.wait_for(self._send(truncate(self._prefix + text), False), timeout_s)
         except (TelegramError, OSError, TimeoutError) as exc:
             self.errors += 1
             log.warning("telegram: no se pudo enviar el aviso urgente (%s)", exc)
@@ -126,6 +134,10 @@ class TelegramNotifier:
             "backend": "telegram",
             "connected": self._connected,
             "polling": self._polling(),
+            "receive_commands": self._receive_commands,
+            "durable_pending": 0
+            if self._outbox is None
+            else self._outbox.pending_notification_count(),
             "queued": self._queue.qsize(),
             "sent": self.sent,
             "errors": self.errors,
@@ -161,8 +173,11 @@ class TelegramNotifier:
 
     async def _drain(self) -> None:
         while True:
+            if not self._stopping:
+                await self.deliver_outbox()
             try:
-                item = await asyncio.wait_for(self._queue.get(), self._poll_check_s)
+                timeout = min(1.0, self._poll_check_s) if self._outbox else self._poll_check_s
+                item = await asyncio.wait_for(self._queue.get(), timeout)
             except TimeoutError:
                 await self._check_polling()
                 continue
@@ -171,7 +186,27 @@ class TelegramNotifier:
             text, silent = item
             await self._deliver(text, silent)
 
-    async def _deliver(self, text: str, silent: bool) -> None:
+    async def deliver_outbox(self) -> None:
+        """Entrega confirmada; los errores dejan el registro pendiente para reintentar."""
+        if self._outbox is None or not self._connected:
+            return
+        try:
+            for row in self._outbox.pending_notifications(int(time.time() * 1000)):
+                if self._stopping:
+                    return
+                ok = await self._deliver(truncate(row["text"]), row["silent"])
+                now = int(time.time() * 1000)
+                if ok:
+                    self._outbox.finish_notification(row["delivery_id"], now)
+                else:
+                    attempts = row["attempts"] + 1
+                    delay = min(300, 2 ** min(attempts, 9)) * 1000
+                    self._outbox.retry_notification(row["delivery_id"], attempts, now + delay)
+        except Exception:
+            self.errors += 1
+            log.exception("telegram: error procesando avisos persistentes")
+
+    async def _deliver(self, text: str, silent: bool) -> bool:
         for _attempt in range(2):
             try:
                 await asyncio.wait_for(self._send(text, silent), self._send_timeout_s)
@@ -181,11 +216,12 @@ class TelegramNotifier:
             except (TelegramError, OSError, TimeoutError) as exc:
                 self.errors += 1
                 log.warning("telegram: no se pudo enviar (%s)", exc)
-                return
+                return False
             self.sent += 1
-            return
+            return True
         self.errors += 1
         log.warning("telegram: rate limit persistente, aviso descartado")
+        return False
 
     async def _send(self, text: str, silent: bool) -> None:
         if self.sender is not None:
@@ -219,13 +255,18 @@ class TelegramNotifier:
         return False
 
     def _build_app(self) -> Any:
-        app = Application.builder().token(self._token).rate_limiter(AIORateLimiter()).build()
+        builder = Application.builder().token(self._token).rate_limiter(AIORateLimiter())
+        if not self._receive_commands:
+            return builder.updater(None).build()
+        app = builder.build()
         # Solo mensajes nuevos con texto: un mensaje editado o un post de canal no re-ejecuta
         # un `/pause` o un `si` viejo.
         app.add_handler(MessageHandler(filters.UpdateType.MESSAGE & filters.TEXT, self._on_update))
         return app
 
     def _polling(self) -> bool:
+        if not self._receive_commands:
+            return False
         app = self._app
         if app is None:
             return self._connected and self.sender is not None  # modo solo envío (tests)
@@ -251,9 +292,10 @@ class TelegramNotifier:
             app = self._build_app()
         try:
             await app.initialize()
-            await app.updater.start_polling(
-                drop_pending_updates=True, error_callback=self._on_polling_error
-            )
+            if self._receive_commands:
+                await app.updater.start_polling(
+                    drop_pending_updates=True, error_callback=self._on_polling_error
+                )
             await app.start()
         except BaseException:
             await _shutdown_quietly(app)
@@ -265,7 +307,7 @@ class TelegramNotifier:
 
     async def _check_polling(self) -> None:
         """Si el `Updater` dejó de correr con el proceso vivo, se reconecta (I5)."""
-        if self._stopping or self._app is None or self._polling():
+        if not self._receive_commands or self._stopping or self._app is None or self._polling():
             return
         self.reconnects += 1
         log.warning("telegram: el polling se detuvo; reconectando")
@@ -283,6 +325,8 @@ class TelegramNotifier:
 
     def dispatch(self, chat_id: str, text: str) -> str | None:
         """Respuesta a un mensaje entrante, o `None` si el chat no está en la whitelist."""
+        if not self._receive_commands:
+            return None
         if str(chat_id) != self._chat_id:
             if chat_id not in self.ignored_chats:
                 self.ignored_chats.add(chat_id)
@@ -290,13 +334,13 @@ class TelegramNotifier:
             return None
         self.commands += 1
         if self._on_command is None:
-            return f"tradingbot {__version__} recibio: {text}"
+            return self._prefix + f"tradingbot {__version__} recibio: {text}"
         try:
-            return self._on_command(text)
+            return self._prefix + self._on_command(text)
         except Exception:  # un comando roto no tumba el bot ni expone internals al chat
             self.errors += 1
             log.exception("telegram: error atendiendo %r", text)
-            return COMMAND_ERROR_REPLY
+            return self._prefix + COMMAND_ERROR_REPLY
 
     async def _on_update(self, update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
         message = update.message
@@ -343,6 +387,8 @@ async def run_smoke_test(
     seconds: float = 30.0,
     sender: Sender | None = None,
     poll_s: float = 1.0,
+    receive_commands: bool = True,
+    prefix: str = "",
 ) -> tuple[dict[str, Any], list[str]]:
     """Manda un mensaje de prueba y espera comandos durante `seconds`; devuelve status y textos.
 
@@ -362,6 +408,8 @@ async def run_smoke_test(
         startup_backoff_s=5.0,
         startup_backoff_max_s=5.0,
         sender=sender,
+        receive_commands=receive_commands,
+        prefix=prefix,
     )
     task = asyncio.create_task(notifier.run())
     notifier.notify(
@@ -370,12 +418,18 @@ async def run_smoke_test(
             category=Category.LIFECYCLE,
             text=(
                 f"prueba de tradingbot {__version__} desde {socket.gethostname()}: "
-                f"responde cualquier cosa en los proximos {seconds:.0f} s"
+                + (
+                    f"responde cualquier cosa en los proximos {seconds:.0f} s"
+                    if receive_commands
+                    else "PRUEBA DE AVISOS, no representa una operación"
+                )
             ),
         )
     )
     waited = 0.0
     while waited < seconds and not received and not task.done():
+        if not receive_commands and notifier.sent:
+            break
         await asyncio.sleep(poll_s)
         waited += poll_s
     notifier.stop()

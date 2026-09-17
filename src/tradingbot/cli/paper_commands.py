@@ -190,6 +190,9 @@ def telegram_test(
     seconds: Annotated[
         int, typer.Option("--seconds", min=1, help="Cuánto esperar un comando de respuesta.")
     ] = 30,
+    send_only: Annotated[
+        bool, typer.Option("--send-only", help="Solo envío; seguro con otro receptor activo.")
+    ] = False,
 ) -> None:
     """Manda un mensaje de prueba por Telegram y espera un comando: valida token y chat_id.
 
@@ -204,8 +207,15 @@ def telegram_test(
             raise TradingBotError(msg)
         from tradingbot.notify.telegram import run_smoke_test  # import pesado: solo acá
 
+        name = cfg.notify.instance_name or cfg.strategy.name
         result, received = asyncio.run(
-            run_smoke_test(token.get_secret_value(), chat_id.get_secret_value(), seconds=seconds)
+            run_smoke_test(
+                token.get_secret_value(),
+                chat_id.get_secret_value(),
+                seconds=seconds,
+                receive_commands=not send_only and cfg.notify.telegram_receive_commands,
+                prefix=f"[{cfg.mode.value.upper()} | {name}] ",
+            )
         )
     except (TradingBotError, ValueError, OSError) as exc:
         _fail(exc)
@@ -216,7 +226,7 @@ def telegram_test(
     )
     if received:
         typer.echo(f"recibido: {received[0]}")
-    else:
+    elif not send_only and cfg.notify.telegram_receive_commands:
         typer.echo(f"no llego ningun mensaje del chat en {seconds} s")
     if not result["sent"]:
         typer.echo("error: el mensaje de prueba no se pudo enviar (token, chat_id o red)", err=True)
