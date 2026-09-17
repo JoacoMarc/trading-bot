@@ -1,0 +1,737 @@
+{
+  "id": "WF-0011",
+  "kind": "WF",
+  "label": "candidates-pullback_rsi-b",
+  "metrics": {
+    "start_ts": 1627790399999,
+    "end_ts": 1754006399999,
+    "days": 1460.8333333333333,
+    "bars": 8766,
+    "initial_equity": "10000",
+    "final_equity": "7516.877824924228177602707469",
+    "total_return": "-0.2483122175075771822397292531",
+    "cagr": -0.06887960984546015,
+    "sharpe": -1.5603784980160795,
+    "sortino": -1.7553444805045444,
+    "calmar": -0.2598536571037387,
+    "max_drawdown": 0.26507077334671514,
+    "longest_underwater_days": 1412.6666666666667,
+    "trades": 694,
+    "win_rate": 0.5878962536023055,
+    "profit_factor": 0.5992888305013393,
+    "expectancy": "-3.776007168549711815561959654",
+    "avg_trade_hours": 14.52449563760807,
+    "exposure": 0.1563997262149213,
+    "fees_quote": "1312.669611333500",
+    "avg_shortfall_bps": 5.393931055758038,
+    "exits": {
+      "signal": 595,
+      "stop": 99
+    }
+  },
+  "benchmarks": {
+    "B&H BTC (OOS)": {
+      "start_ts": 1627776000000,
+      "end_ts": 1754006399999,
+      "days": 1460.999999988426,
+      "bars": 8774,
+      "initial_equity": "10000",
+      "final_equity": "27583.18391899577102412656406",
+      "total_return": "1.758318391899577102412656406",
+      "cagr": 0.28872750840231975,
+      "sharpe": 0.7573642766455634,
+      "sortino": 1.1172014648088162,
+      "calmar": 0.3744138287932107,
+      "max_drawdown": 0.7711454177131485,
+      "longest_underwater_days": 852.0,
+      "trades": 0,
+      "win_rate": null,
+      "profit_factor": null,
+      "expectancy": null,
+      "avg_trade_hours": null,
+      "exposure": 1.0,
+      "fees_quote": "0",
+      "avg_shortfall_bps": null,
+      "exits": {}
+    },
+    "B&H BTC filtrado (OOS)": {
+      "start_ts": 1627776000000,
+      "end_ts": 1754006399999,
+      "days": 1460.999999988426,
+      "bars": 8774,
+      "initial_equity": "10000",
+      "final_equity": "31452.98809272940810036953204",
+      "total_return": "2.145298809272940810036953204",
+      "cagr": 0.33172783629732083,
+      "sharpe": 1.0668544741830168,
+      "sortino": 1.7402359322858092,
+      "calmar": 1.2316080287838493,
+      "max_drawdown": 0.2693453018692037,
+      "longest_underwater_days": 438.3333333333333,
+      "trades": 0,
+      "win_rate": null,
+      "profit_factor": null,
+      "expectancy": null,
+      "avg_trade_hours": null,
+      "exposure": 1.0,
+      "fees_quote": "0",
+      "avg_shortfall_bps": null,
+      "exits": {}
+    },
+    "Equiponderado (OOS)": {
+      "start_ts": 1627776000000,
+      "end_ts": 1754006399999,
+      "days": 1460.999999988426,
+      "bars": 8774,
+      "initial_equity": "10000",
+      "final_equity": "27495.29305714844390492900371",
+      "total_return": "1.749529305714844390492900371",
+      "cagr": 0.2876996813870163,
+      "sharpe": 0.7232929944987375,
+      "sortino": 1.0297696681209318,
+      "calmar": 0.35286078761601086,
+      "max_drawdown": 0.8153348047845317,
+      "longest_underwater_days": 1108.5,
+      "trades": 0,
+      "win_rate": null,
+      "profit_factor": null,
+      "expectancy": null,
+      "avg_trade_hours": null,
+      "exposure": 1.0,
+      "fees_quote": "0",
+      "avg_shortfall_bps": null,
+      "exits": {}
+    }
+  },
+  "meta": {
+    "created_at": "2026-09-17T15:27:23+00:00",
+    "git_sha": "bf0f088",
+    "git_dirty": false,
+    "data_hash": "40a0aa8573b9",
+    "host": "MacBook-Air-4.local",
+    "python": "3.12.4",
+    "tradingbot_version": "0.1.0",
+    "duration_s": 28.084,
+    "strategy": "pullback_rsi",
+    "timeframe": "4h",
+    "pairs": [
+      "ADA/USDT",
+      "BNB/USDT",
+      "BTC/USDT",
+      "ETH/USDT",
+      "LINK/USDT",
+      "LTC/USDT",
+      "SOL/USDT",
+      "XRP/USDT"
+    ],
+    "start": "2021-08-01",
+    "end": "2025-08-01",
+    "include_holdout": false,
+    "params_hash": "bac0a7838b",
+    "extra": {
+      "walkforward": {
+        "is_months": 24,
+        "oos_months": 6,
+        "anchored": false,
+        "mode": "fijo",
+        "optimize": null,
+        "plateau": true,
+        "montecarlo_runs": 5000,
+        "seed": 42
+      },
+      "windows": [
+        {
+          "index": 0,
+          "is": [
+            "2019-08-01",
+            "2021-08-01"
+          ],
+          "oos": {
+            "total_return": "-0.016801479237",
+            "sharpe": -0.690994475194288,
+            "max_drawdown": 0.04711099794885665,
+            "trades": 101,
+            "profit_factor": 0.8107936529699816
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 73,
+            "max_positions": 47
+          }
+        },
+        {
+          "index": 1,
+          "is": [
+            "2020-02-01",
+            "2022-02-01"
+          ],
+          "oos": {
+            "total_return": "0",
+            "sharpe": null,
+            "max_drawdown": -0.0,
+            "trades": 0,
+            "profit_factor": null
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 85
+          }
+        },
+        {
+          "index": 2,
+          "is": [
+            "2020-08-01",
+            "2022-08-01"
+          ],
+          "oos": {
+            "total_return": "0.016885408076",
+            "sharpe": 1.5668334418154737,
+            "max_drawdown": 0.007486827160849141,
+            "trades": 23,
+            "profit_factor": 3.2991481563638243
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 141,
+            "max_positions": 18
+          }
+        },
+        {
+          "index": 3,
+          "is": [
+            "2021-02-01",
+            "2023-02-01"
+          ],
+          "oos": {
+            "total_return": "-0.050496943852",
+            "sharpe": -2.2220288468793186,
+            "max_drawdown": 0.06865822728670812,
+            "trades": 127,
+            "profit_factor": 0.5466615203979145
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "max_positions": 55,
+            "market_filter": 33
+          }
+        },
+        {
+          "index": 4,
+          "is": [
+            "2021-08-01",
+            "2023-08-01"
+          ],
+          "oos": {
+            "total_return": "-0.042463277098",
+            "sharpe": -1.7147304342233476,
+            "max_drawdown": 0.05605195740937541,
+            "trades": 102,
+            "profit_factor": 0.5919818586087316
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 53,
+            "max_positions": 47
+          }
+        },
+        {
+          "index": 5,
+          "is": [
+            "2022-02-01",
+            "2024-02-01"
+          ],
+          "oos": {
+            "total_return": "-0.0700719946180000",
+            "sharpe": -2.4292932421246003,
+            "max_drawdown": 0.0839407385869183,
+            "trades": 133,
+            "profit_factor": 0.5230679302067663
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 30,
+            "max_positions": 33
+          }
+        },
+        {
+          "index": 6,
+          "is": [
+            "2022-08-01",
+            "2024-08-01"
+          ],
+          "oos": {
+            "total_return": "-0.0794724741950000",
+            "sharpe": -2.6336158994241927,
+            "max_drawdown": 0.08698580634731001,
+            "trades": 122,
+            "profit_factor": 0.43422365194676815
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 63,
+            "max_positions": 44
+          }
+        },
+        {
+          "index": 7,
+          "is": [
+            "2023-02-01",
+            "2025-02-01"
+          ],
+          "oos": {
+            "total_return": "-0.033979489207",
+            "sharpe": -1.571866299405738,
+            "max_drawdown": 0.044256682126799896,
+            "trades": 86,
+            "profit_factor": 0.6243200478461587
+          },
+          "params": {},
+          "is_score": null,
+          "rejections": {
+            "market_filter": 32,
+            "max_positions": 46
+          }
+        }
+      ],
+      "gate": [
+        {
+          "name": "Sharpe OOS",
+          "threshold": ">= 0.8 y >= B&H BTC (0.76)",
+          "value": "-1.56",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Profit factor OOS",
+          "threshold": ">= 1.3",
+          "value": "0.60",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Max DD OOS",
+          "threshold": "<= 25 % y <= 50 % del DD B&H (77.11 %)",
+          "value": "26.51 %",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Universo activo en OOS",
+          "threshold": "todos los pares con datos en todas las ventanas",
+          "value": "8/8",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Ventanas OOS positivas",
+          "threshold": ">= 60 %",
+          "value": "1/8 (12 %)",
+          "passed": false,
+          "note": "secundario"
+        },
+        {
+          "name": "Trades muestra completa",
+          "threshold": ">= 100",
+          "value": "1075",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Trades curva OOS",
+          "threshold": ">= 40",
+          "value": "694",
+          "passed": true,
+          "note": ""
+        },
+        {
+          "name": "Régimen: retorno 2020",
+          "threshold": "> 0",
+          "value": "-5.02 %",
+          "passed": false,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2021",
+          "threshold": "> 0",
+          "value": "-4.25 %",
+          "passed": false,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2023",
+          "threshold": "> 0",
+          "value": "-5.14 %",
+          "passed": false,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2024",
+          "threshold": "> 0",
+          "value": "-16.47 %",
+          "passed": false,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: retorno 2022",
+          "threshold": ">= -8 %",
+          "value": "+0.00 %",
+          "passed": true,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Régimen: max DD intra-año",
+          "threshold": "<= 25 %",
+          "value": "17.39 % (2024)",
+          "passed": true,
+          "note": "muestra completa, parámetros fijos"
+        },
+        {
+          "name": "Meseta ±20 %",
+          "threshold": ">= 80 % de variantes con PF > 1.1 y retorno > 0",
+          "value": "0.00 %",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Monte Carlo DD p95",
+          "threshold": "<= 35 %",
+          "value": "36.33 %",
+          "passed": false,
+          "note": ""
+        },
+        {
+          "name": "Holdout",
+          "threshold": "PF > 1.1 y DD <= 25 %",
+          "value": "-",
+          "passed": null,
+          "note": "una sola vez, al final"
+        }
+      ],
+      "gate_verdict": "no aprobado (10 criterios fallan)",
+      "montecarlo": {
+        "runs": 5000,
+        "trades": 694,
+        "seed": 42,
+        "dd_p50": 0.27048590590587496,
+        "dd_p95": 0.3633149018599723,
+        "dd_p99": 0.4027444700228168,
+        "return_p05": -0.3565310165718826,
+        "return_p50": -0.26258809793463495
+      },
+      "montecarlo_daily": {
+        "runs": 5000,
+        "trades": 1460,
+        "seed": 42,
+        "dd_p50": 0.2615036177737893,
+        "dd_p95": 0.35599052805719644,
+        "dd_p99": 0.39091180613549525,
+        "return_p05": -0.34880587595948365,
+        "return_p50": -0.25042128358027704
+      },
+      "plateau": {
+        "base_params": {
+          "rsi_entry": 10,
+          "rsi_exit": 70,
+          "stop_atr_mult": 2.5
+        },
+        "pct": 0.2,
+        "pass_rate": 0.0,
+        "base_sharpe": -1.3472591613335343,
+        "relative_pass_rate": null,
+        "warnings": [],
+        "rows": [
+          {
+            "params": {
+              "rsi_entry": 8,
+              "rsi_exit": 70,
+              "stop_atr_mult": 2.5
+            },
+            "total_return": "-0.253038626374",
+            "profit_factor": 0.6832467205808935,
+            "trades": 923,
+            "sharpe": -1.1739660592736574,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 12,
+              "rsi_exit": 70,
+              "stop_atr_mult": 2.5
+            },
+            "total_return": "-0.328566359263",
+            "profit_factor": 0.6623331099303856,
+            "trades": 1197,
+            "sharpe": -1.4239555401900292,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 10,
+              "rsi_exit": 56,
+              "stop_atr_mult": 2.5
+            },
+            "total_return": "-0.308257660941",
+            "profit_factor": 0.5916955153791625,
+            "trades": 1113,
+            "sharpe": -1.6445772536137648,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 10,
+              "rsi_exit": 84,
+              "stop_atr_mult": 2.5
+            },
+            "total_return": "-0.262215914578",
+            "profit_factor": 0.7767630808406815,
+            "trades": 972,
+            "sharpe": -0.9364840390240977,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 10,
+              "rsi_exit": 70,
+              "stop_atr_mult": 2.0
+            },
+            "total_return": "-0.377401168058",
+            "profit_factor": 0.651561706183509,
+            "trades": 1072,
+            "sharpe": -1.5169209839854585,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 10,
+              "rsi_exit": 70,
+              "stop_atr_mult": 3.0
+            },
+            "total_return": "-0.227247730888",
+            "profit_factor": 0.6882461044776405,
+            "trades": 1035,
+            "sharpe": -1.1189835127550813,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 8,
+              "rsi_exit": 56,
+              "stop_atr_mult": 2.0
+            },
+            "total_return": "-0.360655767143",
+            "profit_factor": 0.5600155568957157,
+            "trades": 949,
+            "sharpe": -1.7986325839517165,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 8,
+              "rsi_exit": 56,
+              "stop_atr_mult": 3.0
+            },
+            "total_return": "-0.222417103063",
+            "profit_factor": 0.6007159375029427,
+            "trades": 928,
+            "sharpe": -1.4202261907576625,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 8,
+              "rsi_exit": 84,
+              "stop_atr_mult": 2.0
+            },
+            "total_return": "-0.313070489188",
+            "profit_factor": 0.7675279751097811,
+            "trades": 896,
+            "sharpe": -1.0547157754845122,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 8,
+              "rsi_exit": 84,
+              "stop_atr_mult": 3.0
+            },
+            "total_return": "-0.174808150368",
+            "profit_factor": 0.7975913793930124,
+            "trades": 816,
+            "sharpe": -0.7434528607011681,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 12,
+              "rsi_exit": 56,
+              "stop_atr_mult": 2.0
+            },
+            "total_return": "-0.424646997409",
+            "profit_factor": 0.5768004742608157,
+            "trades": 1296,
+            "sharpe": -1.988330867042785,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 12,
+              "rsi_exit": 56,
+              "stop_atr_mult": 3.0
+            },
+            "total_return": "-0.293107896087",
+            "profit_factor": 0.5861028627044884,
+            "trades": 1240,
+            "sharpe": -1.7257941079524293,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 12,
+              "rsi_exit": 84,
+              "stop_atr_mult": 2.0
+            },
+            "total_return": "-0.332637415975",
+            "profit_factor": 0.7882187085183658,
+            "trades": 1119,
+            "sharpe": -1.0023909510189093,
+            "passed": false,
+            "error": ""
+          },
+          {
+            "params": {
+              "rsi_entry": 12,
+              "rsi_exit": 84,
+              "stop_atr_mult": 3.0
+            },
+            "total_return": "-0.182348747402",
+            "profit_factor": 0.8253384184061383,
+            "trades": 1036,
+            "sharpe": -0.6972186190915529,
+            "passed": false,
+            "error": ""
+          }
+        ]
+      },
+      "inactive_pairs": [],
+      "open_at_end": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "regimes": [
+        {
+          "year": 2019,
+          "total_return": "0.004863027136",
+          "max_drawdown": 0.0060640682491008855,
+          "trades": 24,
+          "pnl": "48.953990316600",
+          "complete": false
+        },
+        {
+          "year": 2020,
+          "total_return": "-0.0502341558728363430982263191",
+          "max_drawdown": 0.06513207321290819,
+          "trades": 240,
+          "pnl": "-498.695847883800",
+          "complete": true
+        },
+        {
+          "year": 2021,
+          "total_return": "-0.0425346370442808658401238639",
+          "max_drawdown": 0.08565073335518165,
+          "trades": 229,
+          "pnl": "-376.590774315200",
+          "complete": true
+        },
+        {
+          "year": 2022,
+          "total_return": "0",
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "pnl": "0",
+          "complete": true
+        },
+        {
+          "year": 2023,
+          "total_return": "-0.0513903221863046953171495439",
+          "max_drawdown": 0.08572392627447009,
+          "trades": 233,
+          "pnl": "-452.215044337400",
+          "complete": true
+        },
+        {
+          "year": 2024,
+          "total_return": "-0.1647225620723042836657319854",
+          "max_drawdown": 0.17385826402415208,
+          "trades": 240,
+          "pnl": "-1392.573493177800",
+          "complete": true
+        },
+        {
+          "year": 2025,
+          "total_return": "-0.0406858118622747192405571507",
+          "max_drawdown": 0.052254554966497335,
+          "trades": 109,
+          "pnl": "-272.272393081400",
+          "complete": false
+        }
+      ],
+      "regimes_source": "muestra completa, parámetros fijos",
+      "full_sample": {
+        "start_ts": 1564631999999,
+        "end_ts": 1754006399999,
+        "days": 2191.8333333333335,
+        "bars": 13150,
+        "initial_equity": "10000",
+        "final_equity": "6945.85408642",
+        "total_return": "-0.305414591358",
+        "cagr": -0.05892344424909279,
+        "sharpe": -1.3472591613335343,
+        "sortino": -1.528675883918205,
+        "calmar": -0.18166884469991038,
+        "max_drawdown": 0.3243453457659483,
+        "longest_underwater_days": 1992.8333333333333,
+        "trades": 1075,
+        "win_rate": 0.6074418604651163,
+        "profit_factor": 0.6620442437477405,
+        "expectancy": "-2.738040523236279069767441860",
+        "avg_trade_hours": 14.165581356072352,
+        "exposure": 0.1579467680608365,
+        "fees_quote": "1624.765038879000",
+        "avg_shortfall_bps": 5.773259453324487,
+        "exits": {
+          "signal": 923,
+          "stop": 152
+        }
+      },
+      "unused_tail": [
+        "2025-08-01",
+        "2025-09-01"
+      ]
+    }
+  }
+}

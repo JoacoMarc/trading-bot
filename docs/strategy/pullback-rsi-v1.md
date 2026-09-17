@@ -1,6 +1,6 @@
 # Retrocesos en tendencia — v1
 
-Estado: hipótesis congelada antes de implementar; no aprobada para paper.
+Estado: hipótesis congelada antes de implementar; evaluada y descartada para paper el 2026-09-17.
 
 Spot long-only, 4h, universo BTC/ETH/BNB/XRP/ADA/LTC/LINK/SOL contra USDT.
 Entrar sin posición cuando cierre > EMA200 y RSI(2) anterior <= 10 < RSI(2) actual.
@@ -23,3 +23,10 @@ meseta ±20% sobre umbrales de entrada/salida RSI y multiplicador ATR (pasos 1/1
 RSI período, EMA, ATR período y duración quedan fijos. Costos adversos: 10 y 20 bps.
 Solo A puede pasar a paper; holdout una vez por familia si pasa pre-holdout. No ajustar
 parámetros para salvar resultados. Holdout ya observado para otras familias: documentarlo.
+
+## Resultado
+
+WF-0010 (A): retorno OOS −9,42 %, Sharpe −1,44, PF 0,63; WF-0011 (B):
+−24,83 %, Sharpe −1,56, PF 0,60. Meseta 0/14 en ambos. Los mayores costos empeoran
+los resultados. **No-go**, sin holdout ni paper; reglas originales preservadas.
+Ver [comparación completa](../../experiments/candidates-2026-09-17/REPORT.md).

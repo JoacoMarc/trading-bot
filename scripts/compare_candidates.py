@@ -51,6 +51,64 @@ def commands() -> list[list[str]]:
                         f"{label}-cost-{bps}",
                     ]
                 )
+    result.append(
+        [
+            cli,
+            "backtest",
+            "--config",
+            "configs/regime-bh.yaml",
+            "--from",
+            "2019-08-01",
+            "--to",
+            "2025-09-01",
+            "--label",
+            "candidates-reference",
+        ]
+    )
+    result.append(
+        [
+            cli,
+            "walkforward",
+            "--config",
+            "configs/regime-bh.yaml",
+            "--fixed",
+            "--from",
+            "2019-08-01",
+            "--to",
+            "2025-09-01",
+            "--is-months",
+            "24",
+            "--oos-months",
+            "6",
+            "--seed",
+            "42",
+            "--label",
+            "candidates-reference",
+        ]
+    )
+    for strategy in ("pullback_rsi", "donchian"):
+        for profile in ("a", "b"):
+            for bps in (10, 20):
+                result.append(
+                    [
+                        cli,
+                        "walkforward",
+                        "--config",
+                        f"configs/candidates/{strategy}-{profile}.yaml",
+                        "--fixed",
+                        "--plateau",
+                        "--is-months",
+                        "24",
+                        "--oos-months",
+                        "6",
+                        "--seed",
+                        "42",
+                        "--set",
+                        f"execution.slippage_bps={bps}",
+                        "--label",
+                        f"candidates-{strategy}-{profile}-cost-{bps}",
+                    ]
+                )
     return result
 
 

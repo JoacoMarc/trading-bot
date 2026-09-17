@@ -41,6 +41,8 @@ Se completa después de los experimentos: qué pasó, qué se aprendió, qué si
 
 | Estrategia | Versión | Estado | Spec |
 |---|---|---|---|
+| pullback_rsi | v1 | no-go A/B, sin holdout ni paper (WF-0010/0011) | [pullback-rsi-v1.md](pullback-rsi-v1.md) |
+| donchian | v1 | A no-go por Sharpe; B pasa pre-holdout, solo histórico (WF-0012/0013) | [donchian-v1.md](donchian-v1.md) |
 | ema_trend | v1 | descartada (defaults `cross` 4h: EXP-0003/0007, WF-0001/0002) | [`ema-trend-v1.md`](ema-trend-v1.md) |
 | ema_trend | v2 | descartada (`entry_mode=state` refutado en 4h y 1h: WF-0003/0004) | [`ema-trend-v2.md`](ema-trend-v2.md) |
 | ema_trend | v3 | descartada (v2 + filtro de mercado: Sharpe OOS 0.90 ≤ 0.98 del B&H filtrado; WF-0005); familia cerrada | [`ema-trend-v3.md`](ema-trend-v3.md) |

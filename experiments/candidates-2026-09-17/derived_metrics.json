@@ -1,0 +1,173 @@
+[
+  {
+    "name": "Referencia",
+    "label": "reference",
+    "id": "WF-0014",
+    "volatility_annual": 0.16926312259668747,
+    "trades_month": 0.7083333333333334,
+    "metrics": {
+      "start_ts": 1627790399999,
+      "end_ts": 1754006399999,
+      "days": 1460.8333333333333,
+      "bars": 8766,
+      "initial_equity": "10000",
+      "final_equity": "19064.98776720618823286496927",
+      "total_return": "0.906498776720618823286496927",
+      "cagr": 0.1750791644898999,
+      "sharpe": 1.0374006481099907,
+      "sortino": 1.6723033480258858,
+      "calmar": 1.1457357142522704,
+      "max_drawdown": 0.15280938030648716,
+      "longest_underwater_days": 438.5,
+      "trades": 34,
+      "win_rate": 0.4117647058823529,
+      "profit_factor": 2.6765191903351226,
+      "expectancy": "181.4325289588264705882352941",
+      "avg_trade_hours": 368.8235294117647,
+      "exposure": 0.41170431211498976,
+      "fees_quote": "392.7919592639",
+      "avg_shortfall_bps": 5.001098484978055,
+      "exits": {
+        "signal": 34
+      }
+    }
+  },
+  {
+    "name": "Retrocesos A",
+    "label": "pullback_rsi-a",
+    "id": "WF-0010",
+    "volatility_annual": 0.017023207764484103,
+    "trades_month": 11.020833333333334,
+    "metrics": {
+      "start_ts": 1627790399999,
+      "end_ts": 1754006399999,
+      "days": 1460.8333333333333,
+      "bars": 8766,
+      "initial_equity": "10000",
+      "final_equity": "9058.250275324075171799224952",
+      "total_return": "-0.0941749724675924828200775048",
+      "cagr": -0.02442681690645343,
+      "sharpe": -1.44399038662422,
+      "sortino": -1.6387696396023526,
+      "calmar": -0.23454414207044438,
+      "max_drawdown": 0.10414592618184826,
+      "longest_underwater_days": 1354.8333333333333,
+      "trades": 529,
+      "win_rate": 0.5992438563327032,
+      "profit_factor": 0.6337348606084091,
+      "expectancy": "-1.673894412209451795841209830",
+      "avg_trade_hours": 14.517958375341316,
+      "exposure": 0.14715947980835045,
+      "fees_quote": "510.348624138800",
+      "avg_shortfall_bps": 5.407730629275767,
+      "exits": {
+        "signal": 459,
+        "stop": 70
+      }
+    }
+  },
+  {
+    "name": "Retrocesos B",
+    "label": "pullback_rsi-b",
+    "id": "WF-0011",
+    "volatility_annual": 0.04507263008021876,
+    "trades_month": 14.458333333333334,
+    "metrics": {
+      "start_ts": 1627790399999,
+      "end_ts": 1754006399999,
+      "days": 1460.8333333333333,
+      "bars": 8766,
+      "initial_equity": "10000",
+      "final_equity": "7516.877824924228177602707469",
+      "total_return": "-0.2483122175075771822397292531",
+      "cagr": -0.06887960984546015,
+      "sharpe": -1.5603784980160795,
+      "sortino": -1.7553444805045444,
+      "calmar": -0.2598536571037387,
+      "max_drawdown": 0.26507077334671514,
+      "longest_underwater_days": 1412.6666666666667,
+      "trades": 694,
+      "win_rate": 0.5878962536023055,
+      "profit_factor": 0.5992888305013393,
+      "expectancy": "-3.776007168549711815561959654",
+      "avg_trade_hours": 14.52449563760807,
+      "exposure": 0.1563997262149213,
+      "fees_quote": "1312.669611333500",
+      "avg_shortfall_bps": 5.393931055758038,
+      "exits": {
+        "signal": 595,
+        "stop": 99
+      }
+    }
+  },
+  {
+    "name": "Donchian A",
+    "label": "donchian-a",
+    "id": "WF-0012",
+    "volatility_annual": 0.0278387362877205,
+    "trades_month": 3.3958333333333335,
+    "metrics": {
+      "start_ts": 1627790399999,
+      "end_ts": 1754006399999,
+      "days": 1460.8333333333333,
+      "bars": 8766,
+      "initial_equity": "10000",
+      "final_equity": "10680.62923885717841496709753",
+      "total_return": "0.068062923885717841496709753",
+      "cagr": 0.016599813105584893,
+      "sharpe": 0.6052169899655586,
+      "sortino": 1.0068108406476166,
+      "calmar": 0.3247033464693,
+      "max_drawdown": 0.051123012084984376,
+      "longest_underwater_days": 777.3333333333334,
+      "trades": 163,
+      "win_rate": 0.34355828220858897,
+      "profit_factor": 1.4012276440096543,
+      "expectancy": "4.452181305900613496932515337",
+      "avg_trade_hours": 97.42331261588275,
+      "exposure": 0.2676249144421629,
+      "fees_quote": "142.935674483600",
+      "avg_shortfall_bps": 5.376597939113552,
+      "exits": {
+        "signal": 6,
+        "stop": 9,
+        "trailing": 148
+      }
+    }
+  },
+  {
+    "name": "Donchian B",
+    "label": "donchian-b",
+    "id": "WF-0013",
+    "volatility_annual": 0.07995776283261882,
+    "trades_month": 4.4375,
+    "metrics": {
+      "start_ts": 1627790399999,
+      "end_ts": 1754006399999,
+      "days": 1460.8333333333333,
+      "bars": 8766,
+      "initial_equity": "10000",
+      "final_equity": "13628.54717864676709072247974",
+      "total_return": "0.362854717864676709072247974",
+      "cagr": 0.08047873850835585,
+      "sharpe": 1.00775872215951,
+      "sortino": 1.77423153291166,
+      "calmar": 0.9023682341936333,
+      "max_drawdown": 0.08918613871672088,
+      "longest_underwater_days": 775.6666666666666,
+      "trades": 213,
+      "win_rate": 0.352112676056338,
+      "profit_factor": 1.7011877125186727,
+      "expectancy": "15.79055496211502347417840376",
+      "avg_trade_hours": 100.60093870109546,
+      "exposure": 0.2806297056810404,
+      "fees_quote": "381.930174598400",
+      "avg_shortfall_bps": 5.396039463479881,
+      "exits": {
+        "signal": 9,
+        "stop": 11,
+        "trailing": 193
+      }
+    }
+  }
+]
