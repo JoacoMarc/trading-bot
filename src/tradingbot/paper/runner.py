@@ -746,8 +746,15 @@ def build_paper_session(
     initial_cash = config.backtest.initial_cash
     if restore is not None and restore.cash > ZERO:
         initial_cash = restore.cash
+    entry_filter = None
+    if config.prediction.mode == "local":
+        from tradingbot.prediction.local import LocalFilter
+
+        assert config.prediction.publication is not None
+        entry_filter = LocalFilter(config.prediction.publication, config.prediction.threshold)
     engine = Engine(
         strategy=strategy,
+        entry_filter=entry_filter,
         feed=feed,
         series=series,
         broker=broker,

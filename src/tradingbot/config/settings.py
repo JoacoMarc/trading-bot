@@ -32,6 +32,7 @@ from tradingbot.config.models import (
     Mode,
     NotifyConfig,
     PersistenceConfig,
+    PredictionConfig,
     RiskConfig,
     StrategyConfig,
     ValidationConfig,
@@ -91,6 +92,7 @@ class BotConfig(BaseSettings):
     validation: ValidationConfig = ValidationConfig()
     notify: NotifyConfig = NotifyConfig()
     persistence: PersistenceConfig = PersistenceConfig()
+    prediction: PredictionConfig = PredictionConfig()
 
     # Secretos: sin prefijo TRADINGBOT_, nunca desde YAML ni desde --set.
     binance_api_key: SecretStr | None = _secret("BINANCE_API_KEY")
@@ -107,6 +109,13 @@ class BotConfig(BaseSettings):
         if self.notify.telegram_enabled and not (self.telegram_bot_token and self.telegram_chat_id):
             msg = "notify.telegram_enabled requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID"
             raise ValueError(msg)
+        if self.prediction.mode != "off":
+            if self.strategy.name != "donchian" or self.strategy.timeframe.value != "4h":
+                raise ValueError("prediction v1 requiere Donchian4h")
+            if self.mode is Mode.BACKTEST and self.prediction.mode != "replay":
+                raise ValueError("backtest exige predicciones replay")
+            if self.mode is not Mode.BACKTEST and self.prediction.mode != "local":
+                raise ValueError("paper exige inferencia local publicada")
         return self
 
     @property

@@ -312,3 +312,19 @@ class PersistenceConfig(_Strict):
     db_dir: Path = Path("db")
     logs_dir: Path = Path("logs")
     experiments_dir: Path = Path("experiments")
+
+
+class PredictionConfig(_Strict):
+    mode: Literal["off", "replay", "local"] = "off"
+    manifest: Path | None = None
+    manifest_hash: str | None = None
+    publication: Path | None = None
+    threshold: float = Field(default=0.55, ge=0, le=1)
+
+    @model_validator(mode="after")
+    def _configured(self) -> Self:
+        if self.mode == "replay" and (self.manifest is None or self.manifest_hash is None):
+            raise ValueError("replay exige manifest y manifest_hash")
+        if self.mode == "local" and self.publication is None:
+            raise ValueError("local exige publication")
+        return self

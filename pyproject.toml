@@ -100,7 +100,7 @@ files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["ccxt.*", "pyarrow.*", "optuna.*", "telegram.*", "talib.*", "matplotlib.*"]
+module = ["ccxt.*", "pyarrow.*", "optuna.*", "telegram.*", "talib.*", "matplotlib.*", "sklearn.*"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------- pytest

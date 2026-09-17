@@ -32,7 +32,7 @@ from tradingbot.persistence.files import atomic_write_text
 RUNS_DIRNAME = "runs"
 RUNS_PARENT_DIRNAME = "experiments"
 REGISTRY_FILENAME = "REGISTRY.md"
-KINDS = ("EXP", "WF", "OPT", "PAR")
+KINDS = ("EXP", "WF", "OPT", "PAR", "RES")
 _ID_RE = re.compile(r"^(?P<kind>[A-Z]+)-(?P<num>\d{4})(?:-(?P<slug>.+))?$")
 _VERDICT_RE = re.compile(r"^\s*-\s*\*\*Veredicto\*\*\s*:\s*(?P<value>.+?)\s*$", re.MULTILINE)
 _SLUG_RE = re.compile(r"[^a-z0-9_]+")

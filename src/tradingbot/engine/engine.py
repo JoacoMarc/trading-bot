@@ -36,6 +36,7 @@ from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution.broker import Broker, BrokerEvent
 from tradingbot.execution.simulated import INSUFFICIENT_FUNDS, SimulatedBroker
 from tradingbot.persistence.store import EventRecord, TradeStore
+from tradingbot.prediction.base import EntryFilter
 from tradingbot.risk.manager import PortfolioView, RiskManager
 from tradingbot.risk.protections import KillSwitch
 from tradingbot.risk.sizing import ReasonCode
@@ -139,11 +140,14 @@ class Engine:
         kill_switch: KillSwitch | None = None,
         restore: EngineState | None = None,
         listener: EngineListener | None = None,
+        entry_filter: EntryFilter | None = None,
     ) -> None:
         if initial_cash <= ZERO:
             msg = f"initial_cash debe ser positivo, recibido {initial_cash}"
             raise ValueError(msg)
         self.listener = listener
+        self.entry_filter = entry_filter
+        self._filter_error = False
         self._strategy = strategy
         self._feed = feed
         self._series = series
@@ -331,6 +335,14 @@ class Engine:
             signals[pair] = signal
             contexts[pair] = ctx
 
+        self._filter_error = False
+        if self.entry_filter is not None:
+            try:
+                self.entry_filter.observe(contexts, ts + 1)
+            except Exception:
+                log.exception("predicciones no disponibles; se bloquean nuevas compras")
+                self._filter_error = True
+
         if self._risk.protections.flatten_requested:  # 5: kill switch con flatten
             self.flatten(bar.open_time, ts, bar.pairs)
         for pair, reason in list(self._stuck_exits.items()):  # 5a: reintentar salidas trabadas
@@ -478,6 +490,24 @@ class Engine:
         if not entries:
             self._blocked = {}  # sin señales: el próximo rechazo es una decisión nueva
             return
+        if self.entry_filter is not None:
+            accepted = []
+            for signal in entries:
+                try:
+                    if self._filter_error:
+                        raise ValueError("prediction_unavailable")
+                    prediction_decision = self.entry_filter.evaluate(signal, ts + 1)
+                    if prediction_decision.accepted:
+                        accepted.append(signal)
+                        continue
+                    reason = prediction_decision.reason
+                except Exception:
+                    reason = "prediction_unavailable"
+                self.stats.rejections[reason] += 1
+                self._record(
+                    EventRecord(ts=ts, kind="entry_rejected", pair=signal.pair, reason=reason)
+                )
+            entries = accepted
         reserved = sum(
             (
                 i.expected_notional * self._risk.buy_cost_factor

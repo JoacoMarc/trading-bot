@@ -41,3 +41,15 @@ Veredicto del gate: `aprobado (falta el holdout)` si todo lo evaluable pasa; `in
 ## Checklist de go-live (se completa en Fase 10)
 
 Pendiente: API key solo lectura + spot trading, sin retiros, IP whitelisted; claves del modo real solo en el perfil `live` de compose; runbooks de live e incidentes; `risk-auditor` firma la checklist.
+
+## Extensión ML (ADR-0014)
+
+La receta de entrenamiento mensual es fija y temporalmente purgada. Debe existir
+modelo válido en cada cierre evaluado, incluidos meses sin oportunidades. Un año
+sin modelo no equivale a un año invertido en cash: sus métricas son diagnósticas,
+los criterios afectados quedan n/a y no habilitan paper. Se informa por mes/par
+la ausencia de modelo y de features. Las features inválidas bloquean compras.
+La meseta de Donchian+ML agrega el umbral de probabilidad (0,55 ±20 %) a canales
+y ATR: 24 variantes, probabilidades/modelos congelados y feature canal60 fija.
+Además de Gate1, la mejora primaria exige deltaSharpe>=0,10, DD<=base+2pp y límite
+inferior95 % positivo en bootstrap emparejado de bloques30d,5000 muestras,seed42.

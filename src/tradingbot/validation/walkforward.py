@@ -10,7 +10,7 @@ from __future__ import annotations
 import calendar
 import time
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -36,6 +36,7 @@ from tradingbot.domain.orders import Fill
 from tradingbot.domain.pair import Pair
 from tradingbot.domain.positions import Trade
 from tradingbot.exchange.binance import MarketInfo
+from tradingbot.strategy.base import FloatRange
 from tradingbot.strategy.registry import build_strategy, effective_warmup
 from tradingbot.validation.gates import GateCheck, GateThresholds, evaluate_gate1
 from tradingbot.validation.montecarlo import (
@@ -319,6 +320,8 @@ def run_walkforward(
     if config.backtest.include_holdout:
         msg = "el walk-forward nunca incluye el holdout (docs/GATES.md)"
         raise ConfigError(msg)
+    if config.prediction.mode != "off" and settings.optimize is not None:
+        raise ConfigError("ML v1 exige receta fija: no optimizar tras observar OOS")
     strategy = build_strategy(config.strategy)
     warmup = effective_warmup(config.strategy, strategy)
     store = ParquetStore(config.data.data_dir)
@@ -412,10 +415,26 @@ def run_walkforward(
         if settings.plateau:
 
             def run_full(p: Mapping[str, Any]) -> Metrics:
-                return backtest_metrics(cfg_full, p)
+                params = dict(p)
+                threshold = params.pop("prediction_threshold", config.prediction.threshold)
+                cfg = cfg_full.model_copy(
+                    update={
+                        "prediction": config.prediction.model_copy(update={"threshold": threshold})
+                    }
+                )
+                return backtest_metrics(cfg, params)
 
+            plateau_base = dict(base_params)
+            plateau_space = dict(space)
+            if config.prediction.mode != "off":
+                plateau_base["prediction_threshold"] = config.prediction.threshold
+                plateau_space["prediction_threshold"] = FloatRange(0.01, 0.99, 0.01)
             plateau = run_plateau(
-                base_params, space, run_full, progress=say, base_metrics=full_sample.metrics
+                plateau_base,
+                plateau_space,
+                run_full,
+                progress=say,
+                base_metrics=full_sample.metrics,
             )
     else:
         regimes = yearly_regimes(oos_equity, oos_trades)
@@ -445,6 +464,26 @@ def run_walkforward(
         inactive_pairs=[p.symbol for p in inactive],
         universe=len(config.strategy.pairs),
     )
+    if config.prediction.mode != "off":
+        missing = set() if full_sample is None else set(full_sample.prediction_missing_years)
+        missing.update(y for r in results for y in r.run.prediction_missing_years)
+        if missing:
+            gate = [
+                replace(g, passed=None, note=g.note + "; evidencia ML con cobertura incompleta")
+                if g.name != "Holdout"
+                else g
+                for g in gate
+            ]
+        gate.append(
+            GateCheck(
+                "Cobertura temporal ML",
+                "modelo válido en todo el rango",
+                "completa" if not missing else ", ".join(map(str, sorted(missing))),
+                True if not missing else None,
+                "Features inválidas bloquean compras y se reportan aparte.",
+            )
+        )
+        regimes_source += "; receta fija ML con reentrenamiento mensual"
     range_end = ms_to_day(end_ms)
     unused = (windows[-1].oos_end, range_end) if windows[-1].oos_end < range_end else None
     return WalkForwardResult(

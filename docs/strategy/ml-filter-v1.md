@@ -9,7 +9,7 @@ stops/salidas/sizing. Solo se filtran ENTER_LONG; el ranking Donchian se conserv
 Features v1: retornos1/3/6/18,RSI14,ATR14/precio,ADX14,distancia EMA200 y canal60
 en ATR,volumen/media20,retorno BTC6,retorno BTC diario30 y distancia SMA200 diaria,
 identificador del par con ocho columnas fijas. Features comunes en batch y streaming.
-Solo días UTC completos; la hora de disponibilidad es cierre exclusivo.
+EMA200 se siembra con SMA200 en una ventana fija de1213 barras (misma ventana en entrenamiento y paper). Solo días UTC completos; la hora de disponibilidad es cierre exclusivo.
 
 Etiqueta: retorno de compra open(t+1) y venta open(t+7), neto de dos fees0.1% y
 slippage5bps por lado; y=1 si >0. Rechazar etiquetas que atraviesen huecos. No es

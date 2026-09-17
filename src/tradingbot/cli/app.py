@@ -12,6 +12,7 @@ from tradingbot import __version__
 from tradingbot.cli.backtest_commands import bt_app, experiments_app
 from tradingbot.cli.data_commands import data_app
 from tradingbot.cli.paper_commands import paper_app
+from tradingbot.cli.research_commands import research_app
 from tradingbot.cli.risk_commands import risk_app
 from tradingbot.cli.validation_commands import valid_app
 from tradingbot.doctor import CheckResult, run_all
@@ -32,6 +33,7 @@ for command in (
 ):
     app.registered_commands.append(command)
 app.add_typer(experiments_app, name="experiments")
+app.add_typer(research_app, name="research")
 
 
 def _version_callback(value: bool) -> None:

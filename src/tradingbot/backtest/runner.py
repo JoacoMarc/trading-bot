@@ -107,6 +107,8 @@ class BacktestRun:
     data_files: list[Path]
     markets: dict[Pair, MarketInfo]
     activation: dict[Pair, int] = field(default_factory=dict)  # pares activados tarde
+    prediction_coverage: dict[str, int] = field(default_factory=dict)
+    prediction_missing_years: tuple[int, ...] = ()
     inactive: tuple[Pair, ...] = ()  # pares sin velas suficientes en el rango
 
     @property
@@ -306,8 +308,18 @@ def run_backtest(
     series_candles = {pair: [*feed.warmup_candles(pair), *range_candles[pair]] for pair in pairs}
     series = PrecomputedSeries(strategy, series_candles)
     trade_store = InMemoryStore()
+    entry_filter = None
+    if config.prediction.mode == "replay":
+        from tradingbot.prediction.replay import ReplayFilter
+
+        assert config.prediction.manifest is not None
+        assert config.prediction.manifest_hash is not None
+        entry_filter = ReplayFilter(
+            config.prediction.manifest, config.prediction.manifest_hash, config.prediction.threshold
+        )
     engine = Engine(
         strategy=strategy,
+        entry_filter=entry_filter,
         feed=feed,
         series=series,
         broker=SimulatedBroker(config.execution, market_infos),
@@ -350,10 +362,23 @@ def run_backtest(
         end_ms=end_ms,
         warmup=warmup,
         duration_s=time.perf_counter() - started,
-        data_files=[store.path(p, timeframe) for p in pairs],
+        data_files=[store.path(p, timeframe) for p in pairs]
+        + (
+            []
+            if config.prediction.manifest is None
+            else [
+                config.prediction.manifest,
+                config.prediction.manifest.parent / "predictions.parquet",
+                config.prediction.manifest.parent / "coverage.parquet",
+            ]
+        ),
         markets=market_infos,
         activation=feed.activation_times,
         inactive=feed.inactive_pairs,
+        prediction_coverage={} if entry_filter is None else dict(entry_filter.coverage),
+        prediction_missing_years=()
+        if entry_filter is None
+        else tuple(sorted(entry_filter.missing_model_years)),
     )
 
 
@@ -524,7 +549,13 @@ def payload_from_backtest(run: BacktestRun, root: Path, label: str | None = None
         data_files=run.data_files,
         duration_s=run.duration_s,
         root=root,
-        extra={"warmup": run.warmup, "bars": run.engine_result.stats.bars},
+        extra={
+            "warmup": run.warmup,
+            "bars": run.engine_result.stats.bars,
+            "prediction_coverage": run.prediction_coverage,
+            "prediction_missing_years": run.prediction_missing_years,
+            "prediction": config.prediction.model_dump(mode="json"),
+        },
     )
     return RunPayload(
         label=label or f"{run.strategy.name}-{config.strategy.timeframe.value}",
