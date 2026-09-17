@@ -1,0 +1,31 @@
+# Observador solamente. No crea una cuenta, posiciones ni órdenes.
+name: tradingbot-research
+services:
+  observer:
+    profiles: [observer]
+    image: ${RESEARCH_IMAGE:?Definir imagen por revision}
+    command: ["advisor", "observe", "--config", "configs/candidates/donchian-a.yaml", "--policy", "configs/advisor.yaml", "--db", "db/advisor.db"]
+    restart: unless-stopped
+    stop_grace_period: 60s
+    mem_limit: 384m
+    cpus: 0.5
+    pids_limit: 96
+    environment:
+      TZ: UTC
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./configs:/app/configs:ro
+      - observer-db:/app/db
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    healthcheck:
+      test: ["CMD", "tradingbot", "advisor", "status", "--policy", "configs/advisor.yaml", "--db", "db/advisor.db", "--check"]
+      interval: 60s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+volumes:
+  observer-db:

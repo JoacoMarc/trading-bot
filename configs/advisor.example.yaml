@@ -1,0 +1,13 @@
+# Configurar modelo exacto y tarifas verificadas ANTES de crear una DB prospectiva.
+instance: donchian-observer-v1
+provider: anthropic
+model: MODEL_NOT_SELECTED
+paid_calls_enabled: false
+input_usd_per_million: 0
+output_usd_per_million: 0
+daily_usd: 1
+monthly_usd: 20
+max_output_tokens: 512
+max_input_bytes: 16384
+concurrency: 2
+queue_capacity: 32

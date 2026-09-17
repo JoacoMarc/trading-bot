@@ -1,6 +1,6 @@
 # Próxima etapa: estrategias de 1h, modelos predictivos y evaluación de un LLM
 
-Fecha: 2026-09-17. Estado: **propuesta de implementación**, solicitada por el usuario. Este documento no activa estrategias, cambia los gates ni autoriza trading real. Parte del código en `a2991e9`, sobre `codex/paper-multiestrategia`.
+Fecha: 2026-09-17. Estado: **aprobado por el usuario; implementación y evaluación en curso**. Avance y límites en `docs/runbooks/research-ml-llm.md`. Este documento no activa estrategias, cambia los gates ni autoriza trading real. Parte del código en `a2991e9`, sobre `codex/paper-multiestrategia`.
 
 ## 1. Conclusión y decisión recomendada
 

@@ -2,6 +2,21 @@
 
 Copia viva del plan (detalle completo en [PLAN.md](PLAN.md)). Estados: `pendiente` · `en curso` · `cerrada (fecha)`. Cada fase se trabaja en sesiones propias con `/phase-start` y se cierra con `/phase-close`. Tamaño en sesiones: S = 1, M = 1–2, L = 2–4.
 
+## Extensión aprobada2026-09-17 — investigación de reglas/ML/LLM · `en curso`
+
+- [x] Rama `codex/research-ml-llm`, specs y ADR-0014.
+- [x] Supertrend4h/1h,A/B, checkpointrecursivo y recuperación atómica.
+- [x] Datos1h/4h verificados,16corridas registradas Supertrend: todas no-go, sinholdout.
+- [x] Featurescomunes, labels24h, purga, logística/LightGBM mensuales, calibración y artefactosJSON.
+- [x] Filtroentradas opt-in, cobertura explícita y meseta24variantes, comparación emparejada.
+- [x] ObservadorLLMsinbroker, cola/plazos/presupuesto/persistencia/recuperación y CLI.
+- [ ] Cierre de evaluaciónML y entrega de resultados registrados (ver informe de investigación).
+- [ ] Elegir modelo/API y congelar cohorte para observación prospectiva; sin gasto iniciado.
+- [ ] Baseaprobada +12semanas/40cierres +ejecución diferida validada antes de paperLLM.
+
+La última condición es una etapa futura sujeta a evidencia, no una aprobación de
+Gate1 ni autorización de live. Runbook: `docs/runbooks/research-ml-llm.md`.
+
 ## Fase 0 — Fundación del repo y workspace de Claude (S) · `cerrada (2026-09-07)`
 
 - [x] git, uv + Python 3.12, `pyproject.toml`, `uv.lock`, ruff/mypy/pytest configurados

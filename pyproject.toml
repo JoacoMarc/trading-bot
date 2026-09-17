@@ -20,6 +20,7 @@ dependencies = [
   "python-telegram-bot[rate-limiter]>=22,<23",  # sin job-queue: el resumen diario es una tarea propia (ADR-0012)
   "anthropic>=1.0,<2",
   "matplotlib>=3.9,<4",
+  "filelock>=3.16,<4",
 ]
 
 [project.scripts]

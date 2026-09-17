@@ -1,0 +1,59 @@
+# En evaluación histórica. No habilitado para paper.
+mode: backtest
+strategy:
+  name: donchian
+  timeframe: 4h
+  pairs:
+  - BTC/USDT
+  - ETH/USDT
+  - BNB/USDT
+  - XRP/USDT
+  - ADA/USDT
+  - LTC/USDT
+  - LINK/USDT
+  - SOL/USDT
+  params:
+    entry_period: 60
+    exit_period: 20
+    atr_mult: 3.0
+risk:
+  sizing_mode: risk
+  risk_per_trade: 0.005
+  max_position_pct: 0.25
+  max_positions: 3
+  max_exposure_pct: 0.75
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.2
+  drawdown_pause_days: 30
+  kill_switch_file: logs/STOP
+  market_filter:
+    enabled: true
+    block_when_undefined: true
+    pair: BTC/USDT
+    average: sma
+    ema_days: 200
+    momentum_days: 30
+execution:
+  fee_rate: 0.001
+  slippage_bps: 5
+  pay_with_bnb: false
+backtest:
+  initial_cash: 10000
+  start: 2019-08-01
+  end: 2025-09-01
+notify:
+  instance_name: ML logistic - B
+  telegram_enabled: false
+  telegram_receive_commands: false
+  timezone: America/Argentina/Buenos_Aires
+  events:
+    rejection: 'off'
+    feed: silent
+persistence:
+  db_dir: db
+  logs_dir: logs
+prediction:
+  mode: replay
+  manifest: experiments/runs/RES-0003-ml-predictions/manifest.json
+  manifest_hash: 29cb3dc3cc796b212fe1ecf2eec8c1d65f9e260abdef03df61b5cb7a67ad0abd
+  threshold: 0.55

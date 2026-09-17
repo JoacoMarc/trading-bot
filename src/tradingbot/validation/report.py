@@ -249,8 +249,12 @@ def walkforward_meta(result: WalkForwardResult, root: Path) -> ExperimentMeta:
     ]
     extra: dict[str, Any] = {
         "prediction": cfg.prediction.model_dump(mode="json"),
-        "prediction_coverage": {} if result.full_sample is None else result.full_sample.prediction_coverage,
-        "prediction_missing_years": [] if result.full_sample is None else list(result.full_sample.prediction_missing_years),
+        "prediction_coverage": {}
+        if result.full_sample is None
+        else result.full_sample.prediction_coverage,
+        "prediction_missing_years": []
+        if result.full_sample is None
+        else list(result.full_sample.prediction_missing_years),
         "walkforward": result.settings.to_dict(),
         "windows": windows_extra,
         "gate": [c.to_dict() for c in result.gate],

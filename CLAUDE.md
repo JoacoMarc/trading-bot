@@ -55,7 +55,7 @@ docker compose run --rm bot doctor        # `run` activa el perfil `tools` del s
 
 ## Reglas duras
 
-1. **Dinero en `Decimal`.** Precios, cantidades y fees en `Decimal`; frontera con `Decimal(str(x))`, nunca `Decimal(float)`. `float64` solo dentro de `indicators/`.
+1. **Dinero en `Decimal`.** Precios, cantidades y fees en `Decimal`; frontera con `Decimal(str(x))`, nunca `Decimal(float)`. `float64` en indicadores y variables/pesos/predicciones de ML según ADR-0014; nunca en contabilidad.
 2. **Sin lookahead.** Las estrategias solo ven velas cerradas. Señal en `t` → fill al open de `t+1`. Todo cambio en `strategy/` o `indicators/` corre el test de equivalencia (`validation/equivalence.py`).
 3. **Un solo camino.** Backtest, paper y live comparten `Engine`, precedencia intra-vela y modelo de fills/stops (ADR-0002). No se agregan atajos "solo para backtest".
 4. **Live nunca desde Claude.** `permissions.deny` + hook `scripts/hooks/guard_live.py` bloquean `tradingbot live`, `--confirm-live` y `TRADINGBOT_LIVE_ACK`. Live exige `mode: live` + `--confirm-live` + env `TRADINGBOT_LIVE_ACK=yes`, y sus claves viven solo en `.env.live` (perfil `live` de compose).

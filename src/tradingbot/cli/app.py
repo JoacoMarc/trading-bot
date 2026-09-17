@@ -9,6 +9,7 @@ from typing import Annotated
 import typer
 
 from tradingbot import __version__
+from tradingbot.cli.advisor_commands import advisor_app
 from tradingbot.cli.backtest_commands import bt_app, experiments_app
 from tradingbot.cli.data_commands import data_app
 from tradingbot.cli.paper_commands import paper_app
@@ -34,6 +35,7 @@ for command in (
     app.registered_commands.append(command)
 app.add_typer(experiments_app, name="experiments")
 app.add_typer(research_app, name="research")
+app.add_typer(advisor_app, name="advisor")
 
 
 def _version_callback(value: bool) -> None:
