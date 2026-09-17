@@ -1,0 +1,5 @@
+pair,strategy,entry_time,entry_price,exit_time,exit_price,exit_reason,qty,fees_quote,pnl,pnl_pct,duration_hours,entry_client_order_id,exit_client_order_id
+BNB/USDT,donchian,2023-04-11 04:00,327.57,2023-04-11 23:59,322.59,trailing,6.407,4.1678681100,-36.0747281100,-0.017189,20.00,tb-donchian-BNBUSDT-1681171200-B,tb-donchian-BNBUSDT-1681243200-T
+LTC/USDT,donchian,2023-04-11 08:00,96.44,2023-04-12 03:59,92.30,trailing,11.672,2.2041305600,-50.5262105600,-0.044886,20.00,tb-donchian-LTCUSDT-1681185600-B,tb-donchian-LTCUSDT-1681257600-T
+SOL/USDT,donchian,2023-04-11 08:00,22.49,2023-04-19 11:59,23.94,trailing,41.369,1.9217072500,58.0633427500,0.062408,196.00,tb-donchian-SOLUSDT-1681185600-B,tb-donchian-SOLUSDT-1681891200-T
+LTC/USDT,donchian,2024-03-26 20:00,95.19,2024-04-01 15:59,101.13,trailing,6.548,1.2861696900,37.6089503100,0.060338,140.00,tb-donchian-LTCUSDT-1711468800-B,tb-donchian-LTCUSDT-1711972800-T

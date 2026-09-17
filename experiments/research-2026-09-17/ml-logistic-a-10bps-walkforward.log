@@ -1,0 +1,73 @@
+ventana 1/8: OOS 2021-08-01 -> 2022-02-01: retorno +0.00 %, 0 trades
+ventana 2/8: OOS 2022-02-01 -> 2022-08-01: retorno +0.00 %, 0 trades
+ventana 3/8: OOS 2022-08-01 -> 2023-02-01: retorno +0.00 %, 0 trades
+ventana 4/8: OOS 2023-02-01 -> 2023-08-01: retorno +0.09 %, 2 trades
+ventana 5/8: OOS 2023-08-01 -> 2024-02-01: retorno +0.00 %, 0 trades
+ventana 6/8: OOS 2024-02-01 -> 2024-08-01: retorno +0.18 %, 1 trades
+ventana 7/8: OOS 2024-08-01 -> 2025-02-01: retorno +0.00 %, 0 trades
+ventana 8/8: OOS 2025-02-01 -> 2025-08-01: retorno +0.00 %, 0 trades
+muestra completa 2019-08-01 -> 2025-08-01 con parámetros fijos
+meseta 1/24: {'entry_period': 48}
+meseta 2/24: {'entry_period': 72}
+meseta 3/24: {'exit_period': 16}
+meseta 4/24: {'exit_period': 24}
+meseta 5/24: {'atr_mult': 2.4}
+meseta 6/24: {'atr_mult': 3.6}
+meseta 7/24: {'prediction_threshold': 0.44}
+meseta 8/24: {'prediction_threshold': 0.66}
+meseta 9/24: {'entry_period': 48, 'exit_period': 16, 'atr_mult': 2.4, 'prediction_threshold': 0.44}
+meseta 10/24: {'entry_period': 48, 'exit_period': 16, 'atr_mult': 2.4, 'prediction_threshold': 0.66}
+meseta 11/24: {'entry_period': 48, 'exit_period': 16, 'atr_mult': 3.6, 'prediction_threshold': 0.44}
+meseta 12/24: {'entry_period': 48, 'exit_period': 16, 'atr_mult': 3.6, 'prediction_threshold': 0.66}
+meseta 13/24: {'entry_period': 48, 'exit_period': 24, 'atr_mult': 2.4, 'prediction_threshold': 0.44}
+meseta 14/24: {'entry_period': 48, 'exit_period': 24, 'atr_mult': 2.4, 'prediction_threshold': 0.66}
+meseta 15/24: {'entry_period': 48, 'exit_period': 24, 'atr_mult': 3.6, 'prediction_threshold': 0.44}
+meseta 16/24: {'entry_period': 48, 'exit_period': 24, 'atr_mult': 3.6, 'prediction_threshold': 0.66}
+meseta 17/24: {'entry_period': 72, 'exit_period': 16, 'atr_mult': 2.4, 'prediction_threshold': 0.44}
+meseta 18/24: {'entry_period': 72, 'exit_period': 16, 'atr_mult': 2.4, 'prediction_threshold': 0.66}
+meseta 19/24: {'entry_period': 72, 'exit_period': 16, 'atr_mult': 3.6, 'prediction_threshold': 0.44}
+meseta 20/24: {'entry_period': 72, 'exit_period': 16, 'atr_mult': 3.6, 'prediction_threshold': 0.66}
+meseta 21/24: {'entry_period': 72, 'exit_period': 24, 'atr_mult': 2.4, 'prediction_threshold': 0.44}
+meseta 22/24: {'entry_period': 72, 'exit_period': 24, 'atr_mult': 2.4, 'prediction_threshold': 0.66}
+meseta 23/24: {'entry_period': 72, 'exit_period': 24, 'atr_mult': 3.6, 'prediction_threshold': 0.44}
+meseta 24/24: {'entry_period': 72, 'exit_period': 24, 'atr_mult': 3.6, 'prediction_threshold': 0.66}
+#  IS                       OOS                         retorno  sharpe   max dd trades  params
+1  2019-08-01 -> 2021-08-01 2021-08-01 -> 2022-02-01     +0.00 %       -   -0.00 %      0  base
+2  2020-02-01 -> 2022-02-01 2022-02-01 -> 2022-08-01     +0.00 %       -   -0.00 %      0  base
+3  2020-08-01 -> 2022-08-01 2022-08-01 -> 2023-02-01     +0.00 %       -   -0.00 %      0  base
+4  2021-02-01 -> 2023-02-01 2023-02-01 -> 2023-08-01     +0.09 %    0.28    0.39 %      2  base
+5  2021-08-01 -> 2023-08-01 2023-08-01 -> 2024-02-01     +0.00 %       -   -0.00 %      0  base
+6  2022-02-01 -> 2024-02-01 2024-02-01 -> 2024-08-01     +0.18 %    0.47    0.29 %      1  base
+7  2022-08-01 -> 2024-08-01 2024-08-01 -> 2025-02-01     +0.00 %       -   -0.00 %      0  base
+8  2023-02-01 -> 2025-02-01 2025-02-01 -> 2025-08-01     +0.00 %       -   -0.00 %      0  base
+metrica              OOS concatenado           B&H BTC (OOS)  B&H BTC filtrado (OOS)     Equiponderado (OOS)        muestra completa
+retorno                      +0.27 %               +174.73 %               +203.24 %               +173.86 %                 -0.08 %
+cagr                         +0.07 %                +28.74 %                +31.96 %                +28.64 %                 -0.01 %
+sharpe                          0.19                    0.76                    1.04                    0.72                   -0.02
+max dd                       +0.47 %                +77.14 %                +27.48 %                +81.55 %                 +1.48 %
+pf                              2.45                       -                       -                       -                    0.95
+trades                             3                       0                       0                       0                      13
+exposicion                   +0.95 %               +100.00 %               +100.00 %               +100.00 %                 +1.65 %
+monte carlo (5000 corridas, 3 trades): max DD p50 0.19 %, p95 0.38 %, p99 0.57 %; retorno p05 -0.20 %
+bootstrap por bloques (1460 retornos diarios, informativo): max DD p50 0.36 %, p95 0.56 %; retorno p05 -0.14 %
+meseta: 24 variantes, pasan 42 %
+gate 1: incompleto (16 criterios sin evaluar)
+  n/a   Sharpe OOS                      0.19                      umbral >= 0.8 y >= B&H BTC (0.76)
+  n/a   Profit factor OOS               2.45                      umbral >= 1.3
+  n/a   Max DD OOS                      0.47 %                    umbral <= 25 % y <= 50 % del DD B&H (77.14 %)
+  n/a   Universo activo en OOS          8/8                       umbral todos los pares con datos en todas las ventanas
+  n/a   Ventanas OOS positivas          2/8 (25 %)                umbral >= 60 %
+  n/a   Trades muestra completa         13                        umbral >= 100
+  n/a   Trades curva OOS                3                         umbral >= 40
+  n/a   Régimen: retorno 2020           +0.00 %                   umbral > 0
+  n/a   Régimen: retorno 2021           -0.35 %                   umbral > 0
+  n/a   Régimen: retorno 2023           +0.09 %                   umbral > 0
+  n/a   Régimen: retorno 2024           +0.18 %                   umbral > 0
+  n/a   Régimen: retorno 2022           +0.00 %                   umbral >= -8 %
+  n/a   Régimen: max DD intra-año       1.48 % (2021)             umbral <= 25 %
+  n/a   Meseta ±20 %                    41.67 %                   umbral >= 80 % de variantes con PF > 1.1 y retorno > 0
+  n/a   Monte Carlo DD p95              0.38 %                    umbral <= 35 %
+  n/a   Holdout                         -                         umbral PF > 1.1 y DD <= 25 %
+  n/a   Cobertura temporal ML           2019, 2020, 2021          umbral modelo válido en todo el rango
+duracion 55 s
+registrado: WF-0036-ml-logistic-a-10bps-walkforward -> /Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/WF-0036-ml-logistic-a-10bps-walkforward

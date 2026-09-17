@@ -14,7 +14,8 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: check-added-large-files
-        exclude: '^experiments/runs/.*/equity\.csv$'  # artefacto grande conocido (WF 1h ~3 MB)
+        # Artefactos reproducibles con hashes: curvas WF y dataset/features ML (10–13 MB cada uno).
+        exclude: '^experiments/runs/(.*/equity\.csv|RES-[0-9]+-ml-dataset/(dataset|features)\.parquet)$'
         args: [--maxkb=2000]
       - id: detect-private-key
       - id: check-merge-conflict

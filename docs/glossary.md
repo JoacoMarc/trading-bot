@@ -195,3 +195,39 @@ Comparación controlada en la que se quita un componente, por ejemplo el filtro 
 Tabla de avisos pendientes guardada junto con la operación que los origina. Permite enviar
 después de confirmar la operación y recuperar avisos tras una caída. Si el proveedor recibió
 un aviso pero se perdió su confirmación, un reintento puede repetirlo.
+
+## Supertrend y estado recursivo
+
+Indicador que combina bandas de volatilidad ATR con una dirección que depende de
+su estado anterior. Recalcularlo desde una ventana nueva puede cambiar la dirección;
+el bot conserva su estado y semilla para recuperar la misma secuencia al reiniciar.
+
+## Calibración de probabilidades, Brier y log-loss
+
+Calibrar busca que, entre predicciones cercanas a 60 %, el evento definido ocurra
+aproximadamente 60 % de las veces. Brier mide el error cuadrático entre probabilidad
+y resultado; log-loss penaliza especialmente las predicciones seguras equivocadas.
+Ambas métricas deben medirse fuera del entrenamiento. Un score pequeño no prueba
+que una estrategia gane dinero; el evento predicho puede diferir del trade final.
+
+## Purga temporal y etiquetas solapadas
+
+Si una etiqueta observa las próximas 24 horas, filas cercanas comparten parte del
+desenlace. La purga excluye etiquetas cuyo final invade el tramo siguiente o aún
+no era conocido al entrenar. No basta separar filas al azar, y el número de filas
+no equivale al número de observaciones independientes.
+
+## Replay de predicciones y observación prospectiva
+
+Replay reutiliza una predicción guardada con su fecha de disponibilidad, sin volver
+a consultar o entrenar un modelo para aquella fecha. La observación prospectiva
+recoge respuestas conforme llegan datos nuevos. Registrar BUY o SELL no equivale
+a ejecutar una orden: para medir resultados hacen falta precios y reglas temporales
+de ejecución que respeten cuándo se conoció la decisión.
+
+## Bootstrap emparejado por bloques
+
+Remuestreo de tramos consecutivos de retornos diarios, usando los mismos días en
+control y candidata. Conserva parte de la dependencia temporal y estima incertidumbre
+de su diferencia. No elimina la selección retrospectiva, no anticipa nuevos regímenes
+y puede ser poco informativo cuando casi no hay operaciones.

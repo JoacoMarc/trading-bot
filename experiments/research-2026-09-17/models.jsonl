@@ -1,0 +1,2 @@
+{"kind": "logistic", "models": "/Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/RES-0002-ml-train-logistic", "predictions": "/Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/RES-0003-ml-predictions"}
+{"kind": "lightgbm", "models": "/Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/RES-0004-ml-train-lightgbm", "predictions": "/Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/RES-0005-ml-predictions"}

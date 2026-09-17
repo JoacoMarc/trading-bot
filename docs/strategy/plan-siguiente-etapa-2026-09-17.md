@@ -1,6 +1,6 @@
 # Próxima etapa: estrategias de 1h, modelos predictivos y evaluación de un LLM
 
-Fecha: 2026-09-17. Estado: **aprobado por el usuario; implementación y evaluación en curso**. Avance y límites en `docs/runbooks/research-ml-llm.md`. Este documento no activa estrategias, cambia los gates ni autoriza trading real. Parte del código en `a2991e9`, sobre `codex/paper-multiestrategia`.
+Fecha: 2026-09-17. Estado: **implementación histórica y observador entregados; ninguna candidata promovida**. [Resultados y límites](../../experiments/research-2026-09-17/REPORT.md), operación en `docs/runbooks/research-ml-llm.md`. La etapa prospectiva y ejecución diferida permanecen pendientes y condicionadas; no se inició gasto de API ni una cohorte. Este documento no activa estrategias, cambia los gates ni autoriza trading real. Base `a2991e9`, desarrollo en `codex/research-ml-llm`.
 
 ## 1. Conclusión y decisión recomendada
 

@@ -1,0 +1,51 @@
+model,sample,bin,prediction,observed,n
+Logística,Todas las velas elegibles,"(0.05, 0.1]",0.05637747022703343,0.0,1.0
+Logística,Todas las velas elegibles,"(0.1, 0.15]",0.12703489533683954,0.0,2.0
+Logística,Todas las velas elegibles,"(0.15, 0.2]",0.16411361040004308,0.0,2.0
+Logística,Todas las velas elegibles,"(0.2, 0.25]",0.23129457995742692,0.15384615384615385,13.0
+Logística,Todas las velas elegibles,"(0.25, 0.3]",0.28554771369894094,0.4233128834355828,163.0
+Logística,Todas las velas elegibles,"(0.3, 0.35]",0.3331573403165662,0.407498766650222,2027.0
+Logística,Todas las velas elegibles,"(0.35, 0.4]",0.3795535968167776,0.4679416112342942,10824.0
+Logística,Todas las velas elegibles,"(0.4, 0.45]",0.4295603009153817,0.42692418564427786,20814.0
+Logística,Todas las velas elegibles,"(0.45, 0.5]",0.47383314546776867,0.4497827040389139,25081.0
+Logística,Todas las velas elegibles,"(0.5, 0.55]",0.5166961120971777,0.4899328859060403,8493.0
+Logística,Todas las velas elegibles,"(0.55, 0.6]",0.5699110009198108,0.5276984580239863,1751.0
+Logística,Todas las velas elegibles,"(0.6, 0.65]",0.6216085829983224,0.5640599001663894,601.0
+Logística,Todas las velas elegibles,"(0.65, 0.7]",0.6723306509023096,0.6086956521739131,207.0
+Logística,Todas las velas elegibles,"(0.7, 0.75]",0.7218993766573983,0.6395348837209303,86.0
+Logística,Todas las velas elegibles,"(0.75, 0.8]",0.771043395734567,0.6590909090909091,44.0
+Logística,Todas las velas elegibles,"(0.8, 0.85]",0.824797427245663,0.7857142857142857,14.0
+Logística,Todas las velas elegibles,"(0.85, 0.9]",0.8748854619760134,1.0,2.0
+Logística,Todas las velas elegibles,"(0.9, 0.95]",0.9026571261662619,1.0,3.0
+Logística,Rupturas previas a filtros de cartera,"(0.2, 0.25]",0.22406387366297345,0.0,1.0
+Logística,Rupturas previas a filtros de cartera,"(0.25, 0.3]",0.28452185481655207,0.5,6.0
+Logística,Rupturas previas a filtros de cartera,"(0.3, 0.35]",0.33298853028315,0.5588235294117647,68.0
+Logística,Rupturas previas a filtros de cartera,"(0.35, 0.4]",0.3795337631085687,0.450199203187251,502.0
+Logística,Rupturas previas a filtros de cartera,"(0.4, 0.45]",0.4268341548051121,0.43567251461988304,684.0
+Logística,Rupturas previas a filtros de cartera,"(0.45, 0.5]",0.47366757466074433,0.4361904761904762,525.0
+Logística,Rupturas previas a filtros de cartera,"(0.5, 0.55]",0.5096004815993596,0.5025906735751295,193.0
+Logística,Rupturas previas a filtros de cartera,"(0.55, 0.6]",0.5795288546282198,0.2857142857142857,7.0
+Logística,Rupturas previas a filtros de cartera,"(0.6, 0.65]",0.6305559289956778,0.25,4.0
+Logística,Rupturas previas a filtros de cartera,"(0.65, 0.7]",0.6933429740801854,0.0,1.0
+LightGBM,Todas las velas elegibles,"(0.15, 0.2]",0.18949730556306182,0.0,2.0
+LightGBM,Todas las velas elegibles,"(0.2, 0.25]",0.23317791230707113,0.3392857142857143,56.0
+LightGBM,Todas las velas elegibles,"(0.25, 0.3]",0.2852770504463238,0.34366925064599485,387.0
+LightGBM,Todas las velas elegibles,"(0.3, 0.35]",0.33145613901298693,0.44079555966697503,2162.0
+LightGBM,Todas las velas elegibles,"(0.35, 0.4]",0.381706031501292,0.4619934282584885,9130.0
+LightGBM,Todas las velas elegibles,"(0.4, 0.45]",0.42944157378520925,0.43049716687991224,21884.0
+LightGBM,Todas las velas elegibles,"(0.45, 0.5]",0.47450822214329497,0.45235610500120416,24914.0
+LightGBM,Todas las velas elegibles,"(0.5, 0.55]",0.5158238692052387,0.48536915547224824,9603.0
+LightGBM,Todas las velas elegibles,"(0.55, 0.6]",0.5674315435547087,0.5288526816021725,1473.0
+LightGBM,Todas las velas elegibles,"(0.6, 0.65]",0.6217129455179982,0.6056338028169014,284.0
+LightGBM,Todas las velas elegibles,"(0.65, 0.7]",0.6714707447829906,0.5365853658536586,123.0
+LightGBM,Todas las velas elegibles,"(0.7, 0.75]",0.7230904761086343,0.7066666666666667,75.0
+LightGBM,Todas las velas elegibles,"(0.75, 0.8]",0.7687103140351239,0.95,20.0
+LightGBM,Todas las velas elegibles,"(0.8, 0.85]",0.8321442853872423,1.0,9.0
+LightGBM,Todas las velas elegibles,"(0.85, 0.9]",0.8557905578933777,1.0,6.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.25, 0.3]",0.2859799761808461,0.5263157894736842,19.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.3, 0.35]",0.3329337688430252,0.45454545454545453,77.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.35, 0.4]",0.38277482648418576,0.45664739884393063,346.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.4, 0.45]",0.4274266376232457,0.45689655172413796,696.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.45, 0.5]",0.47381091076340753,0.4402420574886536,661.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.5, 0.55]",0.5094607554406888,0.4088397790055249,181.0
+LightGBM,Rupturas previas a filtros de cartera,"(0.55, 0.6]",0.5639863200655828,0.7272727272727273,11.0

@@ -1,0 +1,29 @@
+{
+  "id": "RES-0005",
+  "kind": "RES",
+  "label": "ml-predictions",
+  "metrics": {},
+  "benchmarks": {},
+  "meta": {
+    "created_at": "2026-09-17T17:39:28+00:00",
+    "git_sha": "af1b65f",
+    "git_dirty": false,
+    "data_hash": "69e24ae5a490",
+    "host": "MacBook-Air-4.local",
+    "python": "3.12.4",
+    "tradingbot_version": "0.1.0",
+    "duration_s": 1.04,
+    "strategy": "ml-predictions",
+    "timeframe": "4h",
+    "pairs": [],
+    "start": null,
+    "end": null,
+    "include_holdout": false,
+    "params_hash": "224d5f41e2",
+    "extra": {
+      "brier": 0.2490596312711824,
+      "log_loss": 0.691362550544215,
+      "scored_rows": 80079
+    }
+  }
+}

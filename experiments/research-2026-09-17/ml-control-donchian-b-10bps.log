@@ -1,0 +1,62 @@
+ventana 1/8: OOS 2021-08-01 -> 2022-02-01: retorno +0.30 %, 35 trades
+ventana 2/8: OOS 2022-02-01 -> 2022-08-01: retorno +0.00 %, 0 trades
+ventana 3/8: OOS 2022-08-01 -> 2023-02-01: retorno +0.69 %, 7 trades
+ventana 4/8: OOS 2023-02-01 -> 2023-08-01: retorno -0.47 %, 37 trades
+ventana 5/8: OOS 2023-08-01 -> 2024-02-01: retorno +17.00 %, 30 trades
+ventana 6/8: OOS 2024-02-01 -> 2024-08-01: retorno +3.15 %, 37 trades
+ventana 7/8: OOS 2024-08-01 -> 2025-02-01: retorno +5.16 %, 36 trades
+ventana 8/8: OOS 2025-02-01 -> 2025-08-01: retorno +5.08 %, 31 trades
+muestra completa 2019-08-01 -> 2025-08-01 con parámetros fijos
+meseta 1/14: {'entry_period': 48}
+meseta 2/14: {'entry_period': 72}
+meseta 3/14: {'exit_period': 16}
+meseta 4/14: {'exit_period': 24}
+meseta 5/14: {'atr_mult': 2.4}
+meseta 6/14: {'atr_mult': 3.6}
+meseta 7/14: {'entry_period': 48, 'exit_period': 16, 'atr_mult': 2.4}
+meseta 8/14: {'entry_period': 48, 'exit_period': 16, 'atr_mult': 3.6}
+meseta 9/14: {'entry_period': 48, 'exit_period': 24, 'atr_mult': 2.4}
+meseta 10/14: {'entry_period': 48, 'exit_period': 24, 'atr_mult': 3.6}
+meseta 11/14: {'entry_period': 72, 'exit_period': 16, 'atr_mult': 2.4}
+meseta 12/14: {'entry_period': 72, 'exit_period': 16, 'atr_mult': 3.6}
+meseta 13/14: {'entry_period': 72, 'exit_period': 24, 'atr_mult': 2.4}
+meseta 14/14: {'entry_period': 72, 'exit_period': 24, 'atr_mult': 3.6}
+#  IS                       OOS                         retorno  sharpe   max dd trades  params
+1  2019-08-01 -> 2021-08-01 2021-08-01 -> 2022-02-01     +0.30 %    0.13    5.00 %     35  base
+2  2020-02-01 -> 2022-02-01 2022-02-01 -> 2022-08-01     +0.00 %       -   -0.00 %      0  base
+3  2020-08-01 -> 2022-08-01 2022-08-01 -> 2023-02-01     +0.69 %    0.37    1.68 %      7  base
+4  2021-02-01 -> 2023-02-01 2023-02-01 -> 2023-08-01     -0.47 %   -0.06    3.69 %     37  base
+5  2021-08-01 -> 2023-08-01 2023-08-01 -> 2024-02-01    +17.00 %    2.81    4.92 %     30  base
+6  2022-02-01 -> 2024-02-01 2024-02-01 -> 2024-08-01     +3.15 %    0.78    5.24 %     37  base
+7  2022-08-01 -> 2024-08-01 2024-08-01 -> 2025-02-01     +5.16 %    1.14    5.26 %     36  base
+8  2023-02-01 -> 2025-02-01 2025-02-01 -> 2025-08-01     +5.08 %    1.10    7.44 %     31  base
+metrica              OOS concatenado           B&H BTC (OOS)  B&H BTC filtrado (OOS)     Equiponderado (OOS)        muestra completa
+retorno                     +34.05 %               +174.73 %               +203.24 %               +173.86 %                +83.06 %
+cagr                         +7.60 %                +28.74 %                +31.96 %                +28.64 %                +10.60 %
+sharpe                          0.95                    0.76                    1.04                    0.72                    1.22
+max dd                       +9.23 %                +77.14 %                +27.48 %                +81.55 %                 +9.19 %
+pf                              1.65                       -                       -                       -                    1.85
+trades                           213                       0                       0                       0                     328
+exposicion                  +28.06 %               +100.00 %               +100.00 %               +100.00 %                +29.09 %
+monte carlo (5000 corridas, 213 trades): max DD p50 5.79 %, p95 11.26 %, p99 14.91 %; retorno p05 +6.55 %
+bootstrap por bloques (1460 retornos diarios, informativo): max DD p50 10.01 %, p95 17.51 %; retorno p05 -2.05 %
+meseta: 14 variantes, pasan 100 %; con Sharpe >= 0.5 x base: 100 %
+gate 1: aprobado (falta el holdout)
+  OK    Sharpe OOS                      0.95                      umbral >= 0.8 y >= B&H BTC (0.76)
+  OK    Profit factor OOS               1.65                      umbral >= 1.3
+  OK    Max DD OOS                      9.23 %                    umbral <= 25 % y <= 50 % del DD B&H (77.14 %)
+  OK    Universo activo en OOS          8/8                       umbral todos los pares con datos en todas las ventanas
+  OK    Ventanas OOS positivas          6/8 (75 %)                umbral >= 60 %
+  OK    Trades muestra completa         328                       umbral >= 100
+  OK    Trades curva OOS                213                       umbral >= 40
+  OK    Régimen: retorno 2020           +16.25 %                  umbral > 0
+  OK    Régimen: retorno 2021           +18.34 %                  umbral > 0
+  OK    Régimen: retorno 2023           +18.71 %                  umbral > 0
+  OK    Régimen: retorno 2024           +8.85 %                   umbral > 0
+  OK    Régimen: retorno 2022           +0.00 %                   umbral >= -8 %
+  OK    Régimen: max DD intra-año       7.42 % (2025)             umbral <= 25 %
+  OK    Meseta ±20 %                    100.00 %                  umbral >= 80 % de variantes con PF > 1.1 y retorno > 0
+  OK    Monte Carlo DD p95              11.26 %                   umbral <= 35 %
+  n/a   Holdout                         -                         umbral PF > 1.1 y DD <= 25 %
+duracion 29 s
+registrado: WF-0051-ml-control-donchian-b-10bps -> /Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/WF-0051-ml-control-donchian-b-10bps

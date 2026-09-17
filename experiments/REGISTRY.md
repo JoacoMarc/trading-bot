@@ -30,6 +30,14 @@ Holdout reservado: desde 2025-09-01 (ver `docs/GATES.md`). Ninguna corrida lo in
 | EXP-0022 | 2026-09-17 | donchian | c8d4a6af5b | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +86.0 % | 1.23 | +9.2 % | 334 | iterar (investigación; no autorizado para paper) |
 | EXP-0023 | 2026-09-17 | donchian | c8d4a6af5b | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +74.6 % | 1.11 | +10.4 % | 336 | iterar (investigación; no autorizado para paper) |
 | EXP-0024 | 2026-09-17 | regime_bh | 937532e2f5 | 2019-08-01 → 2025-09-01 | BTC | 4h | +302.7 % | 1.17 | +21.4 % | 59 | go (control histórico; no habilita dinero real) |
+| EXP-0025 | 2026-09-17 | supertrend | 68e7dfee94 | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +7.7 % | 0.51 | +2.7 % | 216 | no-go |
+| EXP-0026 | 2026-09-17 | supertrend | 68e7dfee94 | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +16.1 % | 0.43 | +7.4 % | 285 | no-go |
+| EXP-0027 | 2026-09-17 | supertrend | 9f823b9a22 | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | +15.2 % | 0.45 | +10.7 % | 855 | no-go |
+| EXP-0028 | 2026-09-17 | supertrend | 9f823b9a22 | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | +9.7 % | 0.18 | +32.5 % | 1119 | no-go |
+| EXP-0029 | 2026-09-17 | donchian | c8d4a6af5b | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.0 % | -0.01 | +1.5 % | 13 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| EXP-0030 | 2026-09-17 | donchian | c8d4a6af5b | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.7 % | -0.08 | +3.0 % | 15 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| EXP-0031 | 2026-09-17 | donchian | c8d4a6af5b | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +1.0 % | 0.20 | +1.0 % | 15 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| EXP-0032 | 2026-09-17 | donchian | c8d4a6af5b | 2019-08-01 → 2025-09-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +2.2 % | 0.17 | +3.0 % | 20 | no-go (ML v1 no promovible; Gate 1 incompleto) |
 | WF-0001 | 2026-09-09 | ema_trend | b978b0fa53 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +23.4 % | 0.48 | +14.3 % | 163 | no-go (Gate 1 no aprobado: Sharpe OOS 0.48) |
 | WF-0002 | 2026-09-09 | ema_trend | b978b0fa53 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +77.5 % | 1.03 | +15.5 % | 140 | no-go (afinar parámetros refutada: 2 trades = 102 % del PnL) |
 | WF-0003 | 2026-09-14 | ema_trend | 3067ccea6a | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +55.7 % | 0.64 | +30.4 % | 644 | no-go (`state` en 4h refutado: PF OOS 1.19 < 1.2, DD 30 %) |
@@ -52,3 +60,42 @@ Holdout reservado: desde 2025-09-01 (ver `docs/GATES.md`). Ninguna corrida lo in
 | WF-0020 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +4.8 % | 0.43 | +5.9 % | 163 | no-go |
 | WF-0021 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +34.0 % | 0.95 | +9.2 % | 213 | iterar (investigación; no autorizado para paper) |
 | WF-0022 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +28.9 % | 0.83 | +10.4 % | 214 | iterar (investigación; no autorizado para paper) |
+| WF-0023 | 2026-09-17 | supertrend | 68e7dfee94 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +6.5 % | 0.67 | +2.7 % | 137 | no-go |
+| WF-0024 | 2026-09-17 | supertrend | 68e7dfee94 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +5.9 % | 0.61 | +2.8 % | 137 | no-go |
+| WF-0025 | 2026-09-17 | supertrend | 68e7dfee94 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +4.7 % | 0.48 | +3.0 % | 137 | no-go |
+| WF-0026 | 2026-09-17 | supertrend | 68e7dfee94 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +5.7 % | 0.27 | +7.4 % | 187 | no-go |
+| WF-0027 | 2026-09-17 | supertrend | 68e7dfee94 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +4.1 % | 0.20 | +7.8 % | 187 | no-go |
+| WF-0028 | 2026-09-17 | supertrend | 68e7dfee94 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +0.9 % | 0.07 | +8.6 % | 187 | no-go |
+| WF-0029 | 2026-09-17 | supertrend | 9f823b9a22 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -6.1 % | -0.33 | +10.8 % | 552 | no-go |
+| WF-0030 | 2026-09-17 | supertrend | 9f823b9a22 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -10.7 % | -0.60 | +13.3 % | 555 | no-go |
+| WF-0031 | 2026-09-17 | supertrend | 9f823b9a22 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -19.2 % | -1.12 | +21.3 % | 561 | no-go |
+| WF-0032 | 2026-09-17 | supertrend | 9f823b9a22 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -26.4 % | -0.72 | +30.9 % | 746 | no-go |
+| WF-0033 | 2026-09-17 | supertrend | 9f823b9a22 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -34.5 % | -1.00 | +37.7 % | 749 | no-go |
+| WF-0034 | 2026-09-17 | supertrend | 9f823b9a22 | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 1h | -46.7 % | -1.46 | +49.3 % | 758 | no-go |
+| WF-0035 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +0.3 % | 0.21 | +0.5 % | 3 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0036 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +0.3 % | 0.19 | +0.5 % | 3 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0037 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +0.2 % | 0.17 | +0.5 % | 3 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0038 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +0.1 % | 0.03 | +1.1 % | 4 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0039 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +0.0 % | 0.02 | +1.1 % | 4 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0040 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.0 % | -0.01 | +1.1 % | 4 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0041 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.0 % | -0.01 | +0.4 % | 3 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0042 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.0 % | -0.02 | +0.4 % | 3 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0043 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.0 % | -0.05 | +0.4 % | 3 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0044 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.7 % | -0.28 | +1.3 % | 5 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0045 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.7 % | -0.29 | +1.3 % | 5 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0046 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | -0.8 % | -0.33 | +1.3 % | 5 | no-go (ML v1 no promovible; Gate 1 incompleto) |
+| WF-0047 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +6.8 % | 0.61 | +5.1 % | 163 | referencia (reproducción; no autoriza paper) |
+| WF-0048 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +6.1 % | 0.55 | +5.4 % | 163 | referencia (reproducción; no autoriza paper) |
+| WF-0049 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +4.8 % | 0.43 | +5.9 % | 163 | referencia (reproducción; no autoriza paper) |
+| WF-0050 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +36.3 % | 1.01 | +8.9 % | 213 | referencia (reproducción; no autoriza paper) |
+| WF-0051 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +34.0 % | 0.95 | +9.2 % | 213 | referencia (reproducción; no autoriza paper) |
+| WF-0052 | 2026-09-17 | donchian | c8d4a6af5b | 2021-08-01 → 2025-08-01 | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | +28.9 % | 0.83 | +10.4 % | 214 | referencia (reproducción; no autoriza paper) |
+| RES-0001 | 2026-09-17 | ml-dataset | 3f6f3ea5e3 | … → … | ADA, BNB, BTC, ETH, LINK, LTC, SOL, XRP | 4h | — | — | — | — | pendiente |
+| RES-0002 | 2026-09-17 | ml-train-logistic | a996566241 | 2019-08-01 → 2025-09-01 |  | 4h | — | — | — | — | pendiente |
+| RES-0003 | 2026-09-17 | ml-predictions | 7c1dca5c7b | … → … |  | 4h | — | — | — | — | pendiente |
+| RES-0004 | 2026-09-17 | ml-train-lightgbm | 32443d806f | 2019-08-01 → 2025-09-01 |  | 4h | — | — | — | — | pendiente |
+| RES-0005 | 2026-09-17 | ml-predictions | 224d5f41e2 | … → … |  | 4h | — | — | — | — | pendiente |
+| RES-0006 | 2026-09-17 | paired-comparison | bc346a4012 | … → … |  | 4h | — | — | — | — | pendiente |
+| RES-0007 | 2026-09-17 | paired-comparison | a420cc116c | … → … |  | 4h | — | — | — | — | pendiente |
+| RES-0008 | 2026-09-17 | paired-comparison | 82737436f1 | … → … |  | 4h | — | — | — | — | pendiente |
+| RES-0009 | 2026-09-17 | paired-comparison | 46a0a429b6 | … → … |  | 4h | — | — | — | — | pendiente |

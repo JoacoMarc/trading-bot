@@ -2,17 +2,18 @@
 
 Copia viva del plan (detalle completo en [PLAN.md](PLAN.md)). Estados: `pendiente` · `en curso` · `cerrada (fecha)`. Cada fase se trabaja en sesiones propias con `/phase-start` y se cierra con `/phase-close`. Tamaño en sesiones: S = 1, M = 1–2, L = 2–4.
 
-## Extensión aprobada2026-09-17 — investigación de reglas/ML/LLM · `en curso`
+## Extensión aprobada 2026-09-17 — investigación de reglas/ML/LLM · `histórica cerrada; prospectiva pendiente`
 
 - [x] Rama `codex/research-ml-llm`, specs y ADR-0014.
-- [x] Supertrend4h/1h,A/B, checkpointrecursivo y recuperación atómica.
-- [x] Datos1h/4h verificados,16corridas registradas Supertrend: todas no-go, sinholdout.
-- [x] Featurescomunes, labels24h, purga, logística/LightGBM mensuales, calibración y artefactosJSON.
-- [x] Filtroentradas opt-in, cobertura explícita y meseta24variantes, comparación emparejada.
-- [x] ObservadorLLMsinbroker, cola/plazos/presupuesto/persistencia/recuperación y CLI.
-- [ ] Cierre de evaluaciónML y entrega de resultados registrados (ver informe de investigación).
+- [x] Supertrend 4h/1h, A/B, checkpoint recursivo y recuperación atómica.
+- [x] Datos 1h/4h verificados; 16 corridas Supertrend, todas no-go, sin holdout.
+- [x] Variables compartidas, etiquetas 24h, purga, modelos mensuales, calibración y artefactos JSON.
+- [x] Filtro de entradas opt-in, cobertura explícita, meseta de 24 variantes y comparación emparejada.
+- [x] Observador LLM de entradas/salidas sin broker, cola/plazos/presupuesto/persistencia/recuperación y CLI de contrato sintético.
+- [x] 22 corridas ML/controles y cuatro comparaciones emparejadas: ML v1 no promovible. Se detiene la inversión adicional en sensibilidad de semillas/ventanas/variables y controles de exposición, sin declararlos validados. [Informe completo](../experiments/research-2026-09-17/REPORT.md).
+- [x] 635 tests locales y cuatro de red pública (639), Ruff/formato/mypy y revisión técnica; Docker ML construido y CLI/dependencias probadas sin red. Seis controles sin IA idénticos a sus versiones previas.
 - [ ] Elegir modelo/API y congelar cohorte para observación prospectiva; sin gasto iniciado.
-- [ ] Baseaprobada +12semanas/40cierres +ejecución diferida validada antes de paperLLM.
+- [ ] Base aprobada + 12 semanas/40 cierres + ejecución diferida validada antes de paper LLM.
 
 La última condición es una etapa futura sujeta a evidencia, no una aprobación de
 Gate1 ni autorización de live. Runbook: `docs/runbooks/research-ml-llm.md`.
@@ -125,7 +126,7 @@ Deuda registrada (revisor de la Fase 6, menores no aplicados): las posiciones ab
 
 - [ ] **Pendiente transversal (Gate 1 de `regime_bh`):** el paper tiene BTC comprado desde el 2026-09-14 y esta estrategia no vende mientras el régimen siga encendido; cuando venda (régimen apagado o stop del 20 %), `download-data` y `tradingbot backtest --config configs/regime-bh.yaml --from 2025-09-01 --include-holdout`; PF sobre los 5 trades cerrados > 1.1 → `go` y arranca el reloj de las 8 semanas del Gate 2; si no → `no-go`. Si la pierna sigue abierta varios meses, replantear la regla por ADR (contar la posición abierta a precio de mercado, deuda de la Fase 6), nunca a mano. Registro semanal del paper acá (fecha, velas, fills, eventos raros, reinicios, `parity`)
 - [ ] Orden de las fases: el plan dice 9 → 10; se recomendó al usuario hacer la **Fase 10 primero** (broker real + testnet es lo que falta para operar en vivo y conviene tenerlo probado antes de que terminen las 8 semanas del Gate 2); el analista LLM no bloquea nada. Decisión del usuario al arrancar la próxima sesión (`/phase-start 10` o `9`)
-- [ ] `analyst/` con anthropic SDK (`claude-opus-5`, salida estructurada), CLI `analyze`, ADR-0006, skill `/analyze`
+- [x] `analyst/` observacional con puerto de proveedor y adaptador Anthropic, sin modelo implícito. CLI `advisor observe|status|replay|contract`, ADR-0014. No reemplaza decisiones del motor ni atribuye rentabilidad a un LLM. Selección de modelo y evidencia prospectiva pendientes, detalladas en la extensión anterior.
 
 ## Fase 10 — Broker real, testnet y preparación para live (L) · `pendiente`
 
@@ -137,6 +138,8 @@ Deuda registrada (revisor de la Fase 6, menores no aplicados): las posiciones ab
 - [ ] Arranque con capital pequeño; revisión semanal (parity, shortfall) y mensual (analista); backlog
 
 ## Aprendizajes
+
+- Investigación 2026-09-17: conservar un checkpoint recursivo y la historia propia de cada par fue necesario para la equivalencia Supertrend; una ventana mayor sola no resolvía la semilla. La cobertura de predicciones debe comprobarse también en velas sin señales, porque de otro modo un período sin modelo parece cash exitoso. Los filtros ML con objetivo 24h no mejoraron Donchian: 3–5 cierres OOS y muy pocas rupturas sobre el umbral. No se baja el umbral ni se consume holdout para rescatar ese resultado. El observador separa cohortes de entradas sin cartera y salidas con fuente paper de solo lectura; la respuesta cruda truncada también es evidencia y se conserva.
 
 - Fase 0: `uv` instalado vía `pip install uv`; `Python311\Scripts` agregado al PATH de usuario para que `uv` resuelva en shells nuevas (en esta sesión se usó `python -m uv`). Los hooks de `.claude/settings.json` se activan de inmediato y funcionan en Windows con `python "${CLAUDE_PROJECT_DIR}/..."`; el hook `guard_live` inspecciona el comando completo, así que sus casos de prueba viven en `tests/test_hooks.py` y no en la línea de comandos.
 - Fase 0: Docker Desktop falló una vez al arrancar con `Wsl/Service/CreateInstance/CreateVm/HCS/0x800705aa` ("recursos insuficientes") con 16 GB de RAM y ~5 GB libres; el usuario lo levantó después y la build pasó. Si se repite antes del paper (Fase 7): cerrar apps pesadas, `wsl --shutdown`, crear `%USERPROFILE%\.wslconfig` con `[wsl2]` `memory=4GB` `processors=2`, reiniciar Docker Desktop. La imagen pesa ~1 GB (pandas, pyarrow, matplotlib, optuna); adelgazarla queda en backlog.

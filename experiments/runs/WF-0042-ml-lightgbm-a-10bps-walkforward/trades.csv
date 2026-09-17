@@ -1,0 +1,4 @@
+pair,strategy,entry_time,entry_price,exit_time,exit_price,exit_reason,qty,fees_quote,pnl,pnl_pct,duration_hours,entry_client_order_id,exit_client_order_id
+ETH/USDT,donchian,2021-11-03 00:00,4594.27,2021-11-06 11:59,4378.43,trailing,0.0857,0.7694198160,-19.2669078160,-0.048934,84.00,tb-donchian-ETHUSDT-1635883200-B,tb-donchian-ETHUSDT-1636185600-T
+SOL/USDT,donchian,2021-11-03 00:00,221.04,2021-11-09 15:59,237.53,trailing,1.160,0.5323832800,18.5960167200,0.072526,160.00,tb-donchian-SOLUSDT-1635883200-B,tb-donchian-SOLUSDT-1636459200-T
+BTC/USDT,donchian,2021-11-08 04:00,65265.20,2021-11-10 23:59,65266.02,trailing,0.00835,1.0905883420,-1.0837413420,-0.001989,68.00,tb-donchian-BTCUSDT-1636329600-B,tb-donchian-BTCUSDT-1636574400-T

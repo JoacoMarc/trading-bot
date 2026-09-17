@@ -1,0 +1,32 @@
+{
+  "source_revision": "715f3b0",
+  "pytest": {
+    "passed": 635,
+    "deselected": 4,
+    "network_calls": false
+  },
+  "ruff_check": "passed",
+  "ruff_format": "passed",
+  "mypy": {
+    "passed": true,
+    "source_files": 202
+  },
+  "docker_image": "tradingbot-research:715f3b0",
+  "docker_manifest_digest": "sha256:a0db617e2287a505431d1c5c6a71f42f86cfa2be9c8310a89464478b433346d3",
+  "docker_smoke": {
+    "network": "none",
+    "advisor_contract_help": "passed",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "paid_calls_enabled": false
+  },
+  "compose_config": "passed",
+  "vps_modified": false,
+  "paid_llm_calls": 0,
+  "new_papers_started": 0,
+  "holdout_evaluated": false,
+  "public_network_tests": {
+    "passed": 4,
+    "financial_api_calls": 0
+  }
+}

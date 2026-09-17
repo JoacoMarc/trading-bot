@@ -1,0 +1,595 @@
+{
+  "coverage_sha256": "36335af012cb7ce9742674c55b97da0b53e19b686ea6d231296a34ff24f9a115",
+  "feature_version": "market-v1",
+  "models": [
+    {
+      "model_hash": "4a45bd4b749c1069e4948efd9aca508e65c4a0eada5620d6302e3205d4dce31f",
+      "available_at": 1612141200000,
+      "expires_at": 1614560400000,
+      "cut": 1612137600000,
+      "fit_label_end_max": 1604174400000,
+      "calibration_label_end_max": 1612123200000,
+      "calibration_cut": 1604188800000
+    },
+    {
+      "model_hash": "ca22609f4fc8d4b83cb181b0eadebc17e25af8b52100c70044ec9888c9b656f8",
+      "available_at": 1614560400000,
+      "expires_at": 1617238800000,
+      "cut": 1614556800000,
+      "fit_label_end_max": 1606766400000,
+      "calibration_label_end_max": 1614542400000,
+      "calibration_cut": 1606780800000
+    },
+    {
+      "model_hash": "4f10efb7309a1279517997fff249299cb296c634b890944feabb587e83fcce39",
+      "available_at": 1617238800000,
+      "expires_at": 1619830800000,
+      "cut": 1617235200000,
+      "fit_label_end_max": 1609444800000,
+      "calibration_label_end_max": 1617220800000,
+      "calibration_cut": 1609459200000
+    },
+    {
+      "model_hash": "a2f90ed6c64c0cfcf43934d9cfd839638dd9f96eca0cf36cfa6dda5d02dd718c",
+      "available_at": 1619830800000,
+      "expires_at": 1622509200000,
+      "cut": 1619827200000,
+      "fit_label_end_max": 1612123200000,
+      "calibration_label_end_max": 1619812800000,
+      "calibration_cut": 1612137600000
+    },
+    {
+      "model_hash": "374487b93a6d950e0aea15792126be8bf259ac6df980bcef9a799cda7e5d6bf3",
+      "available_at": 1622509200000,
+      "expires_at": 1625101200000,
+      "cut": 1622505600000,
+      "fit_label_end_max": 1614542400000,
+      "calibration_label_end_max": 1622491200000,
+      "calibration_cut": 1614556800000
+    },
+    {
+      "model_hash": "12c70f5f1b7f727cc36b7141c826c36c024817566569c454d20898d8be25c5f7",
+      "available_at": 1625101200000,
+      "expires_at": 1627779600000,
+      "cut": 1625097600000,
+      "fit_label_end_max": 1617220800000,
+      "calibration_label_end_max": 1625083200000,
+      "calibration_cut": 1617235200000
+    },
+    {
+      "model_hash": "59749bc81fb7b636616c35bd60f3c1b8dd9866cf5773651caa005d03b9a70dc8",
+      "available_at": 1627779600000,
+      "expires_at": 1630458000000,
+      "cut": 1627776000000,
+      "fit_label_end_max": 1619812800000,
+      "calibration_label_end_max": 1627761600000,
+      "calibration_cut": 1619827200000
+    },
+    {
+      "model_hash": "a68f3fe2230199b9f366f1dc36da00b1ba03ba85e0e775e0eac06ef18fa818fc",
+      "available_at": 1630458000000,
+      "expires_at": 1633050000000,
+      "cut": 1630454400000,
+      "fit_label_end_max": 1622491200000,
+      "calibration_label_end_max": 1630440000000,
+      "calibration_cut": 1622505600000
+    },
+    {
+      "model_hash": "a3c0701e9754e7dd8d8faa09360aa8061da0938a368aa4a674df2113d4343255",
+      "available_at": 1633050000000,
+      "expires_at": 1635728400000,
+      "cut": 1633046400000,
+      "fit_label_end_max": 1625083200000,
+      "calibration_label_end_max": 1633032000000,
+      "calibration_cut": 1625097600000
+    },
+    {
+      "model_hash": "35b41e59a1e994de9527cd614f2e1d140c337dccc7fa9ebd59ee83bede18c6a2",
+      "available_at": 1635728400000,
+      "expires_at": 1638320400000,
+      "cut": 1635724800000,
+      "fit_label_end_max": 1627761600000,
+      "calibration_label_end_max": 1635710400000,
+      "calibration_cut": 1627776000000
+    },
+    {
+      "model_hash": "a2be1643f10974966f4f096272d24809a311cff26792b75f74b4408326f7b17e",
+      "available_at": 1638320400000,
+      "expires_at": 1640998800000,
+      "cut": 1638316800000,
+      "fit_label_end_max": 1630440000000,
+      "calibration_label_end_max": 1638302400000,
+      "calibration_cut": 1630454400000
+    },
+    {
+      "model_hash": "fae3aba7a580ab4985192415a721ea2b7c18999a8428aa24dad9c7003ab7eaf1",
+      "available_at": 1640998800000,
+      "expires_at": 1643677200000,
+      "cut": 1640995200000,
+      "fit_label_end_max": 1633032000000,
+      "calibration_label_end_max": 1640980800000,
+      "calibration_cut": 1633046400000
+    },
+    {
+      "model_hash": "206d7ce02be83f758567f17e7f5471521c4698038f7343dd372eea4ca9cfb21c",
+      "available_at": 1643677200000,
+      "expires_at": 1646096400000,
+      "cut": 1643673600000,
+      "fit_label_end_max": 1635710400000,
+      "calibration_label_end_max": 1643659200000,
+      "calibration_cut": 1635724800000
+    },
+    {
+      "model_hash": "e7358577dbf4b4a8dcdd00f724a5dd8afcb8baf462b6d9242ed546799dadaba8",
+      "available_at": 1646096400000,
+      "expires_at": 1648774800000,
+      "cut": 1646092800000,
+      "fit_label_end_max": 1638302400000,
+      "calibration_label_end_max": 1646078400000,
+      "calibration_cut": 1638316800000
+    },
+    {
+      "model_hash": "f15ac74b62c74ee37daa3676787625e84e1a372b928acedd1b0e9e8ac2e0cb59",
+      "available_at": 1648774800000,
+      "expires_at": 1651366800000,
+      "cut": 1648771200000,
+      "fit_label_end_max": 1640980800000,
+      "calibration_label_end_max": 1648756800000,
+      "calibration_cut": 1640995200000
+    },
+    {
+      "model_hash": "6528a07284a7f797992a9946204e0ca29819238dac5212faae6729b824467ad5",
+      "available_at": 1651366800000,
+      "expires_at": 1654045200000,
+      "cut": 1651363200000,
+      "fit_label_end_max": 1643659200000,
+      "calibration_label_end_max": 1651348800000,
+      "calibration_cut": 1643673600000
+    },
+    {
+      "model_hash": "2b73106d7acd7f6aac338e077dda1538fe690d796ec48857b3aedb58b5fb8937",
+      "available_at": 1654045200000,
+      "expires_at": 1656637200000,
+      "cut": 1654041600000,
+      "fit_label_end_max": 1646078400000,
+      "calibration_label_end_max": 1654027200000,
+      "calibration_cut": 1646092800000
+    },
+    {
+      "model_hash": "a73471c768a6746ed3ddc9085c13227a6b939aaf02fb918c659f56a4f0a0ff95",
+      "available_at": 1656637200000,
+      "expires_at": 1659315600000,
+      "cut": 1656633600000,
+      "fit_label_end_max": 1648756800000,
+      "calibration_label_end_max": 1656619200000,
+      "calibration_cut": 1648771200000
+    },
+    {
+      "model_hash": "f46ecd58acb4b6d6a6efe1ba5a113baede268ad0499caaccaba4f0db63997dd4",
+      "available_at": 1659315600000,
+      "expires_at": 1661994000000,
+      "cut": 1659312000000,
+      "fit_label_end_max": 1651348800000,
+      "calibration_label_end_max": 1659297600000,
+      "calibration_cut": 1651363200000
+    },
+    {
+      "model_hash": "2469e1330e4b14b4b81bdf4ad7081e0b586fc19b38de364254a228ddac8a5870",
+      "available_at": 1661994000000,
+      "expires_at": 1664586000000,
+      "cut": 1661990400000,
+      "fit_label_end_max": 1654027200000,
+      "calibration_label_end_max": 1661976000000,
+      "calibration_cut": 1654041600000
+    },
+    {
+      "model_hash": "ff77ba0ef35a1749d3c1a24162da50c2f267a984fada22b78b7c7bc6dde00c23",
+      "available_at": 1664586000000,
+      "expires_at": 1667264400000,
+      "cut": 1664582400000,
+      "fit_label_end_max": 1656619200000,
+      "calibration_label_end_max": 1664568000000,
+      "calibration_cut": 1656633600000
+    },
+    {
+      "model_hash": "80cb0df5ee3742fb6637197f15f844d5dbcfbc3765c6aea852a9aba4717f52a9",
+      "available_at": 1667264400000,
+      "expires_at": 1669856400000,
+      "cut": 1667260800000,
+      "fit_label_end_max": 1659297600000,
+      "calibration_label_end_max": 1667246400000,
+      "calibration_cut": 1659312000000
+    },
+    {
+      "model_hash": "fd5dbd1b1b6d99de373231ee4da0bc64f1431483497ba41d2e38cb7da72c8fed",
+      "available_at": 1669856400000,
+      "expires_at": 1672534800000,
+      "cut": 1669852800000,
+      "fit_label_end_max": 1661976000000,
+      "calibration_label_end_max": 1669838400000,
+      "calibration_cut": 1661990400000
+    },
+    {
+      "model_hash": "dc4d3cc3d0553e152760bb541a2bf69e18a22439b405736cabe4fa951ea533a6",
+      "available_at": 1672534800000,
+      "expires_at": 1675213200000,
+      "cut": 1672531200000,
+      "fit_label_end_max": 1664568000000,
+      "calibration_label_end_max": 1672516800000,
+      "calibration_cut": 1664582400000
+    },
+    {
+      "model_hash": "95fde1b814e203990c27cd6c8ad094a057f82b5fb0a634e020c357dd902744c5",
+      "available_at": 1675213200000,
+      "expires_at": 1677632400000,
+      "cut": 1675209600000,
+      "fit_label_end_max": 1667246400000,
+      "calibration_label_end_max": 1675195200000,
+      "calibration_cut": 1667260800000
+    },
+    {
+      "model_hash": "6b3dc6a359b8b363113a59edcc1e00dcc8e31829283556e13d57e57d7ec3e297",
+      "available_at": 1677632400000,
+      "expires_at": 1680310800000,
+      "cut": 1677628800000,
+      "fit_label_end_max": 1669838400000,
+      "calibration_label_end_max": 1677614400000,
+      "calibration_cut": 1669852800000
+    },
+    {
+      "model_hash": "c65d482cd6e2db8b081cd6cf76b732d5251bf521bbc7ca2e59121345aab97a94",
+      "available_at": 1680310800000,
+      "expires_at": 1682902800000,
+      "cut": 1680307200000,
+      "fit_label_end_max": 1672516800000,
+      "calibration_label_end_max": 1680292800000,
+      "calibration_cut": 1672531200000
+    },
+    {
+      "model_hash": "552c9da5e21d9a4f17dca58869ec7f1cac91c6a6c765f49d595b929cf44873ec",
+      "available_at": 1682902800000,
+      "expires_at": 1685581200000,
+      "cut": 1682899200000,
+      "fit_label_end_max": 1675195200000,
+      "calibration_label_end_max": 1682884800000,
+      "calibration_cut": 1675209600000
+    },
+    {
+      "model_hash": "10973a17d9c527c47f045be16d2494c30fb21c39e3fdc1757486ec381fb72521",
+      "available_at": 1685581200000,
+      "expires_at": 1688173200000,
+      "cut": 1685577600000,
+      "fit_label_end_max": 1677614400000,
+      "calibration_label_end_max": 1685563200000,
+      "calibration_cut": 1677628800000
+    },
+    {
+      "model_hash": "0dbcfb5b70bee4c968cd14f2cb3212a525267c447feb71b6044b3b193a71b6a4",
+      "available_at": 1688173200000,
+      "expires_at": 1690851600000,
+      "cut": 1688169600000,
+      "fit_label_end_max": 1680292800000,
+      "calibration_label_end_max": 1688155200000,
+      "calibration_cut": 1680307200000
+    },
+    {
+      "model_hash": "04383ed9b3ac07e3c1316ab64a9a3c499371c1e1b68267ec749a149db8449ab4",
+      "available_at": 1690851600000,
+      "expires_at": 1693530000000,
+      "cut": 1690848000000,
+      "fit_label_end_max": 1682884800000,
+      "calibration_label_end_max": 1690833600000,
+      "calibration_cut": 1682899200000
+    },
+    {
+      "model_hash": "4b96cba7f81544d3d8b21eb273c056c0a0af89cbed1961304250e587d6f3896a",
+      "available_at": 1693530000000,
+      "expires_at": 1696122000000,
+      "cut": 1693526400000,
+      "fit_label_end_max": 1685563200000,
+      "calibration_label_end_max": 1693512000000,
+      "calibration_cut": 1685577600000
+    },
+    {
+      "model_hash": "229dcba9fc937fa2b210a698c1df4d93dab9bfd85e112d13ac825f95ffb3562f",
+      "available_at": 1696122000000,
+      "expires_at": 1698800400000,
+      "cut": 1696118400000,
+      "fit_label_end_max": 1688155200000,
+      "calibration_label_end_max": 1696104000000,
+      "calibration_cut": 1688169600000
+    },
+    {
+      "model_hash": "17be0681ecf3752633fecd9c03ec317662af62706f95ce17fbdfa0d18521f5de",
+      "available_at": 1698800400000,
+      "expires_at": 1701392400000,
+      "cut": 1698796800000,
+      "fit_label_end_max": 1690833600000,
+      "calibration_label_end_max": 1698782400000,
+      "calibration_cut": 1690848000000
+    },
+    {
+      "model_hash": "ce08f83c042a60a1b1cbb2463536bbc9d22890f06295e6e850605d809af45f79",
+      "available_at": 1701392400000,
+      "expires_at": 1704070800000,
+      "cut": 1701388800000,
+      "fit_label_end_max": 1693512000000,
+      "calibration_label_end_max": 1701374400000,
+      "calibration_cut": 1693526400000
+    },
+    {
+      "model_hash": "acff8f2764eb80fdea9abac9b4f82ccf57fca5450024cbd80105b1deb7744d3a",
+      "available_at": 1704070800000,
+      "expires_at": 1706749200000,
+      "cut": 1704067200000,
+      "fit_label_end_max": 1696104000000,
+      "calibration_label_end_max": 1704052800000,
+      "calibration_cut": 1696118400000
+    },
+    {
+      "model_hash": "924c54b0981388a5585abf22ff29bf2ffa0400ec4692bf78bcf7a4602425fc85",
+      "available_at": 1706749200000,
+      "expires_at": 1709254800000,
+      "cut": 1706745600000,
+      "fit_label_end_max": 1698782400000,
+      "calibration_label_end_max": 1706731200000,
+      "calibration_cut": 1698796800000
+    },
+    {
+      "model_hash": "e0a117e409c01307d0618e62040fe2928259436519f086719bdb48547370f082",
+      "available_at": 1709254800000,
+      "expires_at": 1711933200000,
+      "cut": 1709251200000,
+      "fit_label_end_max": 1701374400000,
+      "calibration_label_end_max": 1709236800000,
+      "calibration_cut": 1701388800000
+    },
+    {
+      "model_hash": "8eb026e6f643e90c11785813ecc6e7929b5c5684dfa67b65d440ff04493ee4af",
+      "available_at": 1711933200000,
+      "expires_at": 1714525200000,
+      "cut": 1711929600000,
+      "fit_label_end_max": 1704052800000,
+      "calibration_label_end_max": 1711915200000,
+      "calibration_cut": 1704067200000
+    },
+    {
+      "model_hash": "f3b2c4fee41acaf1c3d1d2b34d06a48750987ea4905f0ce9478193b7df955862",
+      "available_at": 1714525200000,
+      "expires_at": 1717203600000,
+      "cut": 1714521600000,
+      "fit_label_end_max": 1706731200000,
+      "calibration_label_end_max": 1714507200000,
+      "calibration_cut": 1706745600000
+    },
+    {
+      "model_hash": "fc2888dd932615103eabdf83ed1886b50a72d3aa1196bd06934ea81eae904db7",
+      "available_at": 1717203600000,
+      "expires_at": 1719795600000,
+      "cut": 1717200000000,
+      "fit_label_end_max": 1709236800000,
+      "calibration_label_end_max": 1717185600000,
+      "calibration_cut": 1709251200000
+    },
+    {
+      "model_hash": "3990f36a17af2fe6a39961b30a22a1a99bafa8e872ca2008a7351e5be18e9dda",
+      "available_at": 1719795600000,
+      "expires_at": 1722474000000,
+      "cut": 1719792000000,
+      "fit_label_end_max": 1711915200000,
+      "calibration_label_end_max": 1719777600000,
+      "calibration_cut": 1711929600000
+    },
+    {
+      "model_hash": "078ab2146d69efab45244a0673781adae725e872e83e2687ab0cdc20749d7bc5",
+      "available_at": 1722474000000,
+      "expires_at": 1725152400000,
+      "cut": 1722470400000,
+      "fit_label_end_max": 1714507200000,
+      "calibration_label_end_max": 1722456000000,
+      "calibration_cut": 1714521600000
+    },
+    {
+      "model_hash": "dbe3def3175a50c6f5e26c88ce57c69a639d8d61fe01a6aee93be90fef1d25e1",
+      "available_at": 1725152400000,
+      "expires_at": 1727744400000,
+      "cut": 1725148800000,
+      "fit_label_end_max": 1717185600000,
+      "calibration_label_end_max": 1725134400000,
+      "calibration_cut": 1717200000000
+    },
+    {
+      "model_hash": "2715850ca812cb75facebe08ef0611cfa7d30d543ae679a5b7f91dca4f429139",
+      "available_at": 1727744400000,
+      "expires_at": 1730422800000,
+      "cut": 1727740800000,
+      "fit_label_end_max": 1719777600000,
+      "calibration_label_end_max": 1727726400000,
+      "calibration_cut": 1719792000000
+    },
+    {
+      "model_hash": "f71dccd415fcdfe85d2a5e68e08ab70855e81db40e2b3c011d2ace929d94aaad",
+      "available_at": 1730422800000,
+      "expires_at": 1733014800000,
+      "cut": 1730419200000,
+      "fit_label_end_max": 1722456000000,
+      "calibration_label_end_max": 1730404800000,
+      "calibration_cut": 1722470400000
+    },
+    {
+      "model_hash": "0f4e2a8bad22664329605f7bc00318a5e360901b2f91bb1c6e78e8d44a1c992b",
+      "available_at": 1733014800000,
+      "expires_at": 1735693200000,
+      "cut": 1733011200000,
+      "fit_label_end_max": 1725134400000,
+      "calibration_label_end_max": 1732996800000,
+      "calibration_cut": 1725148800000
+    },
+    {
+      "model_hash": "419262c0d61d3d6798ea03aeb9ecb4c02e35bc0825085a755ec2a13fa4566825",
+      "available_at": 1735693200000,
+      "expires_at": 1738371600000,
+      "cut": 1735689600000,
+      "fit_label_end_max": 1727726400000,
+      "calibration_label_end_max": 1735675200000,
+      "calibration_cut": 1727740800000
+    },
+    {
+      "model_hash": "20b2179d2e2f6a9d59850399f6c4fd27402152ae19ea445c47c74e749875a1ea",
+      "available_at": 1738371600000,
+      "expires_at": 1740790800000,
+      "cut": 1738368000000,
+      "fit_label_end_max": 1730404800000,
+      "calibration_label_end_max": 1738353600000,
+      "calibration_cut": 1730419200000
+    },
+    {
+      "model_hash": "10365ad62c6404b5c7cc332cc3233a710091f538ecfa412573c15fdb660be58b",
+      "available_at": 1740790800000,
+      "expires_at": 1743469200000,
+      "cut": 1740787200000,
+      "fit_label_end_max": 1732996800000,
+      "calibration_label_end_max": 1740772800000,
+      "calibration_cut": 1733011200000
+    },
+    {
+      "model_hash": "a88799716f14753d52e34ef09cf2f8c7639a9311e85a74c941dc6d805cae54b3",
+      "available_at": 1743469200000,
+      "expires_at": 1746061200000,
+      "cut": 1743465600000,
+      "fit_label_end_max": 1735675200000,
+      "calibration_label_end_max": 1743451200000,
+      "calibration_cut": 1735689600000
+    },
+    {
+      "model_hash": "12a6700cc0f964119ebc43102f12416724d5c46b081214b91d1f4f66db515cb6",
+      "available_at": 1746061200000,
+      "expires_at": 1748739600000,
+      "cut": 1746057600000,
+      "fit_label_end_max": 1738353600000,
+      "calibration_label_end_max": 1746043200000,
+      "calibration_cut": 1738368000000
+    },
+    {
+      "model_hash": "98edb2c1f3090009ca0808f662cc2cd1a73b3f9c6751ec7771f3752667c20cc0",
+      "available_at": 1748739600000,
+      "expires_at": 1751331600000,
+      "cut": 1748736000000,
+      "fit_label_end_max": 1740772800000,
+      "calibration_label_end_max": 1748721600000,
+      "calibration_cut": 1740787200000
+    },
+    {
+      "model_hash": "e25624efcfe05b53a8ba0de96d853ed8d7c584e2efa544d1828f67f2d335ad49",
+      "available_at": 1751331600000,
+      "expires_at": 1754010000000,
+      "cut": 1751328000000,
+      "fit_label_end_max": 1743451200000,
+      "calibration_label_end_max": 1751313600000,
+      "calibration_cut": 1743465600000
+    },
+    {
+      "model_hash": "8b593816ab43b205a0836eb581096b7997201381d5aa65bf108e4c95bfd0fc65",
+      "available_at": 1754010000000,
+      "expires_at": 1756688400000,
+      "cut": 1754006400000,
+      "fit_label_end_max": 1746043200000,
+      "calibration_label_end_max": 1753992000000,
+      "calibration_cut": 1746057600000
+    }
+  ],
+  "predictions_sha256": "ee92c58ad4216fd90c81a5ebe0f307c4598c72bad9074fce15a1ef29bbf107eb",
+  "dataset": {
+    "universe": [
+      "BTC/USDT",
+      "ETH/USDT",
+      "BNB/USDT",
+      "XRP/USDT",
+      "ADA/USDT",
+      "LTC/USDT",
+      "LINK/USDT",
+      "SOL/USDT"
+    ],
+    "feature_version": "market-v1",
+    "features": [
+      "ret1",
+      "ret3",
+      "ret6",
+      "ret18",
+      "rsi14",
+      "atr_ratio",
+      "adx14",
+      "ema_distance",
+      "channel_distance",
+      "volume_ratio",
+      "btc_ret6",
+      "btc_ret30d",
+      "btc_sma_distance",
+      "pair_BTC",
+      "pair_ETH",
+      "pair_BNB",
+      "pair_XRP",
+      "pair_ADA",
+      "pair_LTC",
+      "pair_LINK",
+      "pair_SOL"
+    ],
+    "source_start": 1502942400000,
+    "source_end": 1756684800000,
+    "data_hash": "1438b5a8bb90",
+    "rows": 86260,
+    "feature_rows": 127027,
+    "dataset_sha256": "ed02561a7a9752f384c5144a672c05d66f730233312547abc8f5704c382bc2e2",
+    "features_sha256": "a5411310e6ccb4cf2044afb99ddbe5d570ba210cbcf02ac63cb079ab6c22ae77"
+  },
+  "training_dataset": {
+    "universe": [
+      "BTC/USDT",
+      "ETH/USDT",
+      "BNB/USDT",
+      "XRP/USDT",
+      "ADA/USDT",
+      "LTC/USDT",
+      "LINK/USDT",
+      "SOL/USDT"
+    ],
+    "feature_version": "market-v1",
+    "features": [
+      "ret1",
+      "ret3",
+      "ret6",
+      "ret18",
+      "rsi14",
+      "atr_ratio",
+      "adx14",
+      "ema_distance",
+      "channel_distance",
+      "volume_ratio",
+      "btc_ret6",
+      "btc_ret30d",
+      "btc_sma_distance",
+      "pair_BTC",
+      "pair_ETH",
+      "pair_BNB",
+      "pair_XRP",
+      "pair_ADA",
+      "pair_LTC",
+      "pair_LINK",
+      "pair_SOL"
+    ],
+    "source_start": 1502942400000,
+    "source_end": 1756684800000,
+    "data_hash": "1438b5a8bb90",
+    "rows": 86260,
+    "feature_rows": 127027,
+    "dataset_sha256": "ed02561a7a9752f384c5144a672c05d66f730233312547abc8f5704c382bc2e2",
+    "features_sha256": "a5411310e6ccb4cf2044afb99ddbe5d570ba210cbcf02ac63cb079ab6c22ae77"
+  },
+  "created_at": "2026-09-17T17:39:28.846203+00:00",
+  "scores": {
+    "brier": 0.2490596312711824,
+    "log_loss": 0.691362550544215,
+    "scored_rows": 80079
+  },
+  "manifest_hash": "afb126090675b6124f9628d58a9a1e042b01ea943d07c9316a4dd10dce50a51e"
+}

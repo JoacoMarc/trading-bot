@@ -1,0 +1,34 @@
+[
+  {
+    "model": "Log\u00edstica",
+    "sample": "Todas las velas elegibles",
+    "rows": 70128,
+    "brier": 0.24888925454018096,
+    "log_loss": 0.691048116965134,
+    "accepted_at_055": 2708
+  },
+  {
+    "model": "Log\u00edstica",
+    "sample": "Rupturas previas a filtros de cartera",
+    "rows": 1991,
+    "brier": 0.2515038104864976,
+    "log_loss": 0.6965491974858904,
+    "accepted_at_055": 12
+  },
+  {
+    "model": "LightGBM",
+    "sample": "Todas las velas elegibles",
+    "rows": 70128,
+    "brier": 0.2488080992127737,
+    "log_loss": 0.6908673687079896,
+    "accepted_at_055": 1990
+  },
+  {
+    "model": "LightGBM",
+    "sample": "Rupturas previas a filtros de cartera",
+    "rows": 1991,
+    "brier": 0.2507928779561354,
+    "log_loss": 0.6950328866816113,
+    "accepted_at_055": 11
+  }
+]

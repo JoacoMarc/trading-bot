@@ -34,4 +34,8 @@ Riesgos: objetivo24h distinto de duración de trade, muestras solapadas, cambio 
 régimen, pocos positivos, activos nuevos, costos y menor frecuencia por filtrado.
 Regímenes sin cobertura de entrenamiento quedan n/a en gates, nunca aprobados.
 
-Criterio primario incremental en ADR-0014. Resultados: pendientes.
+Criterio primario incremental en ADR-0014. Resultados: ambas familias v1 no promovibles,
+3–5 cierres OOS y sin mejora incremental; cobertura histórica incompleta. No se abrió
+holdout. [Informe](../../experiments/research-2026-09-17/REPORT.md). Se detiene la
+inversión adicional; sensibilidades de semillas/ventanas/variables y control de
+exposición reducido no se dan por validados.

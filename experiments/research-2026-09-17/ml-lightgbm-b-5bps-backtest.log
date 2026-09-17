@@ -1,0 +1,11 @@
+metrica               donchian           B&H BTC     Equiponderado  B&H BTC filtrado
+retorno                +2.19 %         +972.20 %        +1260.72 %         +796.12 %
+cagr                   +0.36 %          +47.67 %          +53.56 %          +43.38 %
+sharpe                    0.17              0.93              0.96              1.15
+max dd                 +3.01 %          +77.04 %          +81.19 %          +38.82 %
+pf                        1.57                 -                 -                 -
+trades                      20                 0                 0                 0
+exposicion             +2.13 %          +99.99 %          +99.99 %          +43.41 %
+velas 13336, fills 40, senales {'hold': 100131, 'enter_long': 3055}, rechazos {'prediction_missing': 743, 'prediction_veto': 2249, 'max_positions': 13, 'market_filter': 30}, stuck []
+duracion 2.6 s
+registrado: EXP-0032-ml-lightgbm-b-5bps-backtest -> /Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/EXP-0032-ml-lightgbm-b-5bps-backtest

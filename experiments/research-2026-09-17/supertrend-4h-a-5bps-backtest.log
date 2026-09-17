@@ -1,0 +1,11 @@
+metrica             supertrend           B&H BTC     Equiponderado  B&H BTC filtrado
+retorno                +7.74 %         +972.20 %        +1260.72 %         +796.12 %
+cagr                   +1.23 %          +47.67 %          +53.56 %          +43.38 %
+sharpe                    0.51              0.93              0.96              1.15
+max dd                 +2.70 %          +77.04 %          +81.19 %          +38.82 %
+pf                        1.38                 -                 -                 -
+trades                     216                 0                 0                 0
+exposicion            +24.03 %          +99.99 %          +99.99 %          +43.41 %
+velas 13336, fills 432, senales {'hold': 102053, 'enter_long': 1132, 'exit_long': 1}, rechazos {'market_filter': 702, 'max_positions': 214}, stuck []
+duracion 2.3 s
+registrado: EXP-0025-supertrend-4h-a-5bps-backtest -> /Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/EXP-0025-supertrend-4h-a-5bps-backtest

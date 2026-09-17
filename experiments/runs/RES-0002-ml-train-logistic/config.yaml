@@ -1,0 +1,6 @@
+dataset: /Users/joaquinmarcoff/Desktop/Projects/trading-bot-project/trading-bot/experiments/runs/RES-0001-ml-dataset
+end: '2025-09-01'
+kind: logistic
+months: 24
+seed: 42
+start: '2019-08-01'
