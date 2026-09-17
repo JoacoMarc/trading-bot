@@ -31,7 +31,7 @@ from tradingbot.domain.orders import Fill, OrderIntent, Signal
 from tradingbot.domain.pair import Pair
 from tradingbot.domain.positions import PortfolioSnapshot, Position, Trade
 from tradingbot.engine.position_manager import PositionManager
-from tradingbot.engine.series import SeriesProvider
+from tradingbot.engine.series import RollingSeries, SeriesProvider
 from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution.broker import Broker, BrokerEvent
 from tradingbot.execution.simulated import INSUFFICIENT_FUNDS, SimulatedBroker
@@ -208,6 +208,9 @@ class Engine:
             last_exit_bar=dict(self._last_exit_bar),
             protections=self._risk.protections.to_state(),
         )
+
+    def indicator_checkpoint(self) -> dict[str, Any]:
+        return self._series.checkpoint() if isinstance(self._series, RollingSeries) else {}
 
     # ------------------------------------------------------------- API
 

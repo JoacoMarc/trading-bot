@@ -39,6 +39,10 @@ dev = [
 ]
 # Solo para generar fixtures de referencia de indicadores (Fase 3). No va a Docker.
 fixtures = ["ta-lib>=0.6"]
+ml = [
+    "lightgbm>=4.6,<5",
+    "scikit-learn>=1.7,<2",
+]
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]

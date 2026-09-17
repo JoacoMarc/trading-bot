@@ -10,11 +10,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 from tradingbot.domain.candle import Bar, Candle
 from tradingbot.domain.errors import DataError
 from tradingbot.domain.pair import Pair
+from tradingbot.engine.recursive import RecursiveSeries
 from tradingbot.indicators.core import FloatArray
 from tradingbot.strategy.base import OhlcvArrays, Strategy
 
@@ -87,6 +88,7 @@ class RollingSeries:
         warmup_by_pair: Mapping[Pair, Sequence[Candle]],
         *,
         window: int,
+        checkpoints: Mapping[str, Any] | None = None,
     ) -> None:
         if window < 1:
             msg = f"window debe ser >= 1, recibido {window}"
@@ -96,6 +98,33 @@ class RollingSeries:
         self._candles: dict[Pair, list[Candle]] = {
             pair: sorted(candles, key=lambda c: c.open_time)[-window:]
             for pair, candles in warmup_by_pair.items()
+        }
+        self._recursive: dict[Pair, RecursiveSeries] = {}
+        if strategy.recursive_indicators:
+            for pair, history in self._candles.items():
+                saved = (checkpoints or {}).get(pair.symbol)
+                if saved is None:
+                    self._recursive[pair] = RecursiveSeries(strategy, history)
+                    continue
+                previous = [Candle.model_validate(c) for c in saved["history"]]
+                state = RecursiveSeries(strategy, previous, saved)
+                # No revisar decisiones pasadas con velas corregidas/publicadas tarde.
+                # Recuperar únicamente el sufijo que este par aún no había observado.
+                catchup = [c for c in history if c.open_time > previous[-1].open_time]
+                for candle in catchup:
+                    state.update(candle)
+                recovered = [*previous, *catchup][-window:]
+                self._candles[pair] = recovered
+                state.arrays(recovered)
+                self._recursive[pair] = state
+
+    def checkpoint(self) -> dict[str, Any]:
+        return {
+            p.symbol: {
+                **state.checkpoint(),
+                "history": [c.model_dump(mode="json") for c in self._candles[p]],
+            }
+            for p, state in self._recursive.items()
         }
 
     @property
@@ -123,4 +152,11 @@ class RollingSeries:
         if len(history) > self._window:
             del history[: len(history) - self._window]
         arrays = OhlcvArrays.from_candles(history)
+        if self._strategy.recursive_indicators:
+            state = self._recursive.get(pair)
+            if state is None:
+                state = RecursiveSeries(self._strategy, history[:-1])
+                self._recursive[pair] = state
+            state.update(candle)
+            return SeriesAt(arrays, state.arrays(history), len(history) - 1)
         return SeriesAt(arrays, self._strategy.compute_indicators(arrays), len(history) - 1)

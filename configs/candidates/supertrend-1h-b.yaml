@@ -1,0 +1,55 @@
+# Investigación congelada; requiere gates antes de paper.
+mode: backtest
+strategy:
+  name: supertrend
+  timeframe: 1h
+  pairs:
+  - BTC/USDT
+  - ETH/USDT
+  - BNB/USDT
+  - XRP/USDT
+  - ADA/USDT
+  - LTC/USDT
+  - LINK/USDT
+  - SOL/USDT
+  params:
+    atr_period: 10
+    multiplier: 3.0
+    stop_atr_mult: 3.0
+    bars_per_day: 24
+risk:
+  sizing_mode: risk
+  risk_per_trade: 0.005
+  max_position_pct: 0.25
+  max_positions: 3
+  max_exposure_pct: 0.75
+  daily_loss_limit_pct: 0.03
+  max_drawdown_pct: 0.2
+  drawdown_pause_days: 30
+  kill_switch_file: logs/STOP
+  market_filter:
+    enabled: true
+    block_when_undefined: true
+    pair: BTC/USDT
+    average: sma
+    ema_days: 200
+    momentum_days: 30
+execution:
+  fee_rate: 0.001
+  slippage_bps: 5
+  pay_with_bnb: false
+backtest:
+  initial_cash: 10000
+  start: 2019-08-01
+  end: 2025-09-01
+notify:
+  instance_name: Supertrend 1h - B
+  telegram_enabled: false
+  telegram_receive_commands: false
+  timezone: America/Argentina/Buenos_Aires
+  events:
+    rejection: 'off'
+    feed: silent
+persistence:
+  db_dir: db
+  logs_dir: logs

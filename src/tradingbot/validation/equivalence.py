@@ -27,6 +27,7 @@ from tradingbot.domain.enums import Side
 from tradingbot.domain.money import to_decimal
 from tradingbot.domain.orders import Signal, make_client_order_id
 from tradingbot.domain.positions import Position
+from tradingbot.engine.recursive import RecursiveSeries
 from tradingbot.indicators.core import FloatArray
 from tradingbot.strategy.base import OhlcvArrays, Strategy, StrategyContext
 
@@ -213,9 +214,18 @@ def check_window_equivalence(
     failures: list[str] = []
     mismatches: list[str] = []
     comparisons = 0
+    recursive = RecursiveSeries(strategy, ()) if strategy.recursive_indicators else None
+    processed = -1
     for t in indices:
         window = ohlcv.slice(t - warmup + 1, t + 1)
-        partial = strategy.compute_indicators(window)
+        if recursive is None:
+            partial = strategy.compute_indicators(window)
+        else:
+            # La ventana conserva el estado del prefijo descartado. No volver a sembrar.
+            for i in range(processed + 1, t + 1):
+                recursive.update(ohlcv.candles[i])
+            partial = recursive.arrays(window.candles)
+            processed = t
         for name, series in full.items():
             a = float(series[t])
             b = float(partial[name][-1])

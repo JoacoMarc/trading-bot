@@ -274,6 +274,7 @@ class Strategy(ABC):
 
     name: ClassVar[str]
     Params: ClassVar[type[StrategyParams]] = StrategyParams
+    recursive_indicators: ClassVar[bool] = False
 
     def __init__(self, params: StrategyParams | Mapping[str, Any] | None = None) -> None:
         if isinstance(params, StrategyParams):
@@ -320,6 +321,12 @@ class Strategy(ABC):
     def trailing_stop(self, ctx: StrategyContext) -> Decimal | None:
         """Nivel de stop deseado para la posición abierta; el `PositionManager` solo lo sube."""
         return None
+
+    def indicator_step(
+        self, state: Mapping[str, Any], high: float, low: float, close: float
+    ) -> tuple[dict[str, Any], dict[str, float]]:
+        """Paso puro de indicadores con checkpoint externo (ADR-0014)."""
+        raise NotImplementedError("esta estrategia no usa indicadores recursivos persistidos")
 
     @classmethod
     def search_space(cls) -> Mapping[str, ParamRange]:

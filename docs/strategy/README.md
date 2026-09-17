@@ -41,6 +41,7 @@ Se completa después de los experimentos: qué pasó, qué se aprendió, qué si
 
 | Estrategia | Versión | Estado | Spec |
 |---|---|---|---|
+| supertrend | v1 | en evaluación, sin paper | [supertrend-v1.md](supertrend-v1.md) |
 | pullback_rsi | v1 | no-go A/B, sin holdout ni paper (WF-0010/0011) | [pullback-rsi-v1.md](pullback-rsi-v1.md) |
 | donchian | v1 | A no-go por Sharpe; B pasa pre-holdout, solo histórico (WF-0012/0013) | [donchian-v1.md](donchian-v1.md) |
 | ema_trend | v1 | descartada (defaults `cross` 4h: EXP-0003/0007, WF-0001/0002) | [`ema-trend-v1.md`](ema-trend-v1.md) |

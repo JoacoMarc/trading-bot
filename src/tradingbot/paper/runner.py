@@ -64,6 +64,7 @@ log = logging.getLogger(__name__)
 
 ENGINE_STATE_KEY = "engine"
 SESSION_STATE_KEY = "session"
+INDICATOR_STATE_KEY = "indicators"
 PENDING_DROPPED = "pending_dropped"
 AsyncSleep = Callable[[float], Awaitable[None]]
 NOTIFIER_STOP_TIMEOUT_S = 15.0
@@ -342,6 +343,7 @@ class PaperSession:
 
     def persist(self) -> None:
         self.store.save_state(ENGINE_STATE_KEY, self.engine.state().to_dict())
+        self.store.save_state(INDICATOR_STATE_KEY, self.engine.indicator_checkpoint())
         self.store.save_state(
             SESSION_STATE_KEY,
             {"version": __version__, "saved_ts": self.exchange.now_ms(), "mode": self.config.mode},
@@ -692,6 +694,7 @@ def build_paper_session(
 
     restore: EngineState | None = None
     raw_state = store.load_state(ENGINE_STATE_KEY)
+    checkpoints = store.load_state(INDICATOR_STATE_KEY)
     if raw_state is not None:
         restore = EngineState.from_dict(raw_state, store.load_open_positions())
     dropped = _drop_pending_orders(store, now)
@@ -710,18 +713,32 @@ def build_paper_session(
     def on_broker_events(events: list[BrokerEvent]) -> None:
         holder[0].on_broker_events(events)
 
+    resume_from = None if restore is None else restore.last_bar_open_time
+    if restore is not None and resume_from is None and checkpoints:
+        resume_from = max(int(cp["last_time"]) for cp in checkpoints.values())
     feed = LiveFeed(
         exchange,
         pairs,
         timeframe,
         warmup,
-        resume_from=None if restore is None else restore.last_bar_open_time,
+        resume_from=resume_from,
         sleep=sleep,
         on_event=on_feed_event,
     )
     feed.bootstrap()
+    if (
+        restore is not None
+        and strategy.recursive_indicators
+        and (not checkpoints or any(pair.symbol not in checkpoints for pair in pairs))
+    ):
+        raise ConfigError(
+            "faltan checkpoints recursivos; no se puede resembrar una sesión existente"
+        )
     series = RollingSeries(
-        strategy, {pair: feed.warmup_candles(pair) for pair in pairs}, window=warmup + 1
+        strategy,
+        {pair: feed.warmup_candles(pair) for pair in pairs},
+        window=warmup + 1,
+        checkpoints=checkpoints,
     )
     broker = PaperBroker(config.execution, markets, exchange, timeframe)
     risk = RiskManager(config.risk, config.execution, markets, strategy.name, auto_resume=False)
