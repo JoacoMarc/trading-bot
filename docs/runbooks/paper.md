@@ -24,6 +24,20 @@ El primer cierre puede tardar hasta 4 h. Hasta entonces `status` muestra la fase
 - **Apagar ordenado:** `docker compose --profile paper down` (SIGTERM → termina el ciclo en curso, guarda `state` y escribe `status.json` con fase `detenido`; `stop_grace_period` 60 s, el feed despierta cada 10 s). Cada ciclo se confirma en **una sola transacción** SQLite (fills, posiciones, trades, snapshot y `state`): un corte a mitad no deja cash y posiciones inconsistentes. El estado (cash, dust, posiciones con stop, protecciones, última vela) queda en `db/paper.db`; una vela cuyo ciclo explotó a mitad se re-procesa al reiniciar.
 - **Reinicio:** el proceso reanuda desde la DB: re-publica los stops de las posiciones abiertas, cancela las órdenes `PENDING` de la sesión anterior (evento `pending_dropped`) y procesa las velas cerradas mientras estuvo caído como **reposición** (`replay`): marca a mercado, sube trailing, ejecuta salidas y stops, pero no abre entradas (`ReasonCode.REPLAY`).
 
+## Telegram (ADR-0012)
+
+Avisos al celular (fills, stops, protecciones, errores, resumen diario) y comandos. Reemplaza la vigilancia manual del `status`.
+
+1. **Crear el bot:** en Telegram, hablar con `@BotFather` → `/newbot` → nombre y usuario. Devuelve el **token** (`123456:ABC-...`). No pegarlo en ningún chat de Claude, YAML ni commit: va solo al `.env`.
+2. **Obtener el `chat_id`:** mandarle cualquier mensaje al bot nuevo y pedir `getUpdates` desde una terminal (no desde el navegador: la URL con el token quedaría en el historial): `curl -s "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getUpdates"` con la variable exportada solo en esa shell; el número en `"chat":{"id":...}` es el `chat_id` (negativo si es un grupo). Solo ese chat puede hablarle al bot: el resto se ignora.
+3. **Configurar:** en el `.env` de la máquina donde corre el paper (VPS: `nano ~/trading-bot/.env`), `TELEGRAM_BOT_TOKEN=...` y `TELEGRAM_CHAT_ID=...`. En `configs/paper.yaml`, `notify.telegram_enabled: true`; niveles por categoría en `notify.events` (`"on"` con sonido, `"silent"` sin sonido, `"off"`; entre comillas porque YAML lee `on`/`off` como booleanos), hora local del resumen en `daily_summary_hour` con `timezone`.
+4. **Probar antes de reiniciar el paper:** `docker compose run --rm bot telegram-test --seconds 60` (o `uv run tradingbot telegram-test`). Manda un mensaje de prueba al chat y espera una respuesta; sale con 1 si no pudo enviar (token o `chat_id` mal, red).
+5. **Aplicar:** `docker compose --profile paper up -d` reemplaza el contenedor (SIGTERM ordenado, reanuda desde la DB). El arranque avisa por Telegram (`paper regime_bh ... reanudado desde la DB`).
+
+Comandos: `/status` (resumen), `/balance`, `/positions`, `/trades [n]`, `/profit`, `/daily` (resumen de 24 h), `/health` (heartbeat, tareas, errores), `/help`. Control: `/pause` y `/stop` = `tradingbot stop` (sin entradas nuevas, reversible), `/resume` = `tradingbot resume`, `/resume breaker` = `--breaker`; **`/stop flatten` pide confirmar con `si` en 60 s** y equivale a `tradingbot stop --flatten`. Todos escriben los mismos archivos (`logs/STOP`, `logs/RESUME`) y el motor los aplica en el próximo cierre.
+
+Qué avisa y cuándo: los fills, protecciones y rechazos salen **después** de que el ciclo quedó confirmado en la DB; los reintentos del feed (`feed_retry`) solo van al log. Si Telegram está caído, el bot sigue: la cola (200 avisos) descarta los más viejos, los contadores aparecen en `status` (`avisos (telegram): enviados, errores, descartados`) y en `/health`. Incidentes: [incident.md](incident.md).
+
 ## Problemas conocidos
 
 - **Reloj de la VM de WSL desfasado** (`doctor` marca offset > 1 s, o el feed nunca confirma cierres): `wsl --shutdown` en PowerShell y reiniciar Docker Desktop. El feed usa el reloj del exchange, pero un offset grande retrasa la confirmación.

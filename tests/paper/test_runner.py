@@ -161,7 +161,7 @@ async def test_watchdog_and_dead_task_stop_the_session(tmp_path: Path) -> None:
     assert not session.is_stale()
     exchange.now += 2 * 4 * 3_600_000 + 300_001  # 2 x timeframe + gracia, sin ciclos
     assert session.is_stale()
-    session._handle_stale()
+    await session._handle_stale()
     assert stale_calls == [exchange.now]
     status = json.loads((tmp_path / "logs" / "status.json").read_text(encoding="utf-8"))
     assert status["phase"] == "colgado"

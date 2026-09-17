@@ -40,9 +40,22 @@ exchange:
 backtest:
   initial_cash: 10000         # saldo simulado inicial del paper
 
-notify:
-  timezone: America/Argentina/Buenos_Aires
-  telegram_enabled: false     # true requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en .env (Fase 8)
+notify:                       # ADR-0012; runbook docs/runbooks/paper.md ("Telegram")
+  timezone: America/Argentina/Buenos_Aires   # solo para mostrar horas y para el resumen diario
+  telegram_enabled: false     # true requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en el .env
+  daily_summary_hour: 9       # hora local del resumen diario (/daily lo pide a demanda)
+  confirm_window_s: 60        # segundos para confirmar `/stop flatten` con `si`
+  events:                     # nivel por categoria: "on" (con sonido) | "silent" | "off"
+    entry: "on"               # posicion abierta
+    exit: "on"                # trade cerrado por senal, flatten o riesgo
+    stop: "on"                # trade cerrado por stop o trailing
+    stuck: "on"               # salida trabada por filtros del exchange
+    protection: "on"          # circuit breaker, perdida diaria, kill switch, filtro de mercado
+    rejection: "silent"       # entrada rechazada por riesgo o por el broker
+    feed: "silent"            # velas tardias o huecos (los reintentos solo van al log)
+    error: "on"               # tareas caidas, watchdog
+    lifecycle: "on"           # arranque, parada, reanudacion
+    daily: "on"               # resumen diario
 
 persistence:
   db_dir: db                  # paper.db (volumen nombrado en Docker)

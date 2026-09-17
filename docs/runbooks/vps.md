@@ -120,7 +120,7 @@ cd ~/trading-bot && git pull && docker compose --profile paper build && docker c
 
 - **Backup semanal de la DB** (cron en el VPS, domingo 03:00 UTC): `0 3 * * 0 cd ~/trading-bot && bash scripts/paper_state.sh export backups/paper-$(date +\%F).tgz`. Guardar una copia fuera del VPS cada tanto (`scp` a la PC).
 - **Reinicios:** `docker inspect tradingbot-paper-1 --format '{{.RestartCount}}'` (el proyecto se llama `tradingbot` por el `name:` de compose). El watchdog interno sale con 1 si no completa un ciclo en 8 h 5 min y Docker lo relanza.
-- **Alertas:** hasta la Fase 8 (Telegram) no hay aviso automático; revisar `paper-status` cuando se pueda. Con Telegram, el bot avisa fills, stops, breaker y errores.
+- **Alertas (Fase 8):** con Telegram ([paper.md](paper.md), "Telegram") el bot avisa fills, stops, breaker, errores y un resumen diario, y responde `/status`, `/health`, `/pause`, `/resume`. El `.env` con `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID` vive **solo en el VPS** (`nano ~/trading-bot/.env`, permisos `chmod 600 .env`); probar con `docker compose run --rm bot telegram-test` antes de `up -d`. Si el resumen diario no llega, revisar `paper-status` por SSH ([incident.md](incident.md)).
 - **Actualizaciones del SO:** `unattended-upgrades` aplica parches de seguridad; si reinicia el host, Docker levanta el contenedor solo (`restart: unless-stopped`).
 
 ## Problemas conocidos

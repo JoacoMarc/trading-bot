@@ -15,20 +15,21 @@ Por cada `Bar` cerrado, en este orden:
 
 from __future__ import annotations
 
+import logging
 from collections import Counter
-from collections.abc import Collection, Iterable, Mapping
+from collections.abc import Callable, Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
+from typing import Any, Protocol
 
 from tradingbot.config.models import ExecutionConfig
 from tradingbot.data.feeds import MarketFeed
 from tradingbot.domain.candle import Bar
 from tradingbot.domain.enums import ExitReason, Side, SignalAction
 from tradingbot.domain.money import ZERO
-from tradingbot.domain.orders import OrderIntent, Signal
+from tradingbot.domain.orders import Fill, OrderIntent, Signal
 from tradingbot.domain.pair import Pair
-from tradingbot.domain.positions import PortfolioSnapshot, Position
+from tradingbot.domain.positions import PortfolioSnapshot, Position, Trade
 from tradingbot.engine.position_manager import PositionManager
 from tradingbot.engine.series import SeriesProvider
 from tradingbot.exchange.binance import MarketInfo
@@ -39,6 +40,8 @@ from tradingbot.risk.manager import PortfolioView, RiskManager
 from tradingbot.risk.protections import KillSwitch
 from tradingbot.risk.sizing import ReasonCode
 from tradingbot.strategy.base import Strategy, StrategyContext
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -97,6 +100,20 @@ class EngineState:
         )
 
 
+class EngineListener(Protocol):
+    """Quien quiera enterarse de lo que el motor hizo, además del `TradeStore` (ADR-0012).
+
+    Se llama dentro del ciclo (en paper, dentro de la transacción): el listener acumula y avisa
+    después del commit. Sin listener (backtest) no cambia nada.
+    """
+
+    def on_event(self, event: EventRecord) -> None: ...
+
+    def on_position_opened(self, position: Position, fill: Fill) -> None: ...
+
+    def on_trade_closed(self, trade: Trade, fill: Fill) -> None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class EngineResult:
     cash: Decimal
@@ -121,10 +138,12 @@ class Engine:
         initial_cash: Decimal,
         kill_switch: KillSwitch | None = None,
         restore: EngineState | None = None,
+        listener: EngineListener | None = None,
     ) -> None:
         if initial_cash <= ZERO:
             msg = f"initial_cash debe ser positivo, recibido {initial_cash}"
             raise ValueError(msg)
+        self.listener = listener
         self._strategy = strategy
         self._feed = feed
         self._series = series
@@ -228,10 +247,28 @@ class Engine:
             if pairs is None or pair in pairs:
                 self._submit_exit(pair, ExitReason.FLATTEN, open_time, ts)
 
+    def _record(self, event: EventRecord) -> None:
+        """Persiste el evento y después avisa al listener (ADR-0012)."""
+        self._store.record_event(event)
+        if self.listener is not None:
+            self._emit(self.listener.on_event, event)
+
+    @staticmethod
+    def _emit(callback: Callable[..., None], *args: Any) -> None:
+        """El listener es observacional: si falla, se loguea y el ciclo sigue (I2 de la revisión).
+
+        Corre dentro de la transacción del paper con el estado ya mutado; una excepción acá
+        dejaría la memoria del motor y la DB desalineadas.
+        """
+        try:
+            callback(*args)
+        except Exception:
+            log.exception("engine: el listener falló en %s; se ignora", callback.__name__)
+
     def _drain_protection_events(self) -> None:
         for event in self._risk.protections.pop_events():
             self.stats.protections[f"{event.kind}:{event.reason.value}"] += 1
-            self._store.record_event(
+            self._record(
                 EventRecord(
                     ts=event.ts,
                     kind=event.kind,
@@ -339,7 +376,7 @@ class Engine:
             self._pending_exits.pop(intent.pair, None)
             reason = (event.order.reject_reason or INSUFFICIENT_FUNDS).split(":")[0]
             self.stats.rejections[reason] += 1
-            self._store.record_event(
+            self._record(
                 EventRecord(
                     ts=event.order.updated_ts,
                     kind="entry_rejected" if intent.side is Side.BUY else "exit_rejected",
@@ -358,11 +395,13 @@ class Engine:
                 cost += fill.fee_amount
             self.cash -= cost
             self._pending_entries.pop(intent.client_order_id, None)
-            self._positions.open_from_fill(intent, fill)
+            opened = self._positions.open_from_fill(intent, fill)
+            if self.listener is not None:
+                self._emit(self.listener.on_position_opened, opened, fill)
             return
         position = self._positions.get(fill.pair)
         if position is None:
-            self._store.record_event(
+            self._record(
                 EventRecord(
                     ts=fill.fill_ts,
                     kind="orphan_sell_fill",
@@ -376,6 +415,8 @@ class Engine:
             self.dust[fill.pair.base] = self.dust.get(fill.pair.base, ZERO) + leftover
         self.cash += fill.net_quote_amount
         trade = self._positions.close_from_fill(fill, intent.exit_reason or ExitReason.SIGNAL)
+        if self.listener is not None:
+            self._emit(self.listener.on_trade_closed, trade, fill)
         exit_bar = self._bar_of(fill.fill_ts)
         self._risk.protections.on_trade_closed(trade, bar_index=exit_bar)
         self._drain_protection_events()
@@ -411,7 +452,7 @@ class Engine:
         decision = self._risk.exit_intent(position, reason, price, ts, open_time)
         if decision.intent is None:
             if pair not in self._stuck_exits:
-                self._store.record_event(
+                self._record(
                     EventRecord(
                         ts=ts,
                         kind="exit_stuck",
@@ -460,7 +501,7 @@ class Engine:
             blocked[pair] = rejection.reason.value
             if self._blocked.get(pair) == rejection.reason.value:
                 continue  # mismo motivo que la vela anterior: se cuenta, no se repite el evento
-            self._store.record_event(
+            self._record(
                 EventRecord(
                     ts=ts,
                     kind="entry_rejected",
@@ -480,7 +521,7 @@ class Engine:
             if signal.action is not SignalAction.ENTER_LONG:
                 continue
             self.stats.rejections[ReasonCode.REPLAY.value] += 1
-            self._store.record_event(
+            self._record(
                 EventRecord(
                     ts=ts,
                     kind="entry_rejected",

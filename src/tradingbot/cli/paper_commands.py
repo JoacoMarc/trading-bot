@@ -95,7 +95,7 @@ def paper(
         typer.echo(
             f"paper {session.strategy.name} {cfg.strategy.timeframe.value} "
             f"{', '.join(p.symbol for p in cfg.strategy.pairs)} -> {session.store.path}; "
-            f"status en {session.status.path}; "
+            f"status en {session.status.path}; avisos por {session.notifier.status()['backend']}; "
             f"{'reanudado desde la DB' if session.restored else 'arranque limpio'}"
         )
         processed = asyncio.run(session.run(max_bars=max_bars))
@@ -169,9 +169,57 @@ def status(
         f"velas {stats.get('bars', 0)}, fills {stats.get('fills', 0)}, rechazos "
         f"{stats.get('rejections', {})}, errores de precio {stats.get('price_errors', 0)}"
     )
+    notify = data.get("notify") or {}
+    if notify:
+        typer.echo(
+            f"avisos ({notify.get('backend', '-')}): enviados {notify.get('sent', 0)}, errores "
+            f"{notify.get('errors', 0)}, descartados {notify.get('dropped', 0)}, en cola "
+            f"{notify.get('queued', 0)}"
+        )
     for line in (data.get("recent_events") or [])[-8:]:
         typer.echo(f"  {line}")
     if stale:
+        raise typer.Exit(code=1)
+
+
+@paper_app.command("telegram-test")
+def telegram_test(
+    config: Annotated[
+        Path, typer.Option("--config", "-c", help="YAML de configuración (para notify.*).")
+    ] = DEFAULT_CONFIG,
+    seconds: Annotated[
+        int, typer.Option("--seconds", min=1, help="Cuánto esperar un comando de respuesta.")
+    ] = 30,
+) -> None:
+    """Manda un mensaje de prueba por Telegram y espera un comando: valida token y chat_id.
+
+    Los secretos se leen del entorno (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID); no hace falta que
+    `notify.telegram_enabled` esté en true.
+    """
+    try:
+        cfg = _load_config(config, {})
+        token, chat_id = cfg.telegram_bot_token, cfg.telegram_chat_id
+        if token is None or chat_id is None:
+            msg = "faltan TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en el entorno"
+            raise TradingBotError(msg)
+        from tradingbot.notify.telegram import run_smoke_test  # import pesado: solo acá
+
+        result, received = asyncio.run(
+            run_smoke_test(token.get_secret_value(), chat_id.get_secret_value(), seconds=seconds)
+        )
+    except (TradingBotError, ValueError, OSError) as exc:
+        _fail(exc)
+        return
+    typer.echo(
+        f"telegram: enviados {result['sent']}, errores {result['errors']}, "
+        f"comandos recibidos {result['commands']}"
+    )
+    if received:
+        typer.echo(f"recibido: {received[0]}")
+    else:
+        typer.echo(f"no llego ningun mensaje del chat en {seconds} s")
+    if not result["sent"]:
+        typer.echo("error: el mensaje de prueba no se pudo enviar (token, chat_id o red)", err=True)
         raise typer.Exit(code=1)
 
 

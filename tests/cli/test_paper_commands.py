@@ -99,6 +99,19 @@ def _real_build(cfg: BotConfig, ex: PaperExchange, **kw: Any) -> PaperSession:
     return build_paper_session(cfg, ex, **kw)
 
 
+def test_telegram_test_requires_the_secrets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)  # sin archivo de entorno del repo
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    config = tmp_path / "paper.yaml"
+    config.write_text(PAPER_YAML.format(root=tmp_path.as_posix()), encoding="utf-8")
+    result = runner.invoke(app, ["telegram-test", "--config", str(config), "--seconds", "1"])
+    assert result.exit_code == 1
+    assert "TELEGRAM_BOT_TOKEN" in result.output
+
+
 def test_status_without_file_and_wrong_mode(tmp_path: Path) -> None:
     result = runner.invoke(app, ["status", "--file", str(tmp_path / "nada.json")])
     assert result.exit_code == 1

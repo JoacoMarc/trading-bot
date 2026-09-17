@@ -14,6 +14,7 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_valida
 
 from tradingbot.domain.pair import Pair
 from tradingbot.domain.timeframe import Timeframe
+from tradingbot.notify.base import DEFAULT_LEVELS, Category, Level, coerce_level
 
 HOLDOUT_START = date(2025, 9, 1)
 # Máximo 12 caracteres: el client_order_id recorta el nombre y dos estrategias con el mismo
@@ -275,9 +276,23 @@ class ValidationConfig(_Strict):
 
 
 class NotifyConfig(_Strict):
+    """Avisos y comandos (ADR-0012). El token y el chat_id de Telegram entran solo por `.env`."""
+
     timezone: str = "America/Argentina/Buenos_Aires"
     telegram_enabled: bool = False
-    daily_summary_hour: int = Field(default=9, ge=0, le=23)
+    daily_summary_hour: int = Field(default=9, ge=0, le=23, description="hora local del resumen")
+    confirm_window_s: int = Field(
+        default=60, ge=5, le=600, description="segundos para confirmar `/stop flatten`"
+    )
+    events: dict[Category, Annotated[Level, BeforeValidator(coerce_level)]] = Field(
+        default_factory=lambda: dict(DEFAULT_LEVELS),
+        description="nivel por categoría (on | silent | off); lo no declarado usa el default",
+    )
+
+    @field_validator("events")
+    @classmethod
+    def _merge_default_levels(cls, value: dict[Category, Level]) -> dict[Category, Level]:
+        return {**DEFAULT_LEVELS, **value}
 
     @field_validator("timezone")
     @classmethod

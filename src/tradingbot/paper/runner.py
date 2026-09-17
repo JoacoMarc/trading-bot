@@ -15,34 +15,40 @@ import logging
 import os
 import signal
 from collections import deque
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Protocol
+from zoneinfo import ZoneInfo
 
 from tradingbot import __version__
 from tradingbot.backtest.runner import load_markets_for
 from tradingbot.config.models import Mode
 from tradingbot.config.settings import BotConfig
-from tradingbot.data.live_feed import FeedEvent, LiveFeed
+from tradingbot.data.live_feed import FEED_RETRY, FeedEvent, LiveFeed
 from tradingbot.domain.candle import Bar, Candle
-from tradingbot.domain.enums import OrderStatus
+from tradingbot.domain.enums import ExitReason, OrderStatus
 from tradingbot.domain.errors import ConfigError, ExchangeError
 from tradingbot.domain.money import ZERO
+from tradingbot.domain.orders import Fill
 from tradingbot.domain.pair import Pair
+from tradingbot.domain.positions import PortfolioSnapshot, Position, Trade
 from tradingbot.domain.timeframe import Timeframe
 from tradingbot.engine.engine import Engine, EngineState
 from tradingbot.engine.series import RollingSeries
 from tradingbot.exchange.binance import MarketInfo
 from tradingbot.execution.broker import BrokerEvent
 from tradingbot.execution.paper import PaperBroker, StopWatcher
+from tradingbot.notify.base import Category, LogNotifier, Notification, Notifier
+from tradingbot.notify.commands import CommandService
 from tradingbot.observability.status import StatusWriter
 from tradingbot.persistence.sqlite import SqliteStore
 from tradingbot.persistence.store import EventRecord
 from tradingbot.risk.manager import RiskManager
-from tradingbot.risk.protections import FileKillSwitch
+from tradingbot.risk.protections import PROTECTION_CLEARED, FileKillSwitch
+from tradingbot.risk.sizing import ReasonCode
 from tradingbot.strategy.base import Strategy
 from tradingbot.strategy.registry import build_strategy, effective_warmup
 
@@ -52,6 +58,9 @@ ENGINE_STATE_KEY = "engine"
 SESSION_STATE_KEY = "session"
 PENDING_DROPPED = "pending_dropped"
 AsyncSleep = Callable[[float], Awaitable[None]]
+NOTIFIER_STOP_TIMEOUT_S = 15.0
+STALE_ALERT_TIMEOUT_S = 5.0
+DAILY_CHECK_S = 60.0
 
 
 class PaperExchange(Protocol):
@@ -98,6 +107,8 @@ class PaperSession:
     status: StatusWriter
     restored: bool
     _sleep: AsyncSleep = field(default=asyncio.sleep, repr=False)
+    notifier: Notifier = field(default_factory=LogNotifier)
+    daily_summary: bool = True
     recent: deque[str] = field(default_factory=lambda: deque(maxlen=20))
     bars_processed: int = 0
     watchdog_grace_ms: int = 300_000
@@ -106,9 +117,17 @@ class PaperSession:
     _stopping: bool = field(default=False, init=False)
     _last_cycle_ts: int = field(default=0, init=False)
     _next_open: int | None = field(default=None, init=False)
+    _pending_notes: list[Notification] = field(default_factory=list, init=False, repr=False)
+    _last_daily_key: int | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         self._last_cycle_ts = self.exchange.now_ms()
+        self.engine.listener = self
+        self.commands = CommandService(
+            self,
+            timezone=self.config.notify.timezone,
+            confirm_window_s=self.config.notify.confirm_window_s,
+        )
 
     # ------------------------------------------------------------- eventos
 
@@ -116,16 +135,122 @@ class PaperSession:
         self.recent.append(f"{_iso(self.exchange.now_ms())} {text}")
         log.info(text)
 
+    def _queue_note(self, category: Category, text: str, ts: int, pair: Pair | None = None) -> None:
+        """Aviso que espera al commit del ciclo (ADR-0012). `ts` es el del fill o del evento."""
+        self._pending_notes.append(Notification(ts=ts, category=category, text=text, pair=pair))
+
+    def flush_notifications(self) -> None:
+        notes, self._pending_notes = self._pending_notes, []
+        for note in notes:
+            self.notifier.notify(note)
+
+    @contextlib.contextmanager
+    def _cycle(self) -> Iterator[None]:
+        """Transacción del ciclo: si falla, las notas acumuladas se descartan (I1).
+
+        Lo que no quedó en la DB no se avisa; la vela se re-procesa al reiniciar y avisa entonces.
+        """
+        try:
+            with self.store.transaction():
+                yield
+        except BaseException:
+            self._pending_notes.clear()
+            raise
+
+    def announce(self, category: Category, text: str, pair: Pair | None = None) -> None:
+        """Aviso inmediato (fuera de una transacción) que además queda en `recent`."""
+        self.note(text)
+        self.notifier.notify(
+            Notification(ts=self.exchange.now_ms(), category=category, text=text, pair=pair)
+        )
+
+    # EngineListener (ADR-0012): se llama dentro de la transacción; se avisa tras el commit.
+
+    def on_event(self, event: EventRecord) -> None:
+        symbol = "" if event.pair is None else f" {event.pair.symbol}"
+        detail = str(event.payload.get("detail", "")) if event.payload else ""
+        tail = f": {detail}" if detail else ""
+        when = f" ({_iso(event.ts)})"
+        if event.kind.startswith("protection_"):
+            verb = "liberada" if event.kind == PROTECTION_CLEARED else "activada"
+            self._queue_note(
+                Category.PROTECTION,
+                f"proteccion {verb}{symbol}: {event.reason}{tail}{when}",
+                event.ts,
+                event.pair,
+            )
+        elif event.kind == "exit_stuck":
+            self._queue_note(
+                Category.STUCK,
+                f"salida trabada{symbol}: {event.reason}{tail}; la posicion queda sin salida hasta "
+                f"que pase los filtros del exchange{when}",
+                event.ts,
+                event.pair,
+            )
+        elif event.kind == "exit_rejected":
+            # Una salida rechazada por el broker deja la posición abierta: es un error, no ruido.
+            self._queue_note(
+                Category.ERROR,
+                f"salida rechazada{symbol}: {event.reason}{tail}{when}",
+                event.ts,
+                event.pair,
+            )
+        elif event.kind == "entry_rejected":
+            if event.reason == ReasonCode.REPLAY.value:
+                return  # una por vela de reposición: quedan en la DB y en el log, no en el chat
+            self._queue_note(
+                Category.REJECTION,
+                f"entrada rechazada{symbol}: {event.reason}{tail}{when}",
+                event.ts,
+                event.pair,
+            )
+        else:
+            self._queue_note(
+                Category.ERROR,
+                f"evento {event.kind}{symbol}: {event.reason}{tail}{when}",
+                event.ts,
+                event.pair,
+            )
+
+    def on_position_opened(self, position: Position, fill: Fill) -> None:
+        stop_pct = (position.stop_price - position.entry_price) / position.entry_price * 100
+        self._queue_note(
+            Category.ENTRY,
+            f"compra {position.pair.symbol}: {fill.qty} @ {fill.price:,.2f} "
+            f"({fill.notional:,.2f} {position.pair.quote} brutos; neto en cuenta "
+            f"{position.qty}), stop {position.stop_price:,.2f} ({stop_pct:+.1f} %) "
+            f"({_iso(fill.fill_ts)})",
+            fill.fill_ts,
+            position.pair,
+        )
+
+    def on_trade_closed(self, trade: Trade, fill: Fill) -> None:
+        by_stop = trade.exit_reason in (ExitReason.STOP, ExitReason.TRAILING)
+        hours = trade.duration_ms / 3_600_000
+        self._queue_note(
+            Category.STOP if by_stop else Category.EXIT,
+            f"venta {trade.pair.symbol} por {trade.exit_reason.value}: {trade.qty} @ "
+            f"{fill.price:,.2f}, pnl {trade.pnl:+,.2f} ({trade.pnl_pct * 100:+.2f} %) en "
+            f"{hours:.0f} h ({_iso(fill.fill_ts)}); /status para la equity",
+            fill.fill_ts,
+            trade.pair,
+        )
+
     def on_feed_event(self, event: FeedEvent) -> None:
         self.store.record_event(
             EventRecord(
                 ts=event.ts, kind=event.kind, pair=event.pair, reason=event.detail[:80], payload={}
             )
         )
-        self.note(f"{event.kind} {'' if event.pair is None else event.pair.symbol} {event.detail}")
+        text = f"{event.kind} {'' if event.pair is None else event.pair.symbol} {event.detail}"
+        self.note(text)
+        if event.kind != FEED_RETRY:  # los reintentos ya se ven en el log; no son un aviso
+            self.notifier.notify(
+                Notification(ts=event.ts, category=Category.FEED, text=text, pair=event.pair)
+            )
 
     def on_broker_events(self, events: list[BrokerEvent]) -> None:
-        with self.store.transaction():
+        with self._cycle():
             self.engine.apply_events(events)
             self.persist()
         for event in events:
@@ -138,7 +263,29 @@ class PaperSession:
                     f"{event.fill.price} "
                     f"({intent.exit_reason.value if intent.exit_reason else 'entrada'})"
                 )
+        self.flush_notifications()
         self.write_status()
+
+    # ------------------------------------------------------------- CommandBackend (ADR-0012)
+
+    def trades(self) -> Sequence[Trade]:
+        return self.store.trades()
+
+    def fills(self) -> Sequence[Fill]:
+        return self.store.fills()
+
+    def events(self) -> Sequence[EventRecord]:
+        return self.store.events()
+
+    def snapshots(self) -> Sequence[PortfolioSnapshot]:
+        return self.store.snapshots()
+
+    def now_ms(self) -> int:
+        return self.exchange.now_ms()
+
+    @property
+    def initial_cash(self) -> Decimal:
+        return self.config.backtest.initial_cash
 
     def retry_pending_fills(self) -> None:
         """Órdenes que esperaban precio: se reintentan en cada tick del watcher (I8)."""
@@ -157,7 +304,7 @@ class PaperSession:
             {"version": __version__, "saved_ts": self.exchange.now_ms(), "mode": self.config.mode},
         )
 
-    def status_payload(self, phase: str) -> dict[str, Any]:
+    def status_payload(self, phase: str = "corriendo") -> dict[str, Any]:
         state = self.engine.state()
         marks = state.marks
         positions = [
@@ -209,6 +356,7 @@ class PaperSession:
                 "watcher_ticks": self.watcher.ticks,
             },
             "recent_events": list(self.recent),
+            "notify": self.notifier.status(),
             "db": {"path": str(self.store.path), "counts": self.store.counts()},
         }
 
@@ -219,6 +367,9 @@ class PaperSession:
             log.warning("paper: no se pudo escribir status.json (%s)", exc)
 
     # ------------------------------------------------------------- ciclo
+
+    def _stop_requested(self) -> bool:
+        return self._stopping
 
     def request_stop(self) -> None:
         if not self._stopping:
@@ -244,7 +395,7 @@ class PaperSession:
         """
         tf = self.config.strategy.timeframe.ms
         self._next_open = bar.open_time + tf
-        with self.store.transaction():
+        with self._cycle():
             self.engine.process_bar(bar)
             self.engine.apply_events(self.broker.fill_pending(self._next_open))
             self.engine.apply_events(self.broker.check_stops())
@@ -256,6 +407,7 @@ class PaperSession:
             f"vela {_iso(bar.open_time)}{' (reposición)' if bar.replay else ''}: "
             f"equity {self.engine.equity():.2f}, posiciones {len(self.engine.positions)}"
         )
+        self.flush_notifications()
         self.write_status()
 
     def stale_for_ms(self) -> int:
@@ -266,11 +418,15 @@ class PaperSession:
         tf = self.config.strategy.timeframe.ms
         return self.stale_for_ms() > 2 * tf + self.watchdog_grace_ms
 
-    def _handle_stale(self) -> None:
-        self.note(
+    async def _handle_stale(self) -> None:
+        text = (
             f"watchdog: sin ciclo completo hace {self.stale_for_ms() // 60_000} min; "
             "el proceso sale con 1 para que Docker lo reinicie"
         )
+        self.note(text)
+        # Envío directo: la cola del notificador no llegaría a drenarse antes del `os._exit`.
+        with contextlib.suppress(Exception):
+            await self.notifier.send_now(text, timeout_s=STALE_ALERT_TIMEOUT_S)
         self.write_status("colgado")
         if self.on_stale is not None:
             self.on_stale()
@@ -284,28 +440,72 @@ class PaperSession:
         while not self._stopping:
             await sleep(self.watchdog_interval_s)
             if not self._stopping and self.is_stale():
-                self._handle_stale()
+                await self._handle_stale()
                 return
 
-    def _task_done(self, name: str, task: asyncio.Task[None]) -> None:
-        """Una tarea auxiliar que muere con excepción para el proceso ordenadamente (I5)."""
+    def _task_done(self, name: str, task: asyncio.Task[None], *, critical: bool = True) -> None:
+        """Una tarea auxiliar que muere con excepción para el proceso ordenadamente (I5).
+
+        Las no críticas (notificador, resumen diario) solo se anotan: Telegram caído no frena
+        el ciclo de velas (ADR-0012).
+        """
         if task.cancelled():
             return
         exc = task.exception()
-        if exc is not None:
-            log.error("paper: la tarea %s murió: %r", name, exc)
-            self.note(f"tarea {name} caída: {exc!r}; parada solicitada")
+        if exc is None:
+            return
+        log.error("paper: la tarea %s murió: %r", name, exc)
+        if critical:
+            self.announce(Category.ERROR, f"tarea {name} caída: {exc!r}; parada solicitada")
             self.request_stop()
+        else:
+            self.note(f"tarea {name} caída: {exc!r}; el paper sigue sin ella")
+
+    # ------------------------------------------------------------- resumen diario (ADR-0012)
+
+    def _daily_key(self, now_ms: int) -> int | None:
+        """Día local (en `notify.timezone`) cuya hora de resumen ya pasó; None si aún no."""
+        zone = ZoneInfo(self.config.notify.timezone)
+        local = datetime.fromtimestamp(now_ms / 1000, tz=UTC).astimezone(zone)
+        if local.hour < self.config.notify.daily_summary_hour:
+            return None
+        return local.toordinal()
+
+    async def _daily_loop(self, sleep: AsyncSleep) -> None:
+        # Al arrancar se marca el día en curso como enviado: un reinicio no repite el resumen.
+        self._last_daily_key = self._daily_key(self.exchange.now_ms())
+        while True:
+            await sleep(DAILY_CHECK_S)
+            if self._stop_requested():  # vía método: mypy no estrecha el atributo entre awaits
+                return
+            key = self._daily_key(self.exchange.now_ms())
+            if key is not None and key != self._last_daily_key:
+                self._last_daily_key = key
+                self.send_daily_summary()
+
+    def send_daily_summary(self) -> None:
+        try:
+            text = self.commands.daily()
+        except Exception as exc:  # el resumen nunca tumba el bot
+            log.warning("paper: no se pudo armar el resumen diario (%s)", exc)
+            return
+        self.notifier.notify(
+            Notification(ts=self.exchange.now_ms(), category=Category.DAILY, text=text)
+        )
 
     async def run(self, *, max_bars: int | None = None, install_signals: bool = True) -> int:
         """Corre hasta `request_stop()` (o `max_bars`). Devuelve la cantidad de velas procesadas."""
         if install_signals:
             self._install_signal_handlers()
-        self.note(
+        notifier_task = asyncio.create_task(self.notifier.run())
+        notifier_task.add_done_callback(lambda t: self._task_done("notifier", t, critical=False))
+        self.announce(
+            Category.LIFECYCLE,
             f"paper {self.strategy.name} {self.config.strategy.timeframe.value} "
             f"{', '.join(p.symbol for p in self.config.strategy.pairs)}: "
             f"{'reanudado desde la DB' if self.restored else 'arranque limpio'}, "
-            f"{self.feed.replay_pending} velas de reposición"
+            f"{self.feed.replay_pending} velas de reposición, "
+            f"{len(self.engine.positions)} posicion(es), equity {self.engine.equity():,.2f}",
         )
         self._last_cycle_ts = self.exchange.now_ms()
         self.write_status("arranque")
@@ -313,6 +513,11 @@ class PaperSession:
         watcher_task.add_done_callback(lambda t: self._task_done("watcher", t))
         watchdog_task = asyncio.create_task(self._watchdog(self._sleep))
         watchdog_task.add_done_callback(lambda t: self._task_done("watchdog", t))
+        aux: list[asyncio.Task[None]] = [watcher_task, watchdog_task]
+        if self.daily_summary:
+            daily_task = asyncio.create_task(self._daily_loop(self._sleep))
+            daily_task.add_done_callback(lambda t: self._task_done("daily", t, critical=False))
+            aux.append(daily_task)
         try:
             async for bar in self.feed:
                 self.process(bar)
@@ -321,13 +526,24 @@ class PaperSession:
                     break
         finally:
             self.request_stop()
-            for task in (watcher_task, watchdog_task):
+            for task in aux:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError, Exception):
                     await task
-            with self.store.transaction():
+            with self._cycle():
                 self.persist()
+            self.flush_notifications()
+            self.announce(
+                Category.LIFECYCLE,
+                f"paper detenido tras {self.bars_processed} velas; equity "
+                f"{self.engine.equity():,.2f}, {len(self.engine.positions)} posicion(es) abiertas",
+            )
             self.write_status("detenido")
+            # Primero se apaga el notificador (drena la cola y deja de atender comandos) y recién
+            # después se cierra la DB: un `/status` tardío no encuentra el store cerrado (I6).
+            self.notifier.stop()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await asyncio.wait_for(notifier_task, NOTIFIER_STOP_TIMEOUT_S)
             self.store.close()
         return self.bars_processed
 
@@ -356,6 +572,25 @@ def _drop_pending_orders(store: SqliteStore, now_ms: int) -> int:
     return dropped
 
 
+def _build_notifier(config: BotConfig, on_command: Callable[[str], str]) -> Notifier:
+    """Telegram si está habilitado (token y chat_id vienen del entorno); si no, el log."""
+    if not config.notify.telegram_enabled:
+        return LogNotifier(config.notify.events)
+    from tradingbot.notify.telegram import TelegramNotifier  # import pesado: solo si se usa
+
+    token = config.telegram_bot_token
+    chat_id = config.telegram_chat_id
+    if token is None or chat_id is None:  # BotConfig ya lo valida; doble chequeo defensivo
+        msg = "notify.telegram_enabled requiere TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID"
+        raise ConfigError(msg)
+    return TelegramNotifier(
+        token.get_secret_value(),
+        chat_id.get_secret_value(),
+        levels=config.notify.events,
+        on_command=on_command,
+    )
+
+
 def build_paper_session(
     config: BotConfig,
     exchange: PaperExchange,
@@ -363,6 +598,7 @@ def build_paper_session(
     store: SqliteStore | None = None,
     status_path: Path | None = None,
     sleep: AsyncSleep = asyncio.sleep,
+    notifier: Notifier | None = None,
 ) -> PaperSession:
     if config.mode is not Mode.PAPER:
         msg = f"la sesión de paper exige `mode: paper` en la config (recibido {config.mode})"
@@ -430,6 +666,8 @@ def build_paper_session(
     status = StatusWriter(
         status_path if status_path is not None else config.persistence.logs_dir / "status.json"
     )
+    if notifier is None:
+        notifier = _build_notifier(config, lambda text: holder[0].commands.handle(text))
     session = PaperSession(
         config=config,
         strategy=strategy,
@@ -449,6 +687,7 @@ def build_paper_session(
         status=status,
         restored=restore is not None,
         _sleep=sleep,
+        notifier=notifier,
     )
     holder.append(session)
     for event in early_events:

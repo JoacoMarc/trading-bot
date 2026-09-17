@@ -18,6 +18,7 @@ from tradingbot.config import (
     parse_set,
 )
 from tradingbot.domain import ConfigError, Pair, Timeframe
+from tradingbot.notify import DEFAULT_LEVELS, Category, Level
 
 ROOT = Path(__file__).resolve().parents[2]
 MINIMAL: dict[str, Any] = {"strategy": {"name": "ema_trend", "pairs": ["BTC/USDT"]}}
@@ -168,6 +169,21 @@ def test_risk_and_backtest_rules() -> None:
         2026, 6, 1
     )
     assert BacktestConfig(include_holdout=True).effective_end is None
+
+
+def test_notify_events_merge_defaults_and_coerce_yaml_booleans() -> None:
+    cfg = NotifyConfig(events={"feed": False, "entry": True, "daily": "silent"})
+    assert cfg.events[Category.FEED] is Level.OFF  # YAML `off` llega como False
+    assert cfg.events[Category.ENTRY] is Level.ON
+    assert cfg.events[Category.DAILY] is Level.SILENT
+    assert cfg.events[Category.REJECTION] is Level.SILENT  # default conservado
+    assert set(cfg.events) == set(Category)
+    assert NotifyConfig().events == DEFAULT_LEVELS
+    assert NotifyConfig(confirm_window_s=30).confirm_window_s == 30
+    with pytest.raises(ValidationError):
+        NotifyConfig(events={"entry": "loud"})
+    with pytest.raises(ValidationError):
+        NotifyConfig(events={"ruido": "on"})
 
 
 def test_notify_timezone_validated() -> None:

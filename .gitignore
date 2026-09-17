@@ -32,3 +32,6 @@ build/
 .vscode/
 Thumbs.db
 .DS_Store
+
+# Config local del paper (copia de configs/paper.example.yaml; el VPS tiene la suya)
+/configs/paper.yaml

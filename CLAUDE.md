@@ -21,6 +21,7 @@ uv run tradingbot benchmark --kind bh_btc|equal_weight        # buy & hold regis
 uv run tradingbot experiments list|show|compare|sync          # REGISTRY.md se regenera con sync
 uv run tradingbot stop [--flatten] && uv run tradingbot resume  # kill switch por archivo logs/STOP (paper/live)
 uv run tradingbot status [--check] && uv run tradingbot trades --db db/paper.db  # lee logs/status.json (heartbeat) y la DB del paper
+uv run tradingbot telegram-test [--seconds 30]  # manda un mensaje de prueba y espera un comando; el token y el chat_id salen del entorno
 uv run tradingbot walkforward [--optimize --trials N] [--plateau]  # IS 24m/OOS 6m + gate 1; registra WF-NNNN (lento: background o terminal del usuario)
 uv run tradingbot optimize --to YYYY-MM-DD --trials N          # optuna solo in-sample; registra OPT-NNNN
 docker compose --profile paper build       # los servicios tienen perfil: sin --profile no se buildea nada
@@ -47,7 +48,7 @@ docker compose run --rm bot doctor        # `run` activa el perfil `tools` del s
 | `persistence/` | Protocol `TradeStore`: InMemoryStore, SqliteStore (WAL, JSON + columnas índice, `state` clave/valor); artefactos de experimentos |
 | `paper/` | `PaperSession`: LiveFeed → Engine → PaperBroker → SqliteStore, reanudación desde la DB, status.json, shutdown ordenado |
 | `observability/` | `logs/status.json` (heartbeat + foto del bot) para Docker, `tradingbot status` y `/paper-status` |
-| `notify/` | Notifier: logs, Telegram |
+| `notify/` | Puerto `Notifier` (ADR-0012): `LogNotifier`, `TelegramNotifier` (cola acotada, whitelist por chat), `CommandService` (`/status`, `/pause`, `/stop flatten` con confirmación; escribe los mismos archivos que la CLI) |
 | `analyst/` | LLM analista fuera del loop (anthropic SDK) |
 | `cli/` | typer |
 | `doctor.py` | Chequeos de entorno |
@@ -58,7 +59,7 @@ docker compose run --rm bot doctor        # `run` activa el perfil `tools` del s
 2. **Sin lookahead.** Las estrategias solo ven velas cerradas. Señal en `t` → fill al open de `t+1`. Todo cambio en `strategy/` o `indicators/` corre el test de equivalencia (`validation/equivalence.py`).
 3. **Un solo camino.** Backtest, paper y live comparten `Engine`, precedencia intra-vela y modelo de fills/stops (ADR-0002). No se agregan atajos "solo para backtest".
 4. **Live nunca desde Claude.** `permissions.deny` + hook `scripts/hooks/guard_live.py` bloquean `tradingbot live`, `--confirm-live` y `TRADINGBOT_LIVE_ACK`. Live exige `mode: live` + `--confirm-live` + env `TRADINGBOT_LIVE_ACK=yes`, y sus claves viven solo en `.env.live` (perfil `live` de compose).
-5. **Secretos.** Solo en `.env*` (gitignored, no se leen desde Claude; `.env.example` es la plantilla). Los YAML de `configs/` no contienen claves. `.env` de desarrollo nunca tiene claves con permiso de trading.
+5. **Secretos.** Solo en `.env*` (gitignored, no se leen desde Claude; `.env.example` es la plantilla). Los YAML de `configs/` no contienen claves. `.env` de desarrollo nunca tiene claves con permiso de trading. El token de Telegram tampoco pasa por el chat: el usuario lo pega en el `.env` (PC o VPS) y lo valida con `tradingbot telegram-test`.
 6. **Experimentos por CLI.** Todo backtest/walk-forward/optimización se corre con `tradingbot ...` para que quede registrado en `experiments/runs/`. No se edita el `config.yaml` de una corrida registrada. `REGISTRY.md` se regenera con `tradingbot experiments sync`.
 7. **Riesgo nunca bloquea salidas.** Kill switch = sin nuevas entradas (+ `--flatten` opcional).
 8. **Tiempo.** Timestamps del dominio en `int` ms epoch UTC. `datetime` solo tz-aware UTC y solo en bordes. El cierre de vela lo define el reloj del exchange, no el local.
