@@ -35,6 +35,8 @@ class AdvisorStore:
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(proposals)")}
         if "raw_response" not in columns:
             self.db.execute("ALTER TABLE proposals ADD COLUMN raw_response TEXT")
+        if "stop_reason" not in columns:
+            self.db.execute("ALTER TABLE proposals ADD COLUMN stop_reason TEXT")
         meta_columns = {row[1] for row in self.db.execute("PRAGMA table_info(advisor_meta)")}
         if "contract" not in meta_columns:
             self.db.execute("ALTER TABLE advisor_meta ADD COLUMN contract TEXT")
@@ -177,11 +179,12 @@ class AdvisorStore:
         output_tokens: int = 0,
         response_hash: str = "",
         raw_response: str = "",
+        stop_reason: str = "",
     ) -> None:
         cursor = self.db.execute(
             "UPDATE proposals SET "
             "state=?,completed_at=?,answer=?,error=?,cost=?,input_tokens=?,output_tokens=?,"
-            "response_hash=?,raw_response=? "
+            "response_hash=?,raw_response=?,stop_reason=? "
             "WHERE id=? AND state='inflight'",
             (
                 "decided" if error is None else "failed",
@@ -193,6 +196,7 @@ class AdvisorStore:
                 output_tokens,
                 response_hash,
                 raw_response,
+                stop_reason,
                 proposal.proposal_id,
             ),
         )
@@ -210,11 +214,14 @@ class AdvisorStore:
         states: dict[str, int] = {}
         cost = Decimal(0)
         accepted = 0
+        actions: dict[str, int] = {}
         for row in rows:
             states[row["state"]] = states.get(row["state"], 0) + 1
             cost += Decimal(row["cost"] or row["reserved"])
-            if row["answer"] and json.loads(row["answer"])["action"] == "BUY":
-                accepted += 1
+            if row["answer"]:
+                action = json.loads(row["answer"])["action"]
+                actions[action] = actions.get(action, 0) + 1
+                accepted += int(action == "BUY")
         return {
             "heartbeat_ts": self.db.execute(
                 "SELECT heartbeat_ts FROM advisor_meta WHERE id=1"
@@ -222,6 +229,7 @@ class AdvisorStore:
             "proposals": len(rows),
             "states": states,
             "recommendations_buy": accepted,
+            "recommendations_by_action": actions,
             "cost_usd_including_uncertain_reservations": str(cost),
             "mode": "OBSERVATION",
         }

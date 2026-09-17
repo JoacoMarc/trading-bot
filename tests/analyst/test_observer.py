@@ -49,10 +49,13 @@ class FakeProvider:
             "snapshot_hash": item.snapshot_hash,
             "action": "BUY",
             "confidence": 0.6,
+            "reason_code": "trend_confirmed",
             "reason": "fixture",
         }
         if self.behavior == "id":
             payload["proposal_id"] = "wrong"
+        if self.behavior in {"HOLD", "ABSTAIN", "SELL"}:
+            payload["action"] = self.behavior
         return ProviderResponse(
             "invalid" if self.behavior == "json" else json.dumps(payload), 100, 50
         )
@@ -70,7 +73,9 @@ def config(**kwargs: object) -> AdvisorConfig:
     )
 
 
-@pytest.mark.parametrize("behavior", ["ok", "timeout", "429", "id", "json"])
+@pytest.mark.parametrize(
+    "behavior", ["ok", "HOLD", "ABSTAIN", "SELL", "timeout", "429", "id", "json"]
+)
 async def test_responses_and_failures_are_persisted_once(tmp_path: Path, behavior: str) -> None:
     cfg = config()
     store = AdvisorStore(tmp_path / "advisor.db", cfg.policy_hash)
@@ -83,8 +88,10 @@ async def test_responses_and_failures_are_persisted_once(tmp_path: Path, behavio
     await worker.drain()
     assert provider.calls == 1
     row = store.rows()[0]
-    assert row["state"] == ("decided" if behavior == "ok" else "failed")
-    assert bool(row["answer"]) == (behavior == "ok")
+    valid = behavior in {"ok", "HOLD", "ABSTAIN"}
+    assert row["state"] == ("decided" if valid else "failed")
+    assert bool(row["answer"]) == valid
+    assert store.status()["recommendations_buy"] == int(behavior == "ok")
     if behavior not in {"timeout", "429"}:
         assert row["cost"] == "0.00035"
         assert row["raw_response"]
@@ -143,9 +150,10 @@ def test_expiry_schema_lock_and_policy_isolation(tmp_path: Path) -> None:
                 "snapshot_hash": item.snapshot_hash,
                 "action": "SELL",
                 "confidence": 0.8,
+                "reason_code": "trend_weak",
                 "reason": "no position",
             }
-        )
+        ).validate_for(item, 1_000_500)
     store.close()
 
 

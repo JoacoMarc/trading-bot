@@ -13,13 +13,14 @@ from typing import Literal, Protocol, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from tradingbot.analyst.store import AdvisorStore
-from tradingbot.decision.models import PROMPT, PROMPT_HASH, Answer, Proposal
+from tradingbot.decision.models import Answer, Proposal, review_prompt
 
 
 class AdvisorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     instance: str = "donchian-observer-v1"
     provider: Literal["anthropic"] = "anthropic"
+    review_kind: Literal["entry", "exit"] = "entry"
     model: str = Field(min_length=1, max_length=100)
     paid_calls_enabled: bool = False
     input_usd_per_million: Decimal = Field(default=Decimal(0), ge=0)
@@ -42,8 +43,12 @@ class AdvisorConfig(BaseModel):
         return self
 
     @property
+    def prompt_hash(self) -> str:
+        return hashlib.sha256(review_prompt(self.review_kind).encode()).hexdigest()
+
+    @property
     def policy_hash(self) -> str:
-        payload = {**self.model_dump(mode="json"), "prompt_hash": PROMPT_HASH}
+        payload = {**self.model_dump(mode="json"), "prompt_hash": self.prompt_hash}
         return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
     @property
@@ -59,6 +64,7 @@ class ProviderResponse:
     text: str
     input_tokens: int
     output_tokens: int
+    stop_reason: str = "end_turn"
 
 
 class Provider(Protocol):
@@ -89,12 +95,16 @@ class AdvisorWorker:
         error: str | None = None
         received_at: int | None = None
         try:
-            if len((PROMPT + proposal.payload()).encode()) > self.config.max_input_bytes:
+            if (
+                len((review_prompt(self.config.review_kind) + proposal.payload()).encode())
+                > self.config.max_input_bytes
+            ):
                 raise ValueError("input_limit")
             if (
                 proposal.model != self.config.model
                 or proposal.provider != self.config.provider
-                or proposal.prompt_hash != PROMPT_HASH
+                or proposal.prompt_hash != self.config.prompt_hash
+                or proposal.policy != f"{self.config.review_kind}-review-v1"
             ):
                 raise ValueError("policy_mismatch")
             for attempt in range(3):
@@ -117,6 +127,8 @@ class AdvisorWorker:
                     await asyncio.sleep(exc.wait_seconds)
             if response is None:
                 raise ValueError("empty_response")
+            if response.stop_reason != "end_turn":
+                raise ValueError("incomplete_response")
             answer = Answer.model_validate_json(response.text)
             assert received_at is not None
             answer.validate_for(proposal, received_at)
@@ -141,6 +153,7 @@ class AdvisorWorker:
             output_tokens=0 if response is None else response.output_tokens,
             response_hash=response_hash,
             raw_response="" if response is None else response.text,
+            stop_reason="" if response is None else response.stop_reason,
         )
         return True
 
@@ -166,7 +179,7 @@ class AnthropicProvider:
             message = await self.client.messages.create(
                 model=self.config.model,
                 max_tokens=self.config.max_output_tokens,
-                system=PROMPT,
+                system=review_prompt(self.config.review_kind),
                 messages=[{"role": "user", "content": proposal.payload()}],
             )
         except RateLimitError as exc:
@@ -176,9 +189,12 @@ class AnthropicProvider:
                 raise RateLimited(60) from exc
             raise RateLimited(float(wait)) from exc
         text = "".join(block.text for block in message.content if block.type == "text")
-        if message.stop_reason != "end_turn":
-            text = ""  # truncada/tool_use: formato inválido, conserva el consumo real
-        return ProviderResponse(text, message.usage.input_tokens, message.usage.output_tokens)
+        return ProviderResponse(
+            text,
+            message.usage.input_tokens,
+            message.usage.output_tokens,
+            str(message.stop_reason),
+        )
 
     async def close(self) -> None:
         await self.client.close()

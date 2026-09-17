@@ -1,6 +1,7 @@
 # Configurar modelo exacto y tarifas verificadas ANTES de crear una DB prospectiva.
 instance: donchian-observer-v1
 provider: anthropic
+review_kind: entry  # exit usa otra cohorte/DB y --positions-db de una cuenta paper Donchian
 model: MODEL_NOT_SELECTED
 paid_calls_enabled: false
 input_usd_per_million: 0

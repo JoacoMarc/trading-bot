@@ -7,9 +7,13 @@ cash o filtros de cartera. Snapshot limitado a features market-v1, precio/stop
 propuesto, símbolo y cierre exclusivo. No consulta noticias ni archivos. No se
 incluye estado de una cartera: después de un veto las carteras divergen.
 
-Política entry-review-v1: BUY significa aceptar la propuesta y HOLD vetarla;
-no autoriza una compra, no decide cantidad ni puede cambiar stops. No se envían
-salidas a este evaluador de entradas. Confianza numérica declarada por el modelo,
+Política entry-review-v1: BUY acepta, HOLD veta y ABSTAIN declara información
+insuficiente. No autoriza compras ni decide cantidad o stops. La política separada
+exit-review-v1 lee posiciones Donchian desde un SQLite paper en modo solo lectura.
+Cada cierre genera SELL/HOLD/ABSTAIN observacionales; BUY con posición y SELL sin
+posición son inválidos. La sesión de origen debe ser paper, no futura y guardada
+en las últimas 4h + 5min. Cash, posición, stop y fecha de guardado se capturan en
+una transacción de lectura; nunca se modifica el paper. Confianza declarada,
 sin interpretación estadística. Prompt/proveedor/modelo/tarifas y política quedan
 congelados por instancia. Una DB de observación nunca se mezcla con otra política.
 
@@ -32,3 +36,13 @@ Antes de ejecutar LLM se requiere replay financiero con 1m, base aprobada con ig
 espera,12semanas/40cierres por cartera y gate prospectivo ADR-0014. La política
 compartida exige señal+60s, decisión<=señal+45s, vencimiento señal+120s y nunca
 cotización anterior ni low intrabar anterior a la compra. Ver runbook de investigación.
+
+Todas las respuestas incluyen reason_code del vocabulario fijo: trend_confirmed,
+trend_weak, volatility, costs, insufficient_data o mixed_signals. La respuesta
+cruda y stop_reason se conservan incluso si el proveedor la trunca.
+
+La prueba de contrato usa tres snapshots sintéticos (tendencia, caída y señales
+mixtas), una cohorte/modelo por ejecución y el presupuesto normal. Exige 3/3
+respuestas válidas antes de 45s. Entre como máximo dos modelos elegibles, elegir
+menor costo medido, luego menor latencia media y luego identificador alfabético.
+No puntuar la dirección recomendada ni PnL. No habilita paper ni llama API por defecto.

@@ -11,6 +11,7 @@ from typing import Annotated
 import typer
 import yaml
 
+from tradingbot.analyst.positions import read_positions
 from tradingbot.analyst.store import AdvisorStore
 from tradingbot.analyst.worker import AdvisorConfig, AdvisorWorker, AnthropicProvider
 from tradingbot.cli.backtest_commands import ConfigOption, _fail, _load_config
@@ -38,10 +39,15 @@ def observe(
     policy: PolicyOption,
     db: DBOption = Path("db/advisor.db"),
     max_bars: Annotated[int | None, typer.Option("--max-bars", min=1)] = None,
+    positions_db: Annotated[Path | None, typer.Option("--positions-db")] = None,
 ) -> None:
     """Recolecta rupturas4h en tiempo real; paid_calls_enabled=false no llama a la API."""
     cfg = _load_config(config, {})
     settings = load_policy(policy)
+    if (settings.review_kind == "exit") != (positions_db is not None):
+        _fail(ValueError("política exit requiere --positions-db; entry no admite cartera externa"))
+    if positions_db is not None and positions_db.resolve() == db.resolve():
+        _fail(ValueError("la DB observadora debe ser distinta de la cuenta paper"))
     if cfg.strategy.name != "donchian" or cfg.strategy.timeframe.value != "4h":
         _fail(ValueError("observador v1 requiere Donchian4h"))
     strategy = build_strategy(cfg.strategy)
@@ -56,6 +62,7 @@ def observe(
             "execution": cfg.execution.model_dump(mode="json"),
             "risk": cfg.risk.model_dump(mode="json", exclude={"kill_switch_file"}),
             "features": FEATURE_VERSION,
+            "positions_source": None if positions_db is None else str(positions_db.resolve()),
         }
     )
     store.recover(exchange.now_ms())
@@ -91,10 +98,19 @@ def observe(
                             ohlcv=data.ohlcv, indicators=data.indicators, index=data.index
                         )
                 btc = contexts.get(Pair.parse("BTC/USDT"))
+                positions = (
+                    {} if positions_db is None else read_positions(positions_db, exchange.now_ms())
+                )
                 if btc is not None:
                     for pair, ctx in contexts.items():
                         signal = strategy.on_candle(ctx)
-                        if signal.action is not SignalAction.ENTER_LONG:
+                        position = positions.get(pair.symbol)
+                        if (
+                            settings.review_kind == "entry"
+                            and signal.action is not SignalAction.ENTER_LONG
+                        ):
+                            continue
+                        if settings.review_kind == "exit" and position is None:
                             continue
                         features = feature_frame(ctx.candles, btc.candles).iloc[-1]
                         if features.isna().any():
@@ -110,9 +126,16 @@ def observe(
                             observed_at=exchange.now_ms(),
                             features={str(k): float(v) for k, v in features.items()},
                             close=str(ctx.candle.close),
-                            stop=str(signal.stop_price),
+                            stop=str(
+                                signal.stop_price if position is None else position.stop_price
+                            ),
                             provider=settings.provider,
                             model=settings.model,
+                            policy="entry-review-v1"
+                            if settings.review_kind == "entry"
+                            else "exit-review-v1",
+                            position=position,
+                            prompt_hash=settings.prompt_hash,
                         )
                         store.add(proposal, settings.queue_capacity)
                 # Otro proceso, sin posiciones ni stops que bloquear. Deadline incluye cola.
@@ -151,6 +174,35 @@ def status(
 
 
 @advisor_app.command()
+def contract(
+    config: ConfigOption,
+    policy: PolicyOption,
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Tres casos sintéticos; compara formato/costo/latencia, nunca rentabilidad."""
+    from tradingbot.analyst.contract import run_contract
+
+    cfg, settings = _load_config(config, {}), load_policy(policy)
+    if not settings.paid_calls_enabled or cfg.anthropic_api_key is None:
+        _fail(
+            ValueError(
+                "contrato real requiere paid_calls_enabled, modelo, tarifas y API en entorno"
+            )
+        )
+    assert cfg.anthropic_api_key is not None
+    provider = AnthropicProvider(cfg.anthropic_api_key.get_secret_value(), settings)
+
+    async def run() -> None:
+        try:
+            result = await run_contract(settings, provider, output)
+            typer.echo(json.dumps(result, indent=2))
+        finally:
+            await provider.close()
+
+    asyncio.run(run())
+
+
+@advisor_app.command()
 def replay(
     policy: PolicyOption,
     db: DBOption = Path("db/advisor.db"),
@@ -163,11 +215,13 @@ def replay(
         for row in store.rows():
             proposal = Proposal.model_validate_json(row["payload"])
             action = "HOLD"
+            reason_code = None
             valid = False
             if row["state"] == "decided" and row["answer"]:
                 answer = Answer.model_validate_json(row["answer"])
                 answer.validate_for(proposal, row["completed_at"])
                 action, valid = answer.action, True
+                reason_code = answer.reason_code
             rows.append(
                 {
                     "proposal_id": proposal.proposal_id,
@@ -176,6 +230,7 @@ def replay(
                     "received_at": row["completed_at"],
                     "pair": proposal.pair,
                     "action": action,
+                    "reason_code": reason_code,
                     "valid": valid,
                     "error": row["error"],
                     "cost_usd": row["cost"] or row["reserved"],

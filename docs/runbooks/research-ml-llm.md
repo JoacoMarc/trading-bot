@@ -6,7 +6,7 @@ Resultados: `experiments/research-2026-09-17/REPORT.md`.
 
 ## Entorno y reproducción
 
-Desde la raíz del repositorio, Python3.12:
+Desde la raíz del repositorio, Python 3.12:
 
 ```bash
 uv sync --frozen --group ml
@@ -28,7 +28,7 @@ uv run tradingbot backtest --config configs/candidates/supertrend-1h-a.yaml
 uv run tradingbot walkforward --config configs/candidates/supertrend-1h-a.yaml --fixed --plateau --montecarlo-runs 5000
 ```
 
-Repetir4h/1h,A/B y `--set execution.slippage_bps=10`/`20`. No cambiar parámetros
+Repetir 4h/1h, A/B y `--set execution.slippage_bps=10`/`20`. No cambiar parámetros
 tras mirar el resultado. La carpeta de resultados conserva comandos y logs de cada
 corrida. Se usaron copias Git aisladas para que cambios posteriores no alteraran
 el código mientras corría una evaluación. No se consumió holdout de estas familias.
@@ -87,10 +87,19 @@ backup/recuperación (`docs/runbooks/paper-multiestrategia.md`).
 
 ## Observador LLM
 
-`advisor observe` tiene feed propio y **ningún broker**. Recolecta todas las rupturas
-Donchian, incluso con una posición que ya existiría en otra cartera. El snapshot
-no contiene cash/posiciones, para poder reproducir carteras que divergen tras un
-veto. BUY es una recomendación guardada, jamás un fill ni una orden de Telegram.
+`advisor observe` tiene feed propio y **ningún broker**. La política `review_kind:
+entry` recolecta todas las rupturas Donchian, incluso con una posición que ya
+existiría en otra cartera. Su snapshot no contiene cash/posiciones, para poder
+reproducir carteras que divergen tras un veto. BUY es una recomendación guardada,
+jamás un fill ni una orden de Telegram. HOLD y ABSTAIN se distinguen de los errores.
+
+Para observar salidas usar una política aparte con `review_kind: exit`, otro nombre
+de instancia, otra DB y `--positions-db <paper-donchian.db>`. Solo se leen posiciones
+Donchian de una sesión paper guardada hace menos de 4h5min; se capturan posición,
+cash y fecha del origen. SELL/HOLD/ABSTAIN quedan como recomendaciones. El observador
+jamás escribe en la fuente ni sustituye sus stops/salidas. La referencia `regime_bh`
+no es una fuente elegible para este experimento Donchian. Si el origen se detiene,
+el observador falla por frescura y conserva lo registrado.
 
 Antes de iniciar una cohorte, elegir modelo exacto, verificar tarifas del proveedor
 y poner la clave en entorno/local `.env` sin compartirla. Copiar
@@ -99,6 +108,20 @@ pagas deshabilitadas. La DB congela modelo, prompt, tarifas, estrategia, univers
 features y riesgo/costos; cambiar esos elementos exige una nueva cohorte/DB.
 La reserva conservadora respeta límites USD1/día y20/mes UTC; una llamada cuyo
 resultado se desconoce conserva la reserva y no se repite.
+
+Antes de iniciar mercado, correr como máximo dos contratos sintéticos con políticas
+de modelos/versiones y tarifas previamente fijados. Habilitar llamadas explícitamente
+en cada política. El comando hace tres consultas; registra raw, motivo de fin, uso,
+costo, latencia y validez. Elegible exige 3/3 válidas; seleccionar menor costo, luego
+latencia media y luego identificador, nunca PnL. Una ejecución crea un directorio nuevo.
+
+```bash
+uv run tradingbot advisor contract --config configs/candidates/donchian-a.yaml --policy configs/advisor.yaml --output experiments/advisor-contract-modelo1
+```
+
+No se ejecutó contra un proveedor real en esta entrega. Las pruebas automáticas usan
+SDK simulado, sin red ni gasto. Anthropic es un adaptador disponible; la interfaz
+permite agregar otro proveedor, pero no se afirma soporte implementado para todos.
 
 ```bash
 uv run tradingbot advisor observe --config configs/candidates/donchian-a.yaml --policy configs/advisor.yaml --db db/advisor.db
@@ -116,7 +139,7 @@ consultan por CLI; heartbeat por cierre, healthcheck detecta falta prolongada de
 Compose opcional, proyecto y volumen propios:
 
 ```bash
-docker build -t tradingbot-research:<revision> .
+docker build -f Dockerfile.ml -t tradingbot-research:<revision> .
 RESEARCH_IMAGE=tradingbot-research:<revision> docker compose -f compose.research.yaml --profile observer up -d observer
 RESEARCH_IMAGE=tradingbot-research:<revision> docker compose -f compose.research.yaml logs --tail 50 observer
 RESEARCH_IMAGE=tradingbot-research:<revision> docker compose -f compose.research.yaml stop observer
@@ -127,6 +150,11 @@ No desplegado en esta entrega. Sin modelo/API elegidos no se inició una cohorte
 se generó gasto. Telegram conserva el único receptor original; los papers existentes
 mantienen su outbox de operaciones y sus identidades. El observador no simula trades
 para producir avisos.
+
+El Compose incluido arranca solo el observador de entradas. La observación de salidas
+por CLI requiere acceso de solo lectura al directorio SQLite de origen, incluyendo
+sus archivos WAL/SHM si está activo, y un directorio propio escribible para el observador.
+No montar el volumen del paper como volumen de escritura del observador.
 
 ## Condiciones pendientes antes de ejecutar un filtro LLM
 
@@ -141,3 +169,7 @@ evidencia prospectiva congelada de al menos12semanas y40cierres por cartera,
 comparación incremental con incertidumbre y costos de API. No se puede generar esa
 muestra hoy. Ningún resultado de esta entrega autoriza trading real. Si la base no
 supera los gates, se conserva la referencia paper y el observador sigue sin broker.
+
+La combinación opcional de predicción calibrada ML dentro del snapshot LLM no se
+habilitó: las dos familias ML v1 quedaron no promovibles. Las cohortes actuales usan
+variables de mercado y su confianza declarada no sustituye una probabilidad calibrada.
